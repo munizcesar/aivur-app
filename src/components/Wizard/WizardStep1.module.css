@@ -1,0 +1,189 @@
+.wizardStep {
+  position: relative;
+  z-index: 1;
+}
+
+.stepTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  margin-bottom: var(--space-2);
+  line-height: 1.2;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.stepSubtitle {
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-8);
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* mode grid styles */
+.modeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5);
+}
+
+.modeCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  color: var(--color-text);
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.05);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+/* Gradient Border Hover Effect */
+.modeCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-2xl);
+  padding: 2px; /* Border thickness */
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.modeCard:hover::after, .modeCard:focus-visible::after {
+  opacity: 1;
+}
+
+.modeCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px oklch(from var(--color-primary) l c h / 0.15);
+  background: linear-gradient(to bottom, var(--color-surface) 0%, oklch(from var(--color-primary) l c h / 0.03) 100%);
+}
+
+.modeCard:active {
+  transform: translateY(-1px);
+}
+
+.modeIconWrapper {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(from var(--color-primary) l c h / 0.1);
+  color: var(--color-primary);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-4);
+  transition: all 0.3s ease;
+}
+
+.modeCard:hover .modeIconWrapper {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  color: white;
+  transform: scale(1.05) rotate(-3deg);
+  box-shadow: 0 8px 16px oklch(from var(--color-primary) l c h / 0.2);
+}
+
+.modeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  flex-grow: 1;
+}
+
+.modeInfo strong {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.modeSubtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.modeBenefits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  width: 100%;
+}
+
+.modeBenefits li {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  line-height: 1.4;
+}
+
+.benefitCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: oklch(from var(--color-success) l c h / 0.15);
+  color: var(--color-success);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.modeTip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: oklch(from var(--color-warning) l c h / 0.08);
+  border: 1px solid oklch(from var(--color-warning) l c h / 0.2);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  margin-top: auto;
+}
+
+.modeTip svg {
+  color: var(--color-warning);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+@media (max-width: 768px) {
+  .modeGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  .modeCard {
+    padding: var(--space-5);
+  }
+}
+
+.selected::after { opacity: 1; }
+.selected { transform: translateY(-4px); box-shadow: 0 12px 28px oklch(from var(--color-primary) l c h / 0.15); background: linear-gradient(to bottom, var(--color-surface) 0%, oklch(from var(--color-primary) l c h / 0.03) 100%); }
+.selected .modeIconWrapper { background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%); color: white; transform: scale(1.05) rotate(-3deg); box-shadow: 0 8px 16px oklch(from var(--color-primary) l c h / 0.2); }
+

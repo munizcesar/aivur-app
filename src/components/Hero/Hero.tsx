@@ -3,14 +3,26 @@
 import { Cpu, PlayCircle, Zap } from "lucide-react";
 import styles from "./Hero.module.css";
 
+import { useQuizStore } from "@/store/useQuizStore";
+import { useEffect, useState } from "react";
+
 export default function Hero() {
+  const mode = useQuizStore((state) => state.mode);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isCompact = mounted && mode !== null;
+
   const openTour = () => {
     // Custom event to trigger the Mascot tour
     window.dispatchEvent(new CustomEvent('aivo-tour'));
   };
 
   return (
-    <section className={styles.hero} data-aivo-anchor="hero">
+    <section className={`${styles.hero} ${isCompact ? styles.compact : ''}`} data-aivo-anchor="hero">
       <div className={styles.heroBgSvg}></div>
       <div className={`container ${styles.heroContainer}`}>
         <div className={styles.heroContent}>

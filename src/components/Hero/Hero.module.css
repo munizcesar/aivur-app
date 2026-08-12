@@ -227,3 +227,10 @@
   line-height: 1.5;
   margin: 0;
 }
+
+.compact { padding: var(--space-4) 0 var(--space-4); }
+.compact .heroVisual { display: none; }
+.compact .heroDescriptionMain { display: none; }
+.compact .heroBadge { display: none; }
+.compact .heroTitleMain { font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: 0; }
+

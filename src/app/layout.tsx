@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AivoWrapper from "@/components/Aivo/AivoWrapper";
+import GlobalSync from "@/components/Sync/GlobalSync";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -51,6 +52,7 @@ export default function RootLayout({
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false}>
           {children}
           <AivoWrapper />
+          <GlobalSync />
         </ThemeProvider>
       </body>
     </html>

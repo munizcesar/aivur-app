@@ -36,8 +36,8 @@
   /* ── Gradients (AIVUR) ── */
   --grad-ai: linear-gradient(135deg, #7C3AED, #6D28D9);
   --grad-os: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);
-  --grad-brand: linear-gradient(135deg, #06B6D4, #2563EB, #7C3AED, #EC4899, #F97316);
-  --grad-brand-h: linear-gradient(135deg, #06B6D4, #2563EB, #7C3AED, #EC4899, #F97316);
+  --grad-brand: linear-gradient(135deg, #4F6EF7 0%, #7C3AED 100%);
+  --grad-brand-h: linear-gradient(135deg, #5B7AF8 0%, #8B4FF5 100%);
   
   /* ── Layout & Aesthetics ── */
   --max-width: 1200px;
@@ -107,8 +107,8 @@
   /* ── Gradients ── */
   --grad-ai: linear-gradient(135deg, #8B5CF6, #A78BFA);
   --grad-os: linear-gradient(135deg, #f87171 0%, #fbbf24 100%);
-  --grad-brand: linear-gradient(135deg, #06B6D4, #2563EB, #7C3AED, #EC4899, #F97316);
-  --grad-brand-h: linear-gradient(135deg, #06B6D4, #2563EB, #7C3AED, #EC4899, #F97316);
+  --grad-brand: linear-gradient(135deg, #6480FA 0%, #9060F8 100%);
+  --grad-brand-h: linear-gradient(135deg, #7290FB 0%, #A070FA 100%);
 
   /* ── Shadows ── */
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.24);

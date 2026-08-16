@@ -1,7 +1,7 @@
 import Header from "@/components/Header/Header";
 import Hero from "@/components/Hero/Hero";
 import Search from "@/components/Search/Search";
-import Wizard from "@/components/Wizard/Wizard";
+import Generator from "@/components/Mentor/Generator";
 import Footer from "@/components/Footer/Footer";
 import SideDrawer from "@/components/SideDrawer/SideDrawer";
 import Marketing from "@/components/Marketing/Marketing";
@@ -13,7 +13,7 @@ export default function Home() {
       <main style={{ flex: 1 }}>
         <Hero />
         <Search />
-        <Wizard />
+        <Generator />
         <Marketing />
       </main>
       <Footer />

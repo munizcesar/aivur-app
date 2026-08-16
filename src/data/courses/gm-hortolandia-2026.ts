@@ -1,0 +1,250 @@
+import type { Course } from "@/types/course";
+
+export const gmHortolandia2026: Course = {
+  id: "gm-hortolandia-2026",
+  title: "GM Hortolândia 2026",
+  subjects: [
+    {
+      subject: "Língua Portuguesa",
+      ytTerm: "português para concursos aula",
+      nichos: [
+        {
+          title: "Fonética e Fonologia",
+          items: [
+            { id: "gm-hortolandia_portugues_fonetica_01", label: "Fonética e fonologia: conceitos básicos" },
+            { id: "gm-hortolandia_portugues_fonetica_02", label: "Classificação dos fonemas" },
+            { id: "gm-hortolandia_portugues_fonetica_03", label: "Fonemas e letras" },
+            { id: "gm-hortolandia_portugues_fonetica_04", label: "Encontros vocálicos" },
+            { id: "gm-hortolandia_portugues_fonetica_05", label: "Encontros consonantais e dígrafo" },
+            { id: "gm-hortolandia_portugues_fonetica_06", label: "Sílaba tônica e tonicidade das palavras" },
+            { id: "gm-hortolandia_portugues_fonetica_07", label: "Divisão silábica" },
+            { id: "gm-hortolandia_portugues_fonetica_08", label: "Vogais e semivogais" },
+          ],
+        },
+        {
+          title: "Ortografia e Acentuação",
+          items: [
+            { id: "gm-hortolandia_portugues_ortografia_01", label: "Ortografia" },
+            { id: "gm-hortolandia_portugues_ortografia_02", label: "Acentuação gráfica" },
+            { id: "gm-hortolandia_portugues_ortografia_03", label: "Uso da crase" },
+            { id: "gm-hortolandia_portugues_ortografia_04", label: "Uso do hífen" },
+          ],
+        },
+        {
+          title: "Morfologia — Classes de Palavras",
+          items: [
+            { id: "gm-hortolandia_portugues_morfologia_01", label: "Substantivo" },
+            { id: "gm-hortolandia_portugues_morfologia_02", label: "Adjetivo" },
+            { id: "gm-hortolandia_portugues_morfologia_03", label: "Artigo" },
+            { id: "gm-hortolandia_portugues_morfologia_04", label: "Numeral" },
+            { id: "gm-hortolandia_portugues_morfologia_05", label: "Advérbio" },
+            { id: "gm-hortolandia_portugues_morfologia_06", label: "Pronomes" },
+            { id: "gm-hortolandia_portugues_morfologia_07", label: "Preposição" },
+            { id: "gm-hortolandia_portugues_morfologia_08", label: "Conjunção" },
+            { id: "gm-hortolandia_portugues_morfologia_09", label: "Interjeição" },
+            { id: "gm-hortolandia_portugues_morfologia_10", label: "Verbos e conjugação de verbos" },
+            { id: "gm-hortolandia_portugues_morfologia_11", label: "Formas nominais e locuções verbais" },
+            { id: "gm-hortolandia_portugues_morfologia_12", label: "Gênero e número (flexão nominal e verbal)" },
+          ],
+        },
+        {
+          title: "Formação de Palavras",
+          items: [
+            { id: "gm-hortolandia_portugues_formacao_01", label: "Estrutura e formação das palavras" },
+            { id: "gm-hortolandia_portugues_formacao_02", label: "Prefixos, sufixos, afixos e radicais" },
+            { id: "gm-hortolandia_portugues_formacao_03", label: "Derivação e composição" },
+            { id: "gm-hortolandia_portugues_formacao_04", label: "Criação de palavras" },
+            { id: "gm-hortolandia_portugues_formacao_05", label: "Sinônimos, homônimos e antônimos" },
+          ],
+        },
+        {
+          title: "Sintaxe",
+          items: [
+            { id: "gm-hortolandia_portugues_sintaxe_01", label: "Frases" },
+            { id: "gm-hortolandia_portugues_sintaxe_02", label: "Sujeito e predicado" },
+            { id: "gm-hortolandia_portugues_sintaxe_03", label: "Termos essenciais da oração" },
+            { id: "gm-hortolandia_portugues_sintaxe_04", label: "Termos integrantes da oração (objeto direto/indireto, agente da passiva)" },
+            { id: "gm-hortolandia_portugues_sintaxe_05", label: "Termos acessórios da oração (aposto, vocativo, adjunto adverbial)" },
+            { id: "gm-hortolandia_portugues_sintaxe_06", label: "Orações coordenadas e subordinadas" },
+            { id: "gm-hortolandia_portugues_sintaxe_07", label: "Período" },
+            { id: "gm-hortolandia_portugues_sintaxe_08", label: "Concordância nominal e verbal" },
+            { id: "gm-hortolandia_portugues_sintaxe_09", label: "Regência nominal e verbal" },
+            { id: "gm-hortolandia_portugues_sintaxe_10", label: "Predicação verbal" },
+            { id: "gm-hortolandia_portugues_sintaxe_11", label: "Vozes verbais (ativa, passiva e reflexiva)" },
+            { id: "gm-hortolandia_portugues_sintaxe_12", label: 'Funções e emprego das palavras "que" e "se"' },
+            { id: "gm-hortolandia_portugues_sintaxe_13", label: 'Uso do "Porquê"' },
+            { id: "gm-hortolandia_portugues_sintaxe_14", label: "Formas verbais seguidas de pronomes" },
+            { id: "gm-hortolandia_portugues_sintaxe_15", label: "Sintaxe de concordância, regência e colocação" },
+          ],
+        },
+        {
+          title: "Pontuação e Discurso",
+          items: [
+            { id: "gm-hortolandia_portugues_pontuacao_01", label: "Sinais de pontuação" },
+            { id: "gm-hortolandia_portugues_pontuacao_02", label: "Uso do travessão" },
+            { id: "gm-hortolandia_portugues_pontuacao_03", label: "Discurso direto e indireto" },
+          ],
+        },
+        {
+          title: "Semântica e Figuras de Linguagem",
+          items: [
+            { id: "gm-hortolandia_portugues_semantica_01", label: "Denotação e conotação" },
+            { id: "gm-hortolandia_portugues_semantica_02", label: "Metáfora e personificação (prosopopeia)" },
+            { id: "gm-hortolandia_portugues_semantica_03", label: "Eufemismo, hipérbole e ironia" },
+            { id: "gm-hortolandia_portugues_semantica_04", label: "Catacrese, paradoxo e metonímia" },
+            { id: "gm-hortolandia_portugues_semantica_05", label: "Elipse, pleonasmo e silepse" },
+            { id: "gm-hortolandia_portugues_semantica_06", label: "Antítese e sinestesia" },
+            { id: "gm-hortolandia_portugues_semantica_07", label: "Onomatopeias, aliteração e assonância" },
+            { id: "gm-hortolandia_portugues_semantica_08", label: "Comparações e associação de ideias" },
+            { id: "gm-hortolandia_portugues_semantica_09", label: "Vícios de linguagem" },
+          ],
+        },
+        {
+          title: "Interpretação de Texto",
+          items: [
+            { id: "gm-hortolandia_portugues_interpretacao_01", label: "Tipos de comunicação: descrição, narração e dissertação" },
+            { id: "gm-hortolandia_portugues_interpretacao_02", label: "Tipos de discurso" },
+            { id: "gm-hortolandia_portugues_interpretacao_03", label: "Coesão textual" },
+            { id: "gm-hortolandia_portugues_interpretacao_04", label: "Relação entre ideias" },
+            { id: "gm-hortolandia_portugues_interpretacao_05", label: "Intensificações e oposição" },
+            { id: "gm-hortolandia_portugues_interpretacao_06", label: "Provérbios e expressões ao pé da letra" },
+            { id: "gm-hortolandia_portugues_interpretacao_07", label: "Imagens, história em quadrinhos e pessoa do discurso" },
+            { id: "gm-hortolandia_portugues_interpretacao_08", label: "Relação entre nome e personagem" },
+            { id: "gm-hortolandia_portugues_interpretacao_09", label: "Repetições" },
+          ],
+        },
+      ],
+    },
+    {
+      subject: "Matemática e Raciocínio Lógico",
+      ytTerm: "matemática para concursos aula",
+      nichos: [
+        {
+          title: "Números e Operações Básicas",
+          items: [
+            { id: "gm-hortolandia_matematica_numeros_01", label: "Números naturais e números inteiros" },
+            { id: "gm-hortolandia_matematica_numeros_02", label: "Numeração decimal e sistemas de numeração" },
+            { id: "gm-hortolandia_matematica_numeros_03", label: "Operações fundamentais (adição, subtração, multiplicação, divisão)" },
+            { id: "gm-hortolandia_matematica_numeros_04", label: "Potenciação e radiciação" },
+            { id: "gm-hortolandia_matematica_numeros_05", label: "MDC e MMC" },
+            { id: "gm-hortolandia_matematica_numeros_06", label: "Múltiplos e divisores" },
+            { id: "gm-hortolandia_matematica_numeros_07", label: "Números fracionários e operações com frações" },
+            { id: "gm-hortolandia_matematica_numeros_08", label: "Números decimais" },
+            { id: "gm-hortolandia_matematica_numeros_09", label: "Conjuntos numéricos (naturais, inteiros, racionais, irracionais, reais)" },
+          ],
+        },
+        {
+          title: "Sistema de Medidas",
+          items: [
+            { id: "gm-hortolandia_matematica_medidas_01", label: "Medidas de comprimento, superfície e volume" },
+            { id: "gm-hortolandia_matematica_medidas_02", label: "Medidas de capacidade, tempo e massa" },
+            { id: "gm-hortolandia_matematica_medidas_03", label: "m² e metro linear" },
+            { id: "gm-hortolandia_matematica_medidas_04", label: "Medindo o tempo: horas, minutos e segundos" },
+          ],
+        },
+        {
+          title: "Matemática Financeira",
+          items: [
+            { id: "gm-hortolandia_matematica_financeira_01", label: "Porcentagem" },
+            { id: "gm-hortolandia_matematica_financeira_02", label: "Juros simples e compostos" },
+            { id: "gm-hortolandia_matematica_financeira_03", label: "Regra de três simples e composta" },
+            { id: "gm-hortolandia_matematica_financeira_04", label: "Sistema Monetário Nacional (Real)" },
+          ],
+        },
+        {
+          title: "Álgebra",
+          items: [
+            { id: "gm-hortolandia_matematica_algebra_01", label: "Equação de 1º grau" },
+            { id: "gm-hortolandia_matematica_algebra_02", label: "Inequação do 1º grau" },
+            { id: "gm-hortolandia_matematica_algebra_03", label: "Equação de 2º grau (completa e incompleta)" },
+            { id: "gm-hortolandia_matematica_algebra_04", label: "Equações fracionárias" },
+            { id: "gm-hortolandia_matematica_algebra_05", label: "Expressões algébricas e frações algébricas" },
+            { id: "gm-hortolandia_matematica_algebra_06", label: "Sistemas lineares" },
+            { id: "gm-hortolandia_matematica_algebra_07", label: "Números complexos" },
+          ],
+        },
+        {
+          title: "Funções e Proporção",
+          items: [
+            { id: "gm-hortolandia_matematica_funcoes_01", label: "Relação e função (domínio, contradomínio e imagem)" },
+            { id: "gm-hortolandia_matematica_funcoes_02", label: "Função do 1º grau e função constante" },
+            { id: "gm-hortolandia_matematica_funcoes_03", label: "Função do 2º grau" },
+            { id: "gm-hortolandia_matematica_funcoes_04", label: "Função exponencial" },
+            { id: "gm-hortolandia_matematica_funcoes_05", label: "Função logarítmica" },
+            { id: "gm-hortolandia_matematica_funcoes_06", label: "Razão e proporção / grandezas proporcionais" },
+          ],
+        },
+        {
+          title: "Geometria e Trigonometria",
+          items: [
+            { id: "gm-hortolandia_matematica_geometria_01", label: "Geometria plana (plano, área, perímetro, ângulo, reta, ponto)" },
+            { id: "gm-hortolandia_matematica_geometria_02", label: "Geometria espacial" },
+            { id: "gm-hortolandia_matematica_geometria_03", label: "Geometria analítica" },
+            { id: "gm-hortolandia_matematica_geometria_04", label: "Teorema de Tales" },
+            { id: "gm-hortolandia_matematica_geometria_05", label: "Teorema de Pitágoras" },
+            { id: "gm-hortolandia_matematica_geometria_06", label: "Trigonometria da 1ª volta (seno, cosseno, tangente)" },
+          ],
+        },
+        {
+          title: "Estatística e Combinatória",
+          items: [
+            { id: "gm-hortolandia_matematica_estatistica_01", label: "Progressão Aritmética (PA) e Progressão Geométrica (PG)" },
+            { id: "gm-hortolandia_matematica_estatistica_02", label: "Análise combinatória" },
+            { id: "gm-hortolandia_matematica_estatistica_03", label: "Probabilidade" },
+            { id: "gm-hortolandia_matematica_estatistica_04", label: "Estatística" },
+            { id: "gm-hortolandia_matematica_estatistica_05", label: "Relação entre grandezas: tabelas e gráficos" },
+          ],
+        },
+        {
+          title: "Raciocínio Lógico",
+          items: [
+            { id: "gm-hortolandia_matematica_logica_01", label: "Sequência lógica de números, letras, palavras e figuras" },
+            { id: "gm-hortolandia_matematica_logica_02", label: "Coordenação viso-motora, orientação espacial e temporal" },
+            { id: "gm-hortolandia_matematica_logica_03", label: "Formação de conceitos e discriminação de elementos" },
+            { id: "gm-hortolandia_matematica_logica_04", label: "Reversibilidade" },
+            { id: "gm-hortolandia_matematica_logica_05", label: "Problemas lógicos com dados, figuras e palitos" },
+            { id: "gm-hortolandia_matematica_logica_06", label: "Estrutura lógica de relações arbitrárias (pessoas, lugares, objetos)" },
+            { id: "gm-hortolandia_matematica_logica_07", label: "Raciocínio verbal, matemático, quantitativo e sequencial" },
+            { id: "gm-hortolandia_matematica_logica_08", label: "Multiplicação e simplificação" },
+            { id: "gm-hortolandia_matematica_logica_09", label: "Resolução de problemas matemáticos" },
+          ],
+        },
+      ],
+    },
+    {
+      subject: "Legislação Municipal",
+      ytTerm: "resumo concurso lei municipal Hortolândia",
+      nichos: [
+        {
+          title: "Leis Municipais de Hortolândia",
+          items: [
+            { id: "gm-hortolandia_legislacao_municipal_01", label: "Lei Orgânica do Município de Hortolândia" },
+            { id: "gm-hortolandia_legislacao_municipal_02", label: "Lei Municipal nº 2.004/2008 — Estatuto dos Servidores Municipais" },
+            { id: "gm-hortolandia_legislacao_municipal_03", label: "Lei Municipal nº 965/2001 — Regime Próprio de Previdência Municipal" },
+            { id: "gm-hortolandia_legislacao_municipal_04", label: "Lei Complementar nº 12/2010 — Planos de Carreira dos Servidores" },
+            { id: "gm-hortolandia_legislacao_municipal_05", label: "Lei Municipal nº 4.148/2023 — Estrutura Organizacional da Prefeitura" },
+            { id: "gm-hortolandia_legislacao_municipal_06", label: "Lei Complementar nº 129/2023 — Plano de Evolução dos Vencimentos" },
+          ],
+        },
+      ],
+    },
+    {
+      subject: "Conhecimentos Específicos — Guarda Municipal",
+      ytTerm: "resumo concurso guarda municipal",
+      nichos: [
+        {
+          title: "Leis da Função + Primeiros Socorros",
+          items: [
+            { id: "gm-hortolandia_especificos_leis_01", label: "Lei nº 13.022/2014 — Estatuto Geral das Guardas Municipais" },
+            { id: "gm-hortolandia_especificos_leis_02", label: "Lei nº 10.826/2003 — Estatuto do Desarmamento" },
+            { id: "gm-hortolandia_especificos_leis_03", label: "Lei nº 9.503/1997 — Código de Trânsito Brasileiro (CTB)" },
+            { id: "gm-hortolandia_especificos_leis_04", label: "Lei nº 10.741/2003 — Estatuto do Idoso" },
+            { id: "gm-hortolandia_especificos_leis_05", label: "Lei nº 8.069/1990 — Estatuto da Criança e do Adolescente (ECA)" },
+            { id: "gm-hortolandia_especificos_leis_06", label: "Lei nº 11.340/2006 — Lei Maria da Penha" },
+            { id: "gm-hortolandia_especificos_leis_07", label: "Noções de primeiros socorros" },
+          ],
+        },
+      ],
+    },
+  ],
+};

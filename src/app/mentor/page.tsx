@@ -103,10 +103,12 @@ export default function MentorPage() {
               {localCourses.map(c => renderCourseCard(c, true))}
             </div>
           ) : (
-            <div style={{ padding: "2rem", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "12px", textAlign: "center" }}>
-              <p style={{ color: "#a1a1aa", marginBottom: "1rem" }}>Você ainda não gerou nenhuma trilha de estudos personalizada.</p>
-              <Link href="/mentor/gerar" style={{ backgroundColor: "white", color: "black", padding: "0.5rem 1rem", borderRadius: "8px", fontWeight: "600", textDecoration: "none" }}>
-                Gerar com IA agora
+            <div style={{ padding: "4rem 2rem", backgroundColor: "rgba(255,255,255,0.02)", borderRadius: "16px", border: "1px dashed rgba(255,255,255,0.1)", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ fontSize: "4rem", marginBottom: "1rem", opacity: 0.9 }}>🚀</div>
+              <h3 style={{ fontSize: "1.6rem", fontWeight: "700", marginBottom: "0.5rem", color: "white" }}>Sua jornada de aprovação começa aqui</h3>
+              <p style={{ color: "#94a3b8", marginBottom: "2rem", maxWidth: "450px", lineHeight: "1.5" }}>Cole seu edital ou matéria e deixe nossa IA estruturar o seu plano de estudos e cronograma em segundos.</p>
+              <Link href="/mentor/gerar" style={{ backgroundColor: "white", color: "black", padding: "1rem 2rem", borderRadius: "12px", fontWeight: "bold", textDecoration: "none", fontSize: "1.1rem", transition: "transform 0.2s", boxShadow: "0 4px 14px 0 rgba(255,255,255,0.1)" }}>
+                Criar Minha Primeira Trilha
               </Link>
             </div>
           )

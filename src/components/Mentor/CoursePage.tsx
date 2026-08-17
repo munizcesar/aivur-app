@@ -45,6 +45,14 @@ export default function CoursePage({ course, onUpdateCourse }: CoursePageProps) 
     }
   }, [course.title, resetAll]);
 
+  const handleExpandAll = () => {
+    setOpenSubjects(new Set(course.subjects.map(s => s.subject)));
+  };
+
+  const handleCollapseAll = () => {
+    setOpenSubjects(new Set());
+  };
+
   const totalItems = course.subjects.reduce(
     (acc, s) => acc + s.nichos.reduce((a, n) => a + n.items.length, 0),
     0
@@ -97,7 +105,12 @@ export default function CoursePage({ course, onUpdateCourse }: CoursePageProps) 
 
       {/* Lista de matérias */}
       <CourseProvider courseId={course.id}>
-        <div className={styles.courseBody}>
+        <div className={styles.courseBody} style={{ maxWidth: "800px", margin: "0 auto", paddingBottom: "4rem" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginBottom: "1rem" }}>
+            <button onClick={handleExpandAll} style={{ background: "transparent", color: "#94a3b8", border: "none", cursor: "pointer", fontSize: "0.95rem", fontWeight: "600" }}>+ Expandir Tudo</button>
+            <button onClick={handleCollapseAll} style={{ background: "transparent", color: "#94a3b8", border: "none", cursor: "pointer", fontSize: "0.95rem", fontWeight: "600" }}>- Recolher Tudo</button>
+          </div>
+
           {course.subjects.map((subject, subjectIndex) => (
             <SubjectAccordion
               key={subject.subject}

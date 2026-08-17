@@ -1,6 +1,7 @@
 "use client";
 
 import { Cpu, PlayCircle, Zap } from "lucide-react";
+import Link from "next/link";
 import styles from "./Hero.module.css";
 
 import { useQuizStore } from "@/store/useQuizStore";
@@ -27,19 +28,19 @@ export default function Hero() {
       <div className={`container ${styles.heroContainer}`}>
         <div className={styles.heroContent}>
           <div className={styles.heroBadge}>
-            <Cpu width={14} height={14} /> Tecnologia aplicada à preparação para concursos
+            <Cpu width={14} height={14} /> Focado em alta conversão de estudos
           </div>
           <h1 className={styles.heroTitleMain}>
-            Estude com um mentor que <br />
-            <span className={styles.heroAccent}>evolui junto com você.</span>
+            Corte seu tempo de planejamento <br />
+            <span className={styles.heroAccent}>pela metade com IA.</span>
           </h1>
           <p className={styles.heroDescriptionMain}>
-            Questões personalizadas, correção de redações por critérios da banca, planejamento adaptativo e acompanhamento contínuo em um único ambiente de estudos.
+            Não perca semanas montando planilhas. A inteligência artificial lê seu edital, estrutura todas as matérias e gera um cronograma de estudos focado na sua aprovação em segundos.
           </p>
           <div className={styles.heroCtaGroup}>
-            <button className={`btn btn-primary btn-large`} onClick={openTour}>
-              Tour com o Mascote <PlayCircle width={20} height={20} />
-            </button>
+            <Link href="/mentor/gerar" className={`btn btn-primary btn-large`} style={{ textDecoration: 'none' }}>
+              Comece a estudar de graça
+            </Link>
           </div>
         </div>
 

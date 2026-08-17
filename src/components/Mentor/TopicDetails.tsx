@@ -4,6 +4,7 @@ import { useTopicContent, Flashcard, Questao } from "@/hooks/useTopicContent";
 import { useCourseProgress } from "@/hooks/useCourseProgress";
 import { useCourseContext } from "@/context/CourseContext";
 import { useLocalCourses } from "@/hooks/useLocalCourses";
+import ReactMarkdown from 'react-markdown';
 
 interface TopicDetailsProps {
   topicId: string;
@@ -186,7 +187,32 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
           </div>
           
           {state.teoria ? (
-            <div className={styles.teoriaContent} dangerouslySetInnerHTML={{ __html: state.teoria.replace(/\n/g, '<br/>') }} />
+            <div className={styles.teoriaContentWrapper}>
+              <div className={styles.teoriaMarkdownContent}>
+                <ReactMarkdown>{state.teoria}</ReactMarkdown>
+              </div>
+              <div className={styles.teoriaCtaBlock}>
+                <p style={{ color: "var(--color-text-muted)", marginBottom: "1rem", fontSize: "0.95rem" }}>
+                  Terminou a leitura? Vamos consolidar o conhecimento.
+                </p>
+                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                  <button 
+                    className={`${styles.btnPrimary} ${styles.btnPrimaryLarge}`}
+                    onClick={() => setActiveTab("questoes")}
+                    style={{ flex: 1, textAlign: "center" }}
+                  >
+                    Praticar com Questões ➔
+                  </button>
+                  <button 
+                    className={styles.generateBtn}
+                    onClick={() => setActiveTab("flashcards")}
+                    style={{ flex: 1 }}
+                  >
+                    Ir para Flashcards
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : (
             <button 
               className={styles.generateBtn}

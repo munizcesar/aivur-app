@@ -518,17 +518,24 @@
 
 .itemLabel {
   flex: 1;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
   line-height: 1.4;
   color: var(--color-text);
-  transition: color 0.15s ease;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+.itemLabel:hover {
+  background-color: var(--bg-hover, rgba(255,255,255,0.05));
 }
 
 .itemLabelChecked {
   text-decoration: line-through;
   color: var(--color-text-faint);
+  opacity: 0.4;
+  transition: all 0.3s ease;
 }
 
 /* ── Action Buttons (Pill) ── */
@@ -1015,4 +1022,77 @@
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+.teoriaContentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.teoriaMarkdownContent {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--color-text-faint, rgba(255, 255, 255, 0.85));
+  font-family: var(--font-body);
+}
+
+.teoriaMarkdownContent h1,
+.teoriaMarkdownContent h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 0.5rem;
+}
+
+.teoriaMarkdownContent h3,
+.teoriaMarkdownContent h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+  margin-top: 1.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.teoriaMarkdownContent p {
+  margin-bottom: 1.2rem;
+}
+
+.teoriaMarkdownContent ul,
+.teoriaMarkdownContent ol {
+  margin-bottom: 1.2rem;
+  padding-left: 1.5rem;
+}
+
+.teoriaMarkdownContent li {
+  margin-bottom: 0.5rem;
+}
+
+.teoriaMarkdownContent blockquote {
+  border-left: 4px solid var(--color-primary, #b8891e);
+  background: rgba(255, 255, 255, 0.02);
+  margin: 1.5rem 0;
+  padding: 1rem 1.2rem;
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.teoriaMarkdownContent code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.teoriaCtaBlock {
+  background: rgba(255,255,255,0.02);
+  border: 1px dashed rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
 }

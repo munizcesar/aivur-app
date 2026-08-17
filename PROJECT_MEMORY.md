@@ -41,7 +41,7 @@ Site de preparação para concursos (AIVUR), migrando de um HTML puro de 11.000+
 - **Rodada de polimento** — corrigida race condition na geração Groq (cliques duplos), corrigidos órfãos no painel de revisão ao regerar questões, eliminado prop drilling do `courseId` via `CourseContext`. ✅ Concluída.
 - **Fase 5a** — Gerenciamento de cursos: listagem (já existia), exclusão segura com GC de órfãos, edição de nome do curso. ✅ Concluída.
 - **sourceType edital/livre** — implementado, filtro de banca condicional. ✅ Concluído.
-- **Conexão RAG (studymaster-knowledge → Trilha)** — ✅ CONCLUÍDO. Foi exposta uma rota POST `/api/rag-search` no `worker.js` (deploy em `.workers.dev`) consultando o índice `studymaster-knowledge`. O Next.js consome essa rota antes de gerar Teoria/Questões e injeta o texto com timeout de segurança (fallback para zero-shot). Retornos adicionais (`matchCount` e `topScore`) foram implementados na rota para fins de diagnóstico. Testes comprovaram sucesso tanto com disciplinas jurídicas quanto gramática.
+- **Conexão RAG (studymaster-knowledge → Trilha)** — ✅ CONCLUÍDO. Rota POST `/api/rag-search` no `worker.js` (repo: `C:\Users\Cesar Victor\Desktop\studymaster-worker`, deploy em `.workers.dev`) consultando o índice `studymaster-knowledge`. O Next.js consome essa rota antes de gerar Teoria/Questões. Retornos adicionais (`matchCount` e `topScore`) foram implementados. Filtro de qualidade (`score >= 0.70`) implementado no backend para descartar vetores fracos e impedir que conteúdo irrelevante contamine a geração do LLM em matérias não-jurídicas.
 - **Sincronização Multi-dispositivo (D1/R2)** — ✅ CONCLUÍDO. Implementação de rotas de Push/Pull + Magic Link via Worker. Cliente Next.js adaptado com `useSyncManager`, salvaguardas contra reescrita acidental e debouncing local para IndexedDB. Envio de e-mail via API REST oficial do Resend implementado.
 ## 5. Bugs Conhecidos (verificar se já corrigidos)
 
@@ -63,4 +63,4 @@ Site de preparação para concursos (AIVUR), migrando de um HTML puro de 11.000+
 - Ao pedir correções, sempre restringir explicitamente que a IA NÃO deve alterar código de partes já validadas/testadas, só a área da tarefa pedida.
 
 ---
-*Última atualização: registrar aqui a data e o resumo da sessão sempre que este arquivo for editado.*
+*Última atualização: 16/08/2026. Auditoria de RAG realizada; implementado filtro de score mínimo (0.70) direto na API do worker para evitar alucinações em disciplinas com baixa cobertura vetorial.*

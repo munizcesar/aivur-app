@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocalCourses } from "@/hooks/useLocalCourses";
 import type { Course, CourseSubject, CourseNicho, CourseTopic } from "@/types/course";
@@ -21,11 +21,38 @@ export default function Generator() {
 
   // Review states
   const [draftCourse, setDraftCourse] = useState<Course | null>(null);
+  const [expandedSubjects, setExpandedSubjects] = useState<number[]>([]);
+
+  const loadingPhrases = [
+    "Lendo conteúdo do edital...",
+    "Mapeando pesos das disciplinas...",
+    "Estruturando leis e matérias específicas...",
+    "Finalizando cronograma..."
+  ];
+  const [loadingPhraseIdx, setLoadingPhraseIdx] = useState(0);
+
+  useEffect(() => {
+    if (step !== "loading") return;
+    const interval = setInterval(() => {
+      setLoadingPhraseIdx(prev => (prev + 1) % loadingPhrases.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [step]);
+
+  const toggleSubject = (sIdx: number) => {
+    setExpandedSubjects(prev => 
+      prev.includes(sIdx) ? prev.filter(idx => idx !== sIdx) : [...prev, sIdx]
+    );
+  };
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) {
       setError("Preencha o título da trilha.");
+      return;
+    }
+    if (!text && !file) {
+      setError("Por favor, cole o texto do edital ou envie um PDF para gerar a trilha.");
       return;
     }
 
@@ -135,11 +162,11 @@ export default function Generator() {
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "600" }}>Conteúdo do Edital (Texto)</label>
+            <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "600" }}>Edital, Matéria ou Tópicos de Estudo</label>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Cole aqui a parte de conhecimentos/matérias do edital..."
+              placeholder="Cole aqui o edital completo, uma matéria específica ou a lista de assuntos que você precisa estudar..."
               style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", backgroundColor: "var(--background-card, #1e293b)", border: "1px solid #334155", color: "white", minHeight: "200px" }}
             />
           </div>
@@ -147,7 +174,7 @@ export default function Generator() {
           <div style={{ textAlign: "center", color: "#94a3b8" }}>OU</div>
 
           <div>
-            <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "600" }}>Upload de Edital (PDF)</label>
+            <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "600" }}>Upload de Edital ou Material (PDF)</label>
             <input
               type="file"
               accept=".pdf"
@@ -156,7 +183,20 @@ export default function Generator() {
             />
           </div>
 
-          <button type="submit" style={{ marginTop: "1rem", backgroundColor: "white", color: "black", padding: "1rem", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", border: "none" }}>
+          <button 
+            type="submit" 
+            disabled={!title || (!text && !file)}
+            style={{ 
+              marginTop: "1rem", 
+              backgroundColor: (!title || (!text && !file)) ? "#334155" : "white", 
+              color: (!title || (!text && !file)) ? "#94a3b8" : "black", 
+              padding: "1rem", 
+              borderRadius: "8px", 
+              fontWeight: "bold", 
+              cursor: (!title || (!text && !file)) ? "not-allowed" : "pointer", 
+              border: "none" 
+            }}
+          >
             Gerar Trilha com IA
           </button>
         </form>
@@ -166,7 +206,9 @@ export default function Generator() {
         <div style={{ textAlign: "center", padding: "4rem" }}>
           <div className="spinner" style={{ border: "4px solid rgba(255,255,255,0.1)", width: "40px", height: "40px", borderRadius: "50%", borderLeftColor: "white", animation: "spin 1s linear infinite", margin: "0 auto 1rem auto" }}></div>
           <h2>Processando Edital...</h2>
-          <p style={{ color: "#94a3b8", marginTop: "1rem" }}>Nossa IA está organizando os tópicos e estruturando sua trilha. Isso pode levar alguns segundos.</p>
+          <p style={{ color: "#94a3b8", marginTop: "1rem", minHeight: "24px", transition: "all 0.3s ease" }}>
+            {loadingPhrases[loadingPhraseIdx]}
+          </p>
           <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
         </div>
       )}
@@ -180,63 +222,79 @@ export default function Generator() {
             </button>
           </div>
 
-          {draftCourse.subjects.map((subject, sIdx) => (
+          {draftCourse.subjects.map((subject, sIdx) => {
+            const isExpanded = expandedSubjects.includes(sIdx);
+            return (
             <div key={sIdx} style={{ backgroundColor: "rgba(255,255,255,0.02)", border: "1px solid #334155", borderRadius: "8px", padding: "1rem", marginBottom: "1rem" }}>
-              <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: "0.8rem", color: "#94a3b8" }}>Matéria</label>
-                  <input
-                    value={subject.subject}
-                    onChange={(e) => handleUpdateSubject(sIdx, "subject", e.target.value)}
-                    style={{ width: "100%", padding: "0.5rem", backgroundColor: "transparent", border: "1px solid #334155", color: "white", borderRadius: "4px" }}
-                  />
+              <div style={{ display: "flex", gap: "1rem", alignItems: "center", cursor: "pointer" }} onClick={() => toggleSubject(sIdx)}>
+                <div style={{ flex: 1, fontWeight: "bold", fontSize: "1.1rem" }}>
+                  {subject.subject} <span style={{ color: "#94a3b8", fontSize: "0.9rem", marginLeft: "0.5rem" }}>({subject.nichos.reduce((acc, n) => acc + n.items.length, 0)} tópicos)</span>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: "0.8rem", color: "#94a3b8" }}>Termo de Busca YouTube</label>
-                  <input
-                    value={subject.ytTerm}
-                    onChange={(e) => handleUpdateSubject(sIdx, "ytTerm", e.target.value)}
-                    style={{ width: "100%", padding: "0.5rem", backgroundColor: "transparent", border: "1px solid #334155", color: "white", borderRadius: "4px" }}
-                  />
+                <div style={{ color: "#94a3b8", fontSize: "0.9rem" }}>
+                  {isExpanded ? "▲ Ocultar" : "▼ Revisar"}
                 </div>
-                <button onClick={() => handleDeleteSubject(sIdx)} style={{ backgroundColor: "#ef4444", color: "white", border: "none", borderRadius: "4px", padding: "0 1rem", marginTop: "1.2rem", cursor: "pointer" }}>
-                  Remover
-                </button>
               </div>
 
-              <div style={{ paddingLeft: "1rem", borderLeft: "2px solid #334155" }}>
-                {subject.nichos.map((nicho, nIdx) => (
-                  <div key={nIdx} style={{ marginBottom: "1rem" }}>
-                    <div style={{ display: "flex", gap: "1rem", marginBottom: "0.5rem" }}>
+              {isExpanded && (
+                <div style={{ marginTop: "1.5rem", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "1rem" }} onClick={e => e.stopPropagation()}>
+                  <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem" }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: "0.8rem", color: "#94a3b8" }}>Matéria</label>
                       <input
-                        value={nicho.title}
-                        onChange={(e) => handleUpdateNicho(sIdx, nIdx, e.target.value)}
-                        style={{ flex: 1, padding: "0.5rem", backgroundColor: "transparent", border: "1px solid #334155", color: "white", borderRadius: "4px", fontWeight: "bold" }}
+                        value={subject.subject}
+                        onChange={(e) => handleUpdateSubject(sIdx, "subject", e.target.value)}
+                        style={{ width: "100%", padding: "0.5rem", backgroundColor: "transparent", border: "1px solid #334155", color: "white", borderRadius: "4px" }}
                       />
-                      <button onClick={() => handleDeleteNicho(sIdx, nIdx)} style={{ backgroundColor: "transparent", color: "#ef4444", border: "1px solid #ef4444", borderRadius: "4px", padding: "0 0.5rem", cursor: "pointer" }}>
-                        X
-                      </button>
                     </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: "0.8rem", color: "#94a3b8" }}>Termo de Busca YouTube</label>
+                      <input
+                        value={subject.ytTerm}
+                        onChange={(e) => handleUpdateSubject(sIdx, "ytTerm", e.target.value)}
+                        style={{ width: "100%", padding: "0.5rem", backgroundColor: "transparent", border: "1px solid #334155", color: "white", borderRadius: "4px" }}
+                      />
+                    </div>
+                    <button onClick={() => handleDeleteSubject(sIdx)} style={{ backgroundColor: "transparent", color: "#ef4444", border: "none", padding: "0", marginTop: "1.2rem", cursor: "pointer", textDecoration: "underline", fontSize: "0.9rem" }}>
+                      Excluir Matéria
+                    </button>
+                  </div>
 
-                    <div style={{ paddingLeft: "1rem" }}>
-                      {nicho.items.map((item, iIdx) => (
-                        <div key={item.id} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  <div style={{ paddingLeft: "1rem", borderLeft: "2px solid #334155" }}>
+                    {subject.nichos.map((nicho, nIdx) => (
+                      <div key={nIdx} style={{ marginBottom: "1.5rem" }}>
+                        <div style={{ display: "flex", gap: "1rem", marginBottom: "0.8rem" }}>
                           <input
-                            value={item.label}
-                            onChange={(e) => handleUpdateTopic(sIdx, nIdx, iIdx, e.target.value)}
-                            style={{ flex: 1, padding: "0.4rem", backgroundColor: "transparent", border: "1px solid #334155", color: "#cbd5e1", borderRadius: "4px", fontSize: "0.9rem" }}
+                            value={nicho.title}
+                            onChange={(e) => handleUpdateNicho(sIdx, nIdx, e.target.value)}
+                            style={{ flex: 1, padding: "0.5rem", backgroundColor: "transparent", border: "1px solid #334155", color: "white", borderRadius: "4px", fontWeight: "bold" }}
                           />
-                          <button onClick={() => handleDeleteTopic(sIdx, nIdx, iIdx)} style={{ backgroundColor: "transparent", color: "#ef4444", border: "none", cursor: "pointer" }}>
-                            Apagar
+                          <button onClick={() => handleDeleteNicho(sIdx, nIdx)} style={{ backgroundColor: "transparent", color: "#ef4444", border: "none", cursor: "pointer", fontSize: "1.2rem" }} title="Remover Nicho">
+                            ×
                           </button>
                         </div>
-                      ))}
-                    </div>
+
+                        <div style={{ paddingLeft: "1rem" }}>
+                          {nicho.items.map((item, iIdx) => (
+                            <div key={item.id} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem", alignItems: "center" }}>
+                              <input
+                                value={item.label}
+                                onChange={(e) => handleUpdateTopic(sIdx, nIdx, iIdx, e.target.value)}
+                                style={{ flex: 1, padding: "0.4rem", backgroundColor: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#cbd5e1", borderRadius: "4px", fontSize: "0.9rem", transition: "border 0.2s" }}
+                              />
+                              <button onClick={() => handleDeleteTopic(sIdx, nIdx, iIdx)} style={{ backgroundColor: "transparent", color: "#ef4444", border: "none", cursor: "pointer", opacity: 0.7 }} title="Remover Tópico">
+                                🗑️
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

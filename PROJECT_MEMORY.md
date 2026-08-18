@@ -42,7 +42,10 @@ Site de preparação para concursos (AIVUR), migrando de um HTML puro de 11.000+
 - **Fase 5a** — Gerenciamento de cursos: listagem (já existia), exclusão segura com GC de órfãos, edição de nome do curso. ✅ Concluída.
 - **sourceType edital/livre** — implementado, filtro de banca condicional. ✅ Concluído.
 - **Conexão RAG (studymaster-knowledge → Trilha)** — ✅ CONCLUÍDO. Rota POST `/api/rag-search` no `worker.js` (repo: `C:\Users\Cesar Victor\Desktop\studymaster-worker`, deploy em `.workers.dev`) consultando o índice `studymaster-knowledge`. O Next.js consome essa rota antes de gerar Teoria/Questões. Retornos adicionais (`matchCount` e `topScore`) foram implementados. Filtro de qualidade (`score >= 0.70`) implementado no backend para descartar vetores fracos e impedir que conteúdo irrelevante contamine a geração do LLM em matérias não-jurídicas.
-- **Sincronização Multi-dispositivo (D1/R2)** — ✅ CONCLUÍDO. Implementação de rotas de Push/Pull + Magic Link via Worker. Cliente Next.js adaptado com `useSyncManager`, salvaguardas contra reescrita acidental e debouncing local para IndexedDB. Envio de e-mail via API REST oficial do Resend implementado.
+- **Sincruonização Multi-dispositivo (D1/R2)** — ✅ CONCLUÍDO. Implementação de rotas de Push/Pull + Magic Link via Worker. Cliente Next.js adaptado com `useSyncManager`, salvaguardas contra reescrita acidental e debouncing local para IndexedDB. Envio de e-mail via API REST oficial do Resend implementado. Dev-bypass criado para localhost.
+- **Pilar 1 UX/UI (Dashboard/Gerador)** — ✅ CONCLUÍDO. Restauração do Wizard como central, remoção de marketing intrusivo logado. Empty state focado em ativação. Teoria renderizada com React Markdown (tipografia premium).
+- **Pilar 2 (Laboratório de Materiais)** — ✅ CONCLUÍDO (Casca Visual). Criada a rota `/material` com Dropzone limpa, ferramenta de Simulado Rápido interativa (com feedback imediato) e Flashcards binários (Tinder-swipe) voltados para mobile-first e altíssima retenção. Implementada a fundação do Extrator de PDF híbrido (nativo com fallback para OCR automático).
+
 ## 5. Bugs Conhecidos (verificar se já corrigidos)
 
 - ✅ **Aba ativa do TopicDetails reseta ao fechar/reabrir o tópico** (perda de estado — filtros de dificuldade/banca voltam ao padrão). *Corrigido — estado elevado para CourseContext, compartilhado por sessão.*

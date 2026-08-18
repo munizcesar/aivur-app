@@ -24,6 +24,8 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
+    "@cloudflare/workers-types": "^5.20260818.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20",
     "@types/pdf-parse": "^1.1.5",

@@ -1,0 +1,488 @@
+[
+  {
+    "materia": "Língua Portuguesa",
+    "topico": "Leitura e interpretação de textos literários e não literários",
+    "matchCount": 5,
+    "topScore": 0.6534794
+  },
+  {
+    "materia": "Língua Portuguesa",
+    "topico": "Sinônimos e antônimos",
+    "matchCount": 5,
+    "topScore": 0.5588167
+  },
+  {
+    "materia": "Língua Portuguesa",
+    "topico": "Sentido próprio e figurado das palavras",
+    "matchCount": 5,
+    "topScore": 0.6052372
+  },
+  {
+    "materia": "Língua Portuguesa",
+    "topico": "Pontuação",
+    "matchCount": 5,
+    "topScore": 0.64201117
+  },
+  {
+    "materia": "Língua Portuguesa",
+    "topico": "Ortografia",
+    "matchCount": 5,
+    "topScore": 0.531496
+  },
+  {
+    "materia": "Língua Portuguesa",
+    "topico": "Classes de palavras: substantivo, artigo, adjetivo, numeral, pronome, verbo, advérbio, preposição, conjunção e interjeição",
+    "matchCount": 5,
+    "topScore": 0.7702777
+  },
+  {
+    "materia": "Língua Portuguesa",
+    "topico": "Concordância verbal e nominal",
+    "matchCount": 5,
+    "topScore": 0.66935813
+  },
+  {
+    "materia": "Língua Portuguesa",
+    "topico": "Regência verbal e nominal",
+    "matchCount": 5,
+    "topScore": 0.6238873
+  },
+  {
+    "materia": "Língua Portuguesa",
+    "topico": "Colocação pronominal",
+    "matchCount": 5,
+    "topScore": 0.5798513
+  },
+  {
+    "materia": "Língua Portuguesa",
+    "topico": "Crase",
+    "matchCount": 5,
+    "topScore": 0.6465422
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Operações com números reais",
+    "matchCount": 5,
+    "topScore": 0.6512382
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Mínimo múltiplo comum e máximo divisor comum",
+    "matchCount": 5,
+    "topScore": 0.6946096
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Razão e proporção",
+    "matchCount": 5,
+    "topScore": 0.674434
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Porcentagem",
+    "matchCount": 5,
+    "topScore": 0.67476153
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Regra de três simples e composta",
+    "matchCount": 5,
+    "topScore": 0.69654393
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Média aritmética simples e ponderada",
+    "matchCount": 5,
+    "topScore": 0.6799711
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Juro simples",
+    "matchCount": 5,
+    "topScore": 0.68142307
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Sistema de equações do 1º grau",
+    "matchCount": 5,
+    "topScore": 0.64282155
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Relação entre grandezas: tabelas e gráficos",
+    "matchCount": 5,
+    "topScore": 0.6441751
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Sistemas de medidas usuais",
+    "matchCount": 5,
+    "topScore": 0.66233784
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Noções de geometria: forma, perímetro, área, volume, ângulo, teorema de Pitágoras",
+    "matchCount": 5,
+    "topScore": 0.6694121
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Resolução de situações-problema",
+    "matchCount": 5,
+    "topScore": 0.65760505
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Estrutura lógica das relações arbitrárias entre pessoas, lugares, coisas, eventos fictícios",
+    "matchCount": 5,
+    "topScore": 0.62942326
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Dedução de novas informações das relações fornecidas e avaliação das condições usadas para estabelecer a estrutura daquelas relações",
+    "matchCount": 5,
+    "topScore": 0.6360949
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Identificação de regularidades de uma sequência, numérica ou figural",
+    "matchCount": 5,
+    "topScore": 0.67526287
+  },
+  {
+    "materia": "Matemática e Raciocínio Lógico",
+    "topico": "Estruturas lógicas, lógicas de argumentação, diagramas lógicos, sequências",
+    "matchCount": 5,
+    "topScore": 0.6941953
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "MS-Windows em sua versão mais recente: conceito de pastas, diretórios, arquivos e atalhos",
+    "matchCount": 5,
+    "topScore": 0.6149413
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Área de trabalho, área de transferência, manipulação de arquivos e pastas",
+    "matchCount": 5,
+    "topScore": 0.59558487
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Uso dos menus, programas e aplicativos, interação com o conjunto de aplicativos",
+    "matchCount": 5,
+    "topScore": 0.58041656
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "MS-Word em sua versão mais recente: estrutura básica dos documentos",
+    "matchCount": 5,
+    "topScore": 0.64721996
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Edição e formatação de textos, cabeçalhos, parágrafos, fontes, colunas, marcadores simbólicos e numéricos",
+    "matchCount": 5,
+    "topScore": 0.64786124
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Tabelas, impressão, controle de quebras e numeração de páginas, legendas, índices, inserção de objetos, campos predefinidos, caixas de texto",
+    "matchCount": 5,
+    "topScore": 0.60888845
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "MS-Excel em sua versão mais recente: estrutura básica das planilhas",
+    "matchCount": 5,
+    "topScore": 0.5891373
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Conceitos de células, linhas, colunas, pastas e gráficos",
+    "matchCount": 5,
+    "topScore": 0.571372
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Elaboração de tabelas e gráficos, uso de fórmulas, funções e macros",
+    "matchCount": 5,
+    "topScore": 0.62546694
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Impressão, inserção de objetos, campos predefinidos, controle de quebras e numeração de páginas, obtenção de dados externos, classificação de dados",
+    "matchCount": 5,
+    "topScore": 0.62561715
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "MS-PowerPoint em sua versão mais recente: estrutura básica das apresentações",
+    "matchCount": 5,
+    "topScore": 0.591491
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Conceitos de slides, anotações, régua, guias, cabeçalhos e rodapés",
+    "matchCount": 5,
+    "topScore": 0.6056292
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Noções de edição e formatação de apresentações, inserção de objetos, numeração de páginas, botões de ação, animação e transição entre slides",
+    "matchCount": 5,
+    "topScore": 0.6449402
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Correio Eletrônico: uso de correio eletrônico, preparo e envio de mensagens, anexação de arquivos",
+    "matchCount": 5,
+    "topScore": 0.62071794
+  },
+  {
+    "materia": "Noções de Informática",
+    "topico": "Internet: navegação internet, conceitos de URL, links, sites, busca e impressão de páginas",
+    "matchCount": 5,
+    "topScore": 0.68354875
+  },
+  {
+    "materia": "Noções de Direito Administrativo",
+    "topico": "Estado, governo e Administração Pública: conceitos, elementos, poderes, natureza, fins e princípios",
+    "matchCount": 5,
+    "topScore": 0.69960487
+  },
+  {
+    "materia": "Noções de Direito Administrativo",
+    "topico": "Poderes administrativos",
+    "matchCount": 5,
+    "topScore": 0.6067579
+  },
+  {
+    "materia": "Noções de Direito Administrativo",
+    "topico": "Poderes disciplinares",
+    "matchCount": 5,
+    "topScore": 0.6323418
+  },
+  {
+    "materia": "Noções de Direito Administrativo",
+    "topico": "Poder de polícia",
+    "matchCount": 5,
+    "topScore": 0.64045346
+  },
+  {
+    "materia": "Noções de Direito Administrativo",
+    "topico": "Poderes regulamentares",
+    "matchCount": 5,
+    "topScore": 0.6210699
+  },
+  {
+    "materia": "Noções de Direito Administrativo",
+    "topico": "Ato administrativo: conceito, requisitos, atributos, classificação e espécies",
+    "matchCount": 5,
+    "topScore": 0.68670833
+  },
+  {
+    "materia": "Noções de Direito Administrativo",
+    "topico": "Invalidação, anulação e revogação",
+    "matchCount": 5,
+    "topScore": 0.6343788
+  },
+  {
+    "materia": "Noções de Direito Administrativo",
+    "topico": "Prescrição",
+    "matchCount": 5,
+    "topScore": 0.6306538
+  },
+  {
+    "materia": "Noções de Direito Administrativo",
+    "topico": "Bens públicos: conceito, classificações e regras no Código Civil (artigos 98 a 103)",
+    "matchCount": 5,
+    "topScore": 0.70132166
+  },
+  {
+    "materia": "Noções de Direito Constitucional",
+    "topico": "Dos princípios fundamentais (artigos 1º ao 4º)",
+    "matchCount": 5,
+    "topScore": 0.62751424
+  },
+  {
+    "materia": "Noções de Direito Constitucional",
+    "topico": "Dos direitos e garantias fundamentais (artigos 5º a 11)",
+    "matchCount": 5,
+    "topScore": 0.63562703
+  },
+  {
+    "materia": "Noções de Direito Constitucional",
+    "topico": "Da organização do Estado (artigos 18 a 31; 37 a 41)",
+    "matchCount": 5,
+    "topScore": 0.63996094
+  },
+  {
+    "materia": "Noções de Direito Constitucional",
+    "topico": "Da segurança pública (art. 144)",
+    "matchCount": 5,
+    "topScore": 0.59851027
+  },
+  {
+    "materia": "Noções de Direito Penal",
+    "topico": "Dos crimes contra a pessoa e contra o patrimônio (artigos 121 a 183)",
+    "matchCount": 5,
+    "topScore": 0.63166404
+  },
+  {
+    "materia": "Noções de Direito Penal",
+    "topico": "Dos crimes contra a fé pública",
+    "matchCount": 5,
+    "topScore": 0.6276288
+  },
+  {
+    "materia": "Noções de Direito Penal",
+    "topico": "Dos crimes contra a Administração Pública (artigos 312 a 337-A)",
+    "matchCount": 5,
+    "topScore": 0.673957
+  },
+  {
+    "materia": "Noções de Direito Penal",
+    "topico": "Dos crimes praticados por funcionários públicos contra a Administração em geral",
+    "matchCount": 5,
+    "topScore": 0.64856005
+  },
+  {
+    "materia": "Noções de Direito Penal",
+    "topico": "Dos crimes praticados por particular contra a Administração em geral",
+    "matchCount": 5,
+    "topScore": 0.63524294
+  },
+  {
+    "materia": "Noções de Direito Civil",
+    "topico": "Capacidade jurídica (artigos 1º a 10 do Código Civil)",
+    "matchCount": 5,
+    "topScore": 0.6058455
+  },
+  {
+    "materia": "Noções de Direito Civil",
+    "topico": "Bens considerados em si mesmos (artigos 79 a 91 do Código Civil)",
+    "matchCount": 5,
+    "topScore": 0.55694896
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Legislação de trânsito",
+    "matchCount": 5,
+    "topScore": 0.54941356
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Código de Trânsito Brasileiro",
+    "matchCount": 5,
+    "topScore": 0.5699278
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Sistema Nacional de Trânsito: composição",
+    "matchCount": 5,
+    "topScore": 0.5758536
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Registro e licenciamento de veículos",
+    "matchCount": 5,
+    "topScore": 0.6052178
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Habilitação",
+    "matchCount": 5,
+    "topScore": 0.581249
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Normas gerais de circulação e conduta",
+    "matchCount": 5,
+    "topScore": 0.58428305
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Crimes de trânsito",
+    "matchCount": 5,
+    "topScore": 0.56032115
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Infrações e penalidades",
+    "matchCount": 5,
+    "topScore": 0.5769453
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Sinalização de trânsito, segurança e velocidade",
+    "matchCount": 5,
+    "topScore": 0.53424436
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Condutores de veículos – deveres e proibições",
+    "matchCount": 5,
+    "topScore": 0.6433538
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Lei nº 13.022, de 08 de agosto de 2014",
+    "matchCount": 5,
+    "topScore": 0.5612598
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Leis Federais n.º 10.826/2003, n.º 8.069/1990 (ECA) e n.º 13.869/2019 (Abuso de autoridade)",
+    "matchCount": 5,
+    "topScore": 0.6166562
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Noções de primeiros socorros",
+    "matchCount": 5,
+    "topScore": 0.5636764
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Código de Processo Penal (Fundada Suspeita e Flagrante)",
+    "matchCount": 5,
+    "topScore": 0.6405002
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Lei nº 9.503/1997 – Código de Trânsito Brasileiro – CTB",
+    "matchCount": 5,
+    "topScore": 0.5570825
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Lei nº 10.741/2003 – Estatuto do Idoso",
+    "matchCount": 5,
+    "topScore": 0.5590345
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Lei nº 11.340/2006 – Lei Maria da Penha",
+    "matchCount": 5,
+    "topScore": 0.53508043
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Lei nº 11.343/2006 – Lei de Drogas",
+    "matchCount": 5,
+    "topScore": 0.6223015
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Lei nº 13.060/2014 – Instrumentos de Menor Potencial Ofensivo",
+    "matchCount": 5,
+    "topScore": 0.5448759
+  },
+  {
+    "materia": "Legislação Específica",
+    "topico": "Lei nº 13.675/2018 – Sistema Único de Segurança Pública – SUSP",
+    "matchCount": 5,
+    "topScore": 0.67468953
+  }
+]

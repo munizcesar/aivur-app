@@ -1,0 +1,513 @@
+{
+  "id": "local-mss9vb2y",
+  "title": "Guarda Municipal de Limeira",
+  "subjects": [
+    {
+      "subject": "Língua Portuguesa",
+      "ytTerm": "Língua Portuguesa para concursos aula",
+      "nichos": [
+        {
+          "title": "Análise de Textos",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M0_N0_T0",
+              "label": "Leitura e interpretação de textos literários e não literários"
+            },
+            {
+              "id": "local-mss9vb2y_M0_N0_T1",
+              "label": "Sinônimos e antônimos"
+            },
+            {
+              "id": "local-mss9vb2y_M0_N0_T2",
+              "label": "Sentido próprio e figurado das palavras"
+            }
+          ]
+        },
+        {
+          "title": "Estrutura da Língua",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M0_N1_T0",
+              "label": "Pontuação"
+            },
+            {
+              "id": "local-mss9vb2y_M0_N1_T1",
+              "label": "Ortografia"
+            },
+            {
+              "id": "local-mss9vb2y_M0_N1_T2",
+              "label": "Classes de palavras: substantivo, artigo, adjetivo, numeral, pronome, verbo, advérbio, preposição, conjunção e interjeição"
+            },
+            {
+              "id": "local-mss9vb2y_M0_N1_T3",
+              "label": "Concordância verbal e nominal"
+            },
+            {
+              "id": "local-mss9vb2y_M0_N1_T4",
+              "label": "Regência verbal e nominal"
+            },
+            {
+              "id": "local-mss9vb2y_M0_N1_T5",
+              "label": "Colocação pronominal"
+            },
+            {
+              "id": "local-mss9vb2y_M0_N1_T6",
+              "label": "Crase"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subject": "Matemática e Raciocínio Lógico",
+      "ytTerm": "Matemática para concursos aula",
+      "nichos": [
+        {
+          "title": "Operações Matemáticas",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M1_N0_T0",
+              "label": "Operações com números reais"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N0_T1",
+              "label": "Mínimo múltiplo comum e máximo divisor comum"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N0_T2",
+              "label": "Razão e proporção"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N0_T3",
+              "label": "Porcentagem"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N0_T4",
+              "label": "Regra de três simples e composta"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N0_T5",
+              "label": "Média aritmética simples e ponderada"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N0_T6",
+              "label": "Juro simples"
+            }
+          ]
+        },
+        {
+          "title": "Geometria e Medidas",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M1_N1_T0",
+              "label": "Sistema de equações do 1º grau"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N1_T1",
+              "label": "Relação entre grandezas: tabelas e gráficos"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N1_T2",
+              "label": "Sistemas de medidas usuais"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N1_T3",
+              "label": "Noções de geometria: forma, perímetro, área, volume, ângulo, teorema de Pitágoras"
+            }
+          ]
+        },
+        {
+          "title": "Raciocínio Lógico",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M1_N2_T0",
+              "label": "Resolução de situações-problema"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N2_T1",
+              "label": "Estrutura lógica das relações arbitrárias entre pessoas, lugares, coisas, eventos fictícios"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N2_T2",
+              "label": "Dedução de novas informações das relações fornecidas e avaliação das condições usadas para estabelecer a estrutura daquelas relações"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N2_T3",
+              "label": "Identificação de regularidades de uma sequência, numérica ou figural"
+            },
+            {
+              "id": "local-mss9vb2y_M1_N2_T4",
+              "label": "Estruturas lógicas, lógicas de argumentação, diagramas lógicos, sequências"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subject": "Noções de Informática",
+      "ytTerm": "Informática para concursos aula",
+      "nichos": [
+        {
+          "title": "Sistemas Operacionais",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M2_N0_T0",
+              "label": "MS-Windows em sua versão mais recente: conceito de pastas, diretórios, arquivos e atalhos"
+            },
+            {
+              "id": "local-mss9vb2y_M2_N0_T1",
+              "label": "Área de trabalho, área de transferência, manipulação de arquivos e pastas"
+            },
+            {
+              "id": "local-mss9vb2y_M2_N0_T2",
+              "label": "Uso dos menus, programas e aplicativos, interação com o conjunto de aplicativos"
+            }
+          ]
+        },
+        {
+          "title": "Aplicativos de Escritório",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M2_N1_T0",
+              "label": "MS-Word em sua versão mais recente: estrutura básica dos documentos"
+            },
+            {
+              "id": "local-mss9vb2y_M2_N1_T1",
+              "label": "Edição e formatação de textos, cabeçalhos, parágrafos, fontes, colunas, marcadores simbólicos e numéricos"
+            },
+            {
+              "id": "local-mss9vb2y_M2_N1_T2",
+              "label": "Tabelas, impressão, controle de quebras e numeração de páginas, legendas, índices, inserção de objetos, campos predefinidos, caixas de texto"
+            }
+          ]
+        },
+        {
+          "title": "Planilhas Eletrônicas",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M2_N2_T0",
+              "label": "MS-Excel em sua versão mais recente: estrutura básica das planilhas"
+            },
+            {
+              "id": "local-mss9vb2y_M2_N2_T1",
+              "label": "Conceitos de células, linhas, colunas, pastas e gráficos"
+            },
+            {
+              "id": "local-mss9vb2y_M2_N2_T2",
+              "label": "Elaboração de tabelas e gráficos, uso de fórmulas, funções e macros"
+            },
+            {
+              "id": "local-mss9vb2y_M2_N2_T3",
+              "label": "Impressão, inserção de objetos, campos predefinidos, controle de quebras e numeração de páginas, obtenção de dados externos, classificação de dados"
+            }
+          ]
+        },
+        {
+          "title": "Apresentações",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M2_N3_T0",
+              "label": "MS-PowerPoint em sua versão mais recente: estrutura básica das apresentações"
+            },
+            {
+              "id": "local-mss9vb2y_M2_N3_T1",
+              "label": "Conceitos de slides, anotações, régua, guias, cabeçalhos e rodapés"
+            },
+            {
+              "id": "local-mss9vb2y_M2_N3_T2",
+              "label": "Noções de edição e formatação de apresentações, inserção de objetos, numeração de páginas, botões de ação, animação e transição entre slides"
+            }
+          ]
+        },
+        {
+          "title": "Comunicação Eletrônica",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M2_N4_T0",
+              "label": "Correio Eletrônico: uso de correio eletrônico, preparo e envio de mensagens, anexação de arquivos"
+            },
+            {
+              "id": "local-mss9vb2y_M2_N4_T1",
+              "label": "Internet: navegação internet, conceitos de URL, links, sites, busca e impressão de páginas"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subject": "Noções de Direito Administrativo",
+      "ytTerm": "Direito Administrativo para concursos aula",
+      "nichos": [
+        {
+          "title": "Conceitos Básicos",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M3_N0_T0",
+              "label": "Estado, governo e Administração Pública: conceitos, elementos, poderes, natureza, fins e princípios"
+            },
+            {
+              "id": "local-mss9vb2y_M3_N0_T1",
+              "label": "Poderes administrativos"
+            },
+            {
+              "id": "local-mss9vb2y_M3_N0_T2",
+              "label": "Poderes disciplinares"
+            },
+            {
+              "id": "local-mss9vb2y_M3_N0_T3",
+              "label": "Poder de polícia"
+            },
+            {
+              "id": "local-mss9vb2y_M3_N0_T4",
+              "label": "Poderes regulamentares"
+            }
+          ]
+        },
+        {
+          "title": "Ato Administrativo",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M3_N1_T0",
+              "label": "Ato administrativo: conceito, requisitos, atributos, classificação e espécies"
+            },
+            {
+              "id": "local-mss9vb2y_M3_N1_T1",
+              "label": "Invalidação, anulação e revogação"
+            },
+            {
+              "id": "local-mss9vb2y_M3_N1_T2",
+              "label": "Prescrição"
+            }
+          ]
+        },
+        {
+          "title": "Bens Públicos",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M3_N2_T0",
+              "label": "Bens públicos: conceito, classificações e regras no Código Civil (artigos 98 a 103)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subject": "Noções de Direito Constitucional",
+      "ytTerm": "Direito Constitucional para concursos aula",
+      "nichos": [
+        {
+          "title": "Princípios Fundamentais",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M4_N0_T0",
+              "label": "Dos princípios fundamentais (artigos 1º ao 4º)"
+            }
+          ]
+        },
+        {
+          "title": "Direitos e Garantias Fundamentais",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M4_N1_T0",
+              "label": "Dos direitos e garantias fundamentais (artigos 5º a 11)"
+            }
+          ]
+        },
+        {
+          "title": "Organização do Estado",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M4_N2_T0",
+              "label": "Da organização do Estado (artigos 18 a 31; 37 a 41)"
+            }
+          ]
+        },
+        {
+          "title": "Segurança Pública",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M4_N3_T0",
+              "label": "Da segurança pública (art. 144)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subject": "Noções de Direito Penal",
+      "ytTerm": "Direito Penal para concursos aula",
+      "nichos": [
+        {
+          "title": "Crimes Contra a Pessoa e o Patrimônio",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M5_N0_T0",
+              "label": "Dos crimes contra a pessoa e contra o patrimônio (artigos 121 a 183)"
+            }
+          ]
+        },
+        {
+          "title": "Crimes Contra a Fé Pública",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M5_N1_T0",
+              "label": "Dos crimes contra a fé pública"
+            }
+          ]
+        },
+        {
+          "title": "Crimes Contra a Administração Pública",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M5_N2_T0",
+              "label": "Dos crimes contra a Administração Pública (artigos 312 a 337-A)"
+            }
+          ]
+        },
+        {
+          "title": "Crimes Praticados por Funcionários Públicos",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M5_N3_T0",
+              "label": "Dos crimes praticados por funcionários públicos contra a Administração em geral"
+            }
+          ]
+        },
+        {
+          "title": "Crimes Praticados por Particulares",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M5_N4_T0",
+              "label": "Dos crimes praticados por particular contra a Administração em geral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subject": "Noções de Direito Civil",
+      "ytTerm": "Direito Civil para concursos aula",
+      "nichos": [
+        {
+          "title": "Capacidade Jurídica",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M6_N0_T0",
+              "label": "Capacidade jurídica (artigos 1º a 10 do Código Civil)"
+            }
+          ]
+        },
+        {
+          "title": "Bens",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M6_N1_T0",
+              "label": "Bens considerados em si mesmos (artigos 79 a 91 do Código Civil)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subject": "Legislação Específica",
+      "ytTerm": "Legislação Específica para concursos aula",
+      "nichos": [
+        {
+          "title": "Legislação de Trânsito",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M7_N0_T0",
+              "label": "Legislação de trânsito"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N0_T1",
+              "label": "Código de Trânsito Brasileiro"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N0_T2",
+              "label": "Sistema Nacional de Trânsito: composição"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N0_T3",
+              "label": "Registro e licenciamento de veículos"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N0_T4",
+              "label": "Habilitação"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N0_T5",
+              "label": "Normas gerais de circulação e conduta"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N0_T6",
+              "label": "Crimes de trânsito"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N0_T7",
+              "label": "Infrações e penalidades"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N0_T8",
+              "label": "Sinalização de trânsito, segurança e velocidade"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N0_T9",
+              "label": "Condutores de veículos – deveres e proibições"
+            }
+          ]
+        },
+        {
+          "title": "Leis Federais",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M7_N1_T0",
+              "label": "Lei nº 13.022, de 08 de agosto de 2014"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N1_T1",
+              "label": "Leis Federais n.º 10.826/2003, n.º 8.069/1990 (ECA) e n.º 13.869/2019 (Abuso de autoridade)"
+            }
+          ]
+        },
+        {
+          "title": "Outras Legislações",
+          "items": [
+            {
+              "id": "local-mss9vb2y_M7_N2_T0",
+              "label": "Noções de primeiros socorros"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N2_T1",
+              "label": "Código de Processo Penal (Fundada Suspeita e Flagrante)"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N2_T2",
+              "label": "Lei nº 9.503/1997 – Código de Trânsito Brasileiro – CTB"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N2_T3",
+              "label": "Lei nº 10.741/2003 – Estatuto do Idoso"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N2_T4",
+              "label": "Lei nº 11.340/2006 – Lei Maria da Penha"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N2_T5",
+              "label": "Lei nº 11.343/2006 – Lei de Drogas"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N2_T6",
+              "label": "Lei nº 13.060/2014 – Instrumentos de Menor Potencial Ofensivo"
+            },
+            {
+              "id": "local-mss9vb2y_M7_N2_T7",
+              "label": "Lei nº 13.675/2018 – Sistema Único de Segurança Pública – SUSP"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

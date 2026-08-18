@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
 import { fetchRagContext } from "@/lib/ragClient";

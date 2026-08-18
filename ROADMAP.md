@@ -1,8 +1,8 @@
 # ROADMAP AIVUR
 
 ## Próximo Foco
-- **Passo 1:** Desenho da arquitetura D1 para controle de assinaturas (Free vs Pro).
-- **Passo 2:** Setup do Gateway de Pagamento.
+- **Passo 1:** Fazer o push para o GitHub e realizar a virada de chave do Next.js na Cloudflare (Go-Live).
+- **Passo 2:** Conectar o Backend da IA (RAG) no nosso Laboratório de Estudos.
 
 ## Concluído
 - Homologação do Pilar 1 (Gerador/Mentor)

@@ -1,0 +1,224 @@
+.quizContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.quizHeader {
+  margin-bottom: 2rem;
+}
+
+.progressCounter {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 0.8rem;
+}
+
+.progressBar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-primary, #2563EB);
+  transition: width 0.3s ease;
+}
+
+.questionBlock {
+  flex: 1;
+}
+
+.questionText {
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--color-text);
+  margin-bottom: 2rem;
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.optionCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: var(--color-text);
+  font-size: 1.05rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.optionCard:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.optionSelected {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: var(--color-primary, #2563EB);
+}
+
+.optionLetter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.optionSelected .optionLetter {
+  background: var(--color-primary, #2563EB);
+  color: white;
+}
+
+.optionText {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* Feedback States */
+.optionCorrect {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: #10B981;
+}
+
+.optionCorrect .optionLetter {
+  background: #10B981;
+  color: white;
+}
+
+.optionWrong {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #EF4444;
+}
+
+.optionWrong .optionLetter {
+  background: #EF4444;
+  color: white;
+}
+
+.optionDimmed {
+  opacity: 0.5;
+}
+
+.resultIconCorrect {
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.resultIconWrong {
+  color: #EF4444;
+  flex-shrink: 0;
+}
+
+/* Actions */
+.actionArea {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.confirmBtn {
+  background: var(--color-primary, #2563EB);
+  color: white;
+  border: none;
+  padding: 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+  align-self: flex-end;
+  min-width: 200px;
+}
+
+.confirmBtn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.confirmBtn:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+}
+
+.feedbackArea {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.4s ease;
+}
+
+.mentorExplanation {
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 4px solid var(--color-primary, #2563EB);
+  padding: 1.5rem;
+  border-radius: 0 12px 12px 0;
+}
+
+.mentorHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-primary, #2563EB);
+  margin-bottom: 0.8rem;
+  font-size: 1.1rem;
+}
+
+.mentorExplanation p {
+  color: var(--color-text-faint);
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.nextBtn {
+  align-self: flex-end;
+  background: white;
+  color: black;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.nextBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.nextBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,0 +1,280 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--bg-default);
+}
+
+.main {
+  flex: 1;
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ESTADO 1: UPLOAD */
+.uploadContainer {
+  max-width: 800px;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.headerClean {
+  text-align: center;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+}
+
+.dropzone {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.02);
+  padding: 4rem 2rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dropzone:hover {
+  border-color: var(--color-primary);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.dropzoneInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dropIcon {
+  color: var(--color-primary);
+  opacity: 0.8;
+}
+
+.dropzoneInner h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.dropzoneInner p {
+  color: var(--color-text-faint);
+  font-size: 0.9rem;
+}
+
+.browseBtn {
+  margin-top: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.browseBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.actionBlock {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.primaryBtn {
+  background: var(--color-primary, #2563EB);
+  color: white;
+  border: none;
+  padding: 1rem 3rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
+}
+
+.primaryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px 0 rgba(37, 99, 235, 0.4);
+}
+
+/* ESTADO 2: LABORATÓRIO */
+.labContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  height: calc(100vh - 120px);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.labHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1.5rem;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+  width: fit-content;
+  transition: color 0.2s;
+}
+
+.backBtn:hover {
+  color: white;
+}
+
+.labHeader h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.fileLabel {
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  background: rgba(37, 99, 235, 0.1);
+  padding: 0.3rem 0.8rem;
+  border-radius: 99px;
+  width: fit-content;
+}
+
+.labLayout {
+  display: flex;
+  gap: 2rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.labSidebar {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tabBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.tabActive {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tabIcon {
+  font-size: 1.4rem;
+}
+
+.labContentArea {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.placeholderState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  gap: 1rem;
+  color: var(--color-text-muted);
+}
+
+.placeholderIcon {
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+
+.placeholderState h3 {
+  font-size: 1.5rem;
+  color: var(--color-text);
+}
+
+.placeholderState p {
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.activeToolState {
+  animation: fadeIn 0.3s ease-out;
+  color: var(--color-text-muted);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .labLayout {
+    flex-direction: column;
+  }
+  .labSidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  .tabBtn {
+    flex-shrink: 0;
+    width: auto;
+    white-space: nowrap;
+  }
+}

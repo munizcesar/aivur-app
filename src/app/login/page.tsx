@@ -1,13 +1,35 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [simulatedToken, setSimulatedToken] = useState("");
+
+  const handleDevLogin = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth/dev-bypass", {
+        method: "POST"
+      });
+      if (res.ok) {
+        window.location.href = "/";
+      } else {
+        const data = await res.json();
+        setError(data.error || "Erro no dev bypass");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +115,18 @@ export default function LoginPage() {
               {loading ? "Enviando..." : "Receber Link de Acesso"}
             </button>
           </form>
+        )}
+
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={handleDevLogin}
+              disabled={loading}
+              className="w-full py-2 px-4 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-lg shadow transition-colors"
+            >
+              🚀 Login Rápido (Dev)
+            </button>
+          </div>
         )}
       </div>
     </div>

@@ -1,0 +1,8 @@
+name = "aivur-app"
+compatibility_date = "2024-02-08"
+pages_build_output_dir = ".vercel/output/static"
+
+# KV Namespace para Cache Semântico
+[[kv_namespaces]]
+binding = "RAG_CACHE"
+id = "YOUR_KV_NAMESPACE_ID_HERE"

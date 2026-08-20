@@ -7,7 +7,8 @@
     "build": "next build",
     "pages:build": "npx --legacy-peer-deps @cloudflare/next-on-pages@1",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "rag:auto": "npx tsx scripts/autonomous_ingest.ts"
   },
   "dependencies": {
     "framer-motion": "^13.0.0",

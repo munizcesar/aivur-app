@@ -9,3 +9,6 @@ O objetivo primário é proteger nossos custos de servidor para sempre: se a IA 
 
 ## DIRETRIZ UM: Dependências, Banco de Dados e APIs
 Qualquer nova dependência pesada, alteração na modelagem do banco de dados (Cloudflare D1) ou integração com API externa de custo variável deve ter sua regra de otimização documentada **neste arquivo** antes que o código seja escrito. Nossa visão de escalabilidade é perpétua e atemporal.
+
+## DIRETRIZ DOIS (Tolerância Zero a Lixo de Dados — Anti-Alucinação)
+**NENHUM dado extraído (PDF ou Web) pode ir para o Vectorize cegamente.** É obrigatória uma validação (Filtro de Sanidade via LLM) para garantir que o texto é um documento jurídico/educacional válido. Textos com bloqueios de firewall, captchas, HTML sujo ou OCR quebrado devem ser automaticamente **descartados** antes da vetorização. O princípio "Garbage In, Garbage Out" é a nossa maior ameaça à precisão do produto e à confiança do aluno. A esteira de ingestão autônoma (`scripts/autonomous_ingest.ts`) implementa este filtro como portão obrigatório antes de qualquer operação no Vectorize ou D1.

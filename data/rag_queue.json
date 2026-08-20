@@ -1,0 +1,32 @@
+[
+  {
+    "id": "item-001",
+    "tipo": "url",
+    "fonte": "https://www.planalto.gov.br/ccivil_03/leis/l8112cons.htm",
+    "curso": "gm-limeira-2026",
+    "disciplina": "Direito Administrativo",
+    "municipio": "Limeira",
+    "tipo_fonte": "lei",
+    "banca": "Cebraspe"
+  },
+  {
+    "id": "item-002",
+    "tipo": "texto",
+    "texto": "Art. 1º A República Federativa do Brasil, formada pela união indissolúvel dos Estados e Municípios e do Distrito Federal, constitui-se em Estado Democrático de Direito e tem como fundamentos:\nI - a soberania;\nII - a cidadania;\nIII - a dignidade da pessoa humana;\nIV - os valores sociais do trabalho e da livre iniciativa;\nV - o pluralismo político.",
+    "curso": "gm-limeira-2026",
+    "disciplina": "Direito Constitucional",
+    "municipio": "Limeira",
+    "tipo_fonte": "lei",
+    "banca": "Cebraspe"
+  },
+  {
+    "id": "item-003",
+    "tipo": "texto",
+    "texto": "Access Denied - Firewall blocked request. Please verify you are a human. Captcha required.",
+    "curso": "teste-lixo",
+    "disciplina": "Teste",
+    "municipio": "N/A",
+    "tipo_fonte": "url_bloqueada",
+    "banca": ""
+  }
+]

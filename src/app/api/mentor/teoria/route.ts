@@ -2,6 +2,9 @@ export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
 import { fetchRagContext } from "@/lib/ragClient";
+import { getRequestContext } from "@cloudflare/next-on-pages";
+import { RAGEngine } from "@/lib/rag/engine";
+import { RAGOptimizer } from "@/lib/rag/optimizer";
 
 export async function POST(req: Request) {
   try {
@@ -9,6 +12,25 @@ export async function POST(req: Request) {
 
     if (!label || !subject) {
       return NextResponse.json({ error: "Parâmetros obrigatórios ausentes." }, { status: 400 });
+    }
+
+    let engine: RAGEngine | null = null;
+    try {
+      const env = (process.env.NODE_ENV === 'development' ? process.env : getRequestContext()?.env) as any;
+      if (env?.RAG_CACHE) {
+        engine = new RAGEngine(env);
+      }
+    } catch (e) {
+      // Fallback
+    }
+
+    if (engine) {
+      const cacheKey = `teoria:${subject}:${label}:${nicho||""}`;
+      const cached = await engine.getCachedResponse(cacheKey);
+      if (cached) {
+        console.log(`[RAG_CACHE] Hit para teoria: ${label}`);
+        return NextResponse.json({ teoria: cached });
+      }
     }
 
     const rag = await fetchRagContext(`${label} ${subject}`);
@@ -30,8 +52,10 @@ REGRAS ESTABELECIDAS:
 `;
 
     if (rag.context) {
-      const chunks = rag.context.split('\n---\n').filter(Boolean);
-      const xmlContext = `<referencias_teoricas>\n` + chunks.map((c, i) => `  <trecho id="${i+1}">\n${c.trim()}\n  </trecho>`).join('\n') + `\n</referencias_teoricas>`;
+      const rawChunks = rag.context.split('\n---\n').filter(Boolean);
+      const chunkObjs = rawChunks.map((text, i) => ({ id: String(i), text, score: 1 }));
+      const optimizedChunks = RAGOptimizer.optimizeContext(chunkObjs, { maxTokens: 1500 });
+      const xmlContext = `<referencias_teoricas>\n` + optimizedChunks.map((c, i) => `  <trecho id="${i+1}">\n${c.text.trim()}\n  </trecho>`).join('\n') + `\n</referencias_teoricas>`;
       systemPrompt += `\n\nCONTEXTO EXTRAÍDO OBRIGATÓRIO (baseie-se estritamente nos trechos em <referencias_teoricas> quando pertinente para ancorar a explicação):\n${xmlContext}\n`;
     }
 
@@ -42,6 +66,11 @@ REGRAS ESTABELECIDAS:
       model: "llama-3.3-70b-versatile",
       temperature: 0.3
     });
+
+    if (engine) {
+      const cacheKey = `teoria:${subject}:${label}:${nicho||""}`;
+      await engine.cacheResponse(cacheKey, result);
+    }
     return NextResponse.json({ teoria: result });
   } catch (error: any) {
     console.error("Erro na rota de Teoria:", error);

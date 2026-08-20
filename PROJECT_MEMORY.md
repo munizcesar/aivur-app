@@ -1,5 +1,7 @@
 # PROJECT_MEMORY.md — Memória Persistente do Projeto AIVUR/StudyMaster
 
+⚠️ **ATENÇÃO AO AGENTE: Antes de escrever código de backend/IA, leia e siga o ARCHITECTURE_RULES.md**
+
 > **INSTRUÇÃO OBRIGATÓRIA PARA QUALQUER IA TRABALHANDO NESTE REPOSITÓRIO:**
 > 1. Leia este arquivo INTEIRO antes de executar qualquer tarefa.
 > 2. Ao final de qualquer mudança relevante (feature concluída, bug corrigido, decisão de arquitetura tomada), ATUALIZE este arquivo antes de encerrar a resposta.
@@ -11,6 +13,12 @@
 ## 1. Visão Geral do Projeto
 
 Site de preparação para concursos (AIVUR), migrando de um HTML puro de 11.000+ linhas para uma arquitetura Next.js nova, construída do zero em pasta separada. O produto atende tanto alunos de concurso público quanto alunos de vestibular/ENEM/estudo livre.
+
+A fundação do Backend de Inteligência Artificial usa o padrão RAG (Retrieval-Augmented Generation) com otimização severa de custos via Cloudflare:
+- **D1**: Filtro Híbrido.
+- **Vectorize**: Busca Semântica.
+- **KV**: Cache Semântico de custo zero (RAG_CACHE).
+- **RAGOptimizer**: Fatiamento estrito limitando tokens antes de acionar a LLM.
 
 ## 2. Arquitetura Atual (dois sistemas coexistindo)
 

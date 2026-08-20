@@ -6,3 +6,19 @@ pages_build_output_dir = ".vercel/output/static"
 [[kv_namespaces]]
 binding = "RAG_CACHE"
 id = "YOUR_KV_NAMESPACE_ID_HERE"
+
+# Binding para Workers AI
+[ai]
+binding = "AI"
+
+# Binding para o Banco de Dados Relacional (Filtro Híbrido)
+[[d1_databases]]
+binding = "D1_DB"
+database_name = "aivur-db"
+database_id = "PREENCHER_ID"
+
+# Binding para o Banco de Dados Vetorial (Busca Semântica)
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "aivur-vector-index"
+

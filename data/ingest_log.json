@@ -1,0 +1,13 @@
+{
+  "processados": 1,
+  "aceitos": 0,
+  "rejeitados": 1,
+  "erros": [
+    {
+      "id": "eca-001",
+      "motivo": "Ingest API retornou 500: {\"error\":\"Bindings (AI, VECTORIZE, D1_DB) ausentes no ambiente.\"}"
+    }
+  ],
+  "sucessos": [],
+  "timestamp": "2026-08-20T22:52:03.250Z"
+}

@@ -16,8 +16,12 @@ import fs from 'fs';
 import path from 'path';
 import Groq from 'groq-sdk';
 import { RAGChunker } from '../src/lib/rag/chunker';
+import { loadEnvConfig } from '@next/env';
+
+loadEnvConfig(process.cwd());
 
 // ──────────────────────────── Tipos ────────────────────────────
+
 
 interface QueueItem {
   id: string;
@@ -62,7 +66,13 @@ async function extractText(item: QueueItem): Promise<string> {
   }
 
   if (item.tipo === 'url' && item.fonte) {
-    const res = await fetch(item.fonte, { signal: AbortSignal.timeout(10_000) });
+    const res = await fetch(item.fonte, { 
+      signal: AbortSignal.timeout(10_000),
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
+      }
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status} ao buscar ${item.fonte}`);
     const html = await res.text();
     // Strip HTML básico — a Diretriz Dois garante que HTML sujo será rejeitado pelo LLM
@@ -77,7 +87,7 @@ async function runSanityFilter(sample: string, groq: Groq): Promise<SanityResult
   const sampleText = sample.slice(0, SAMPLE_CHARS);
 
   const chat = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'qwen/qwen3.6-27b',
     temperature: 0,
     messages: [
       {

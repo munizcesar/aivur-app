@@ -56,7 +56,7 @@ export function useAivur360() {
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       
-      const data = await response.json();
+      const data = await response.json() as { plan?: Aivur360Plan; reply?: string };
       clearInterval(interval);
       setProgress(100);
       setProgressMsg("Plano concluído!");

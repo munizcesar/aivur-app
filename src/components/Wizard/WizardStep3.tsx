@@ -104,13 +104,13 @@ export default function WizardStep3() {
         signal: abortControllerRef.current.signal
       });
 
-      const data = await res.json();
+      const data = await res.json() as { success?: boolean; userMessage?: string; questions?: unknown[] };
       
       if (!res.ok) throw new Error(data.userMessage || `Erro HTTP ${res.status}`);
       if (data.success === false) throw new Error(data.userMessage || 'Falha ao processar requisição.');
       if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada.');
 
-      setGeneratedQuestions(data.questions);
+      setGeneratedQuestions(data.questions as any[]);
       setSelectedOptions(new Array(data.questions.length).fill(null));
       setResults(new Array(data.questions.length).fill(null));
       setCurrentIdx(0);

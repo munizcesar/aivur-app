@@ -48,7 +48,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
-    const body = await req.json();
+    const body = await req.json() as {
+      text?: string;
+      curso?: string;
+      disciplina?: string;
+      municipio?: string;
+      tipo_fonte?: string;
+      banca?: string;
+    };
     const { text, curso, disciplina, municipio, tipo_fonte, banca } = body;
 
     if (!text || typeof text !== 'string') {

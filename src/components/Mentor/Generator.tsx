@@ -71,11 +71,11 @@ export default function Generator() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
+        const errorData = await res.json() as { error?: string };
         throw new Error(errorData.error || "Erro ao gerar trilha");
       }
 
-      const generatedCourse = await res.json();
+      const generatedCourse = await res.json() as Course;
       generatedCourse.userId = null;
       setDraftCourse(generatedCourse);
       setStep("review");

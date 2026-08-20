@@ -21,7 +21,7 @@ export default function LoginPage() {
       if (res.ok) {
         window.location.href = "/";
       } else {
-        const data = await res.json();
+        const data = await res.json() as { error?: string };
         setError(data.error || "Erro no dev bypass");
       }
     } catch (err: any) {
@@ -41,7 +41,7 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-      const data = await res.json();
+      const data = await res.json() as { error?: string; token_simulated?: string };
       
       if (!res.ok) throw new Error(data.error || "Falha ao enviar link");
       

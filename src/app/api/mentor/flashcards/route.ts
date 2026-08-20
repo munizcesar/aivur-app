@@ -8,7 +8,7 @@ import { RAGOptimizer } from "@/lib/rag/optimizer";
 
 export async function POST(req: Request) {
   try {
-    const { label, subject, nicho, context } = await req.json();
+    const { label, subject, nicho, context } = await req.json() as { label?: string; subject?: string; nicho?: string; context?: string };
 
     if (!label) {
       return NextResponse.json({ error: "Falta label" }, { status: 400 });

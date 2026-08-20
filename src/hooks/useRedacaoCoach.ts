@@ -65,11 +65,11 @@ export function useRedacaoCoach() {
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       
-      const data = await response.json();
+      const data = await response.json() as Partial<RedacaoResult> & { reply?: string };
       clearInterval(interval);
       
       if (data.scores) {
-        setResult(data);
+        setResult(data as RedacaoResult);
       } else if (data.reply) {
         // Fallback for LLMs that return stringified JSON in 'reply'
         try {

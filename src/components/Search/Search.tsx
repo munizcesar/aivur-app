@@ -43,7 +43,7 @@ export default function Search() {
       });
 
       if (!res.ok) throw new Error("Erro na busca");
-      const data = await res.json();
+      const data = await res.json() as { results?: SearchResult[] };
       setResults(data.results || []);
     } catch (err) {
       console.error("[search]", err);

@@ -80,9 +80,9 @@ export function useTopicContent(topicId: string) {
       });
       if (res.status === 429) throw new Error("A inteligência artificial está sobrecarregada. Aguarde alguns segundos e tente novamente.");
       if (!res.ok) throw new Error("Erro na API");
-      const data = await res.json();
+      const data = await res.json() as { error?: string; teoria?: string };
       if (data.error) throw new Error(data.error);
-      updateState({ teoria: data.teoria });
+      updateState({ teoria: data.teoria ?? null });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -101,9 +101,9 @@ export function useTopicContent(topicId: string) {
       });
       if (res.status === 429) throw new Error("A inteligência artificial está sobrecarregada. Aguarde alguns segundos e tente novamente.");
       if (!res.ok) throw new Error("Erro na API");
-      const data = await res.json();
+      const data = await res.json() as { error?: string; flashcards?: Flashcard[] };
       if (data.error) throw new Error(data.error);
-      updateState({ flashcards: data.flashcards });
+      updateState({ flashcards: data.flashcards ?? null });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -122,11 +122,11 @@ export function useTopicContent(topicId: string) {
       });
       if (res.status === 429) throw new Error("A inteligência artificial está sobrecarregada. Aguarde alguns segundos e tente novamente.");
       if (!res.ok) throw new Error("Erro na API");
-      const data = await res.json();
+      const data = await res.json() as { error?: string; questoes?: Questao[] };
       if (data.error) throw new Error(data.error);
       
       // Preserve user responses for old questions if we want, or reset them
-      updateState({ questoes: data.questoes, userResponses: force ? {} : state.userResponses });
+      updateState({ questoes: data.questoes ?? null, userResponses: force ? {} : state.userResponses });
       return data.questoes;
     } catch (err: any) {
       setError(err.message);

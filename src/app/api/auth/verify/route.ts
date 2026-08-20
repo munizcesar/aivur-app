@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
-    const { token } = await req.json();
+    const { token } = await req.json() as { token?: string };
     
     const res = await fetch("https://studymaster-worker.cesarmuniz0816.workers.dev/api/auth/verify", {
       method: "POST",
@@ -12,14 +12,14 @@ export async function POST(req: Request) {
       body: JSON.stringify({ token })
     });
     
-    const data = await res.json();
+    const data = await res.json() as { error?: string; userId?: string };
     if (!res.ok) {
       return NextResponse.json({ error: data.error }, { status: 400 });
     }
     
     // Set HttpOnly cookie
     const cookieStore = await cookies();
-    cookieStore.set("aivur_session", data.userId, {
+    cookieStore.set("aivur_session", data.userId ?? '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

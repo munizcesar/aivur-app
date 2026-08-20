@@ -10,8 +10,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     
-    const body = await req.json();
-    body.userId = sessionCookie.value; // Inject userId securely
+    const body = await req.json() as Record<string, unknown>;
+    (body as Record<string, string>).userId = sessionCookie.value; // Inject userId securely
     
     const res = await fetch("https://studymaster-worker.cesarmuniz0816.workers.dev/api/sync/push", {
       method: "POST",

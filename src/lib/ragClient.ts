@@ -17,7 +17,7 @@ export async function fetchRagContext(query: string): Promise<{ context: string;
       return { context: '', matchCount: 0, topScore: null };
     }
 
-    const data = await res.json();
+    const data = await res.json() as { context?: string; matchCount?: number; topScore?: number | null };
     return {
       context: data.context || '',
       matchCount: data.matchCount ?? 0,

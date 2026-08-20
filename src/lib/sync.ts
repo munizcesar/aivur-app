@@ -105,7 +105,7 @@ export async function pullSync() {
     });
 
     if (res.status === 401) return false; // Not logged in
-    const data = await res.json();
+    const data = await res.json() as { success?: boolean; updates?: Array<{ dataType: string; courseId: string; snapshot: unknown; timestamp: number }> };
     if (!data.success) return false;
 
     if (data.updates && data.updates.length > 0) {
@@ -118,7 +118,7 @@ export async function pullSync() {
       for (const update of data.updates) {
         if (update.dataType === "course_structure") {
           coursesArray = coursesArray.filter(c => c.id !== update.courseId);
-          coursesArray.push(update.snapshot);
+          coursesArray.push(update.snapshot as Course);
           meta[update.courseId] = { ...meta[update.courseId], localTimestamp: update.timestamp, pendingStructure: false };
         } else {
           // Backup progress

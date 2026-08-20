@@ -23,7 +23,7 @@ function CallbackContent() {
           body: JSON.stringify({ token })
         });
         
-        const data = await res.json();
+        const data = await res.json() as { error?: string };
         if (res.ok) {
           setStatus("Autenticado com sucesso! Redirecionando...");
           setTimeout(() => {

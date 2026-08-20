@@ -8,7 +8,7 @@ import { RAGOptimizer } from "@/lib/rag/optimizer";
 
 export async function POST(req: Request) {
   try {
-    const { label, subject, nicho } = await req.json();
+    const { label, subject, nicho } = await req.json() as { label?: string; subject?: string; nicho?: string };
 
     if (!label || !subject) {
       return NextResponse.json({ error: "Parâmetros obrigatórios ausentes." }, { status: 400 });
@@ -69,7 +69,7 @@ REGRAS ESTABELECIDAS:
 
     if (engine) {
       const cacheKey = `teoria:${subject}:${label}:${nicho||""}`;
-      await engine.cacheResponse(cacheKey, result);
+      await engine.cacheResponse(cacheKey, result ?? '');
     }
     return NextResponse.json({ teoria: result });
   } catch (error: any) {

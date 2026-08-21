@@ -9,7 +9,7 @@ function resolveEnv(): any {
   // 1ª tentativa: contexto oficial do next-on-pages (produção Pages)
   try {
     const ctx = getRequestContext();
-    if (ctx?.env && (ctx.env as any).AI) {
+    if (ctx?.env) {
       return ctx.env;
     }
   } catch (_) {
@@ -65,9 +65,9 @@ export async function POST(req: Request) {
     // 1. Fatiamento inteligente
     const chunks = RAGChunker.splitLegislation(text, { maxTokens: 400 });
 
-    const ai = env?.AI;
-    const vectorize = env?.VECTORIZE;
-    const db = env?.D1_DB;
+    const ai = env?.AI || env?.ai;
+    const vectorize = env?.VECTORIZE || env?.vectorize;
+    const db = env?.D1_DB || env?.d1_db || env?.DB || env?.D1;
 
     // Diagnóstico detalhado — visível nos logs da Cloudflare para debug
     if (!ai || !vectorize || !db) {
@@ -79,7 +79,10 @@ export async function POST(req: Request) {
 
       console.error(`[Ingest] Bindings ausentes: ${missing}. env keys: ${Object.keys(env || {}).join(', ')}`);
       return NextResponse.json(
-        { error: `Bindings ausentes: ${missing}. Verifique o painel do Cloudflare Pages > Settings > Bindings.` },
+        { 
+          error: `Bindings ausentes: ${missing}. Verifique o painel do Cloudflare Pages > Settings > Bindings.`,
+          env_keys: Object.keys(env || {}) 
+        },
         { status: 500 }
       );
     }

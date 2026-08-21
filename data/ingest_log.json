@@ -5,9 +5,9 @@
   "erros": [
     {
       "id": "eca-001",
-      "motivo": "Ingest API retornou 500: Internal Server Error"
+      "motivo": "Ingest API retornou 500: {\"error\":\"Bindings ausentes: AI, VECTORIZE, D1_DB. Verifique o painel do Cloudflare Pages > Settings > Bindings.\"}"
     }
   ],
   "sucessos": [],
-  "timestamp": "2026-08-21T00:17:20.971Z"
+  "timestamp": "2026-08-21T00:24:02.957Z"
 }

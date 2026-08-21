@@ -3,3 +3,18 @@ compatibility_date = "2024-12-01"
 compatibility_flags = [ "nodejs_compat" ]
 pages_build_output_dir = ".vercel/output/static"
 
+# Binding para Workers AI
+[ai]
+binding = "AI"
+
+# Binding para o Banco de Dados Relacional
+[[d1_databases]]
+binding = "D1_DB"
+database_name = "aivur-db"
+database_id = "0c75d334-f109-46b6-8e3b-d2e47164a157"
+
+# Binding para o Banco de Dados Vetorial
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "aivur-vector-index"
+

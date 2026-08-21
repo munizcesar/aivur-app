@@ -5,9 +5,9 @@
   "erros": [
     {
       "id": "eca-001",
-      "motivo": "Ingest API retornou 500: {\"error\":\"Bindings ausentes: AI, VECTORIZE, D1_DB. Verifique o painel do Cloudflare Pages > Settings > Bindings.\"}"
+      "motivo": "Ingest API retornou 500: {\"error\":\"Bindings ausentes: AI, VECTORIZE, D1_DB. Verifique o painel do Cloudflare Pages > Settings > Bindings.\",\"env_keys\":[\"ASSETS\",\"CF_PAGES\",\"CF_PAGES_BRANCH\",\"CF_PAGES_COMMIT_SHA\",\"CF_PAGES_URL\"]}"
     }
   ],
   "sucessos": [],
-  "timestamp": "2026-08-21T00:24:02.957Z"
+  "timestamp": "2026-08-21T00:31:25.228Z"
 }

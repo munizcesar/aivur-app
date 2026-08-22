@@ -53,6 +53,8 @@ export async function POST(req: Request) {
     const systemPrompt = `Você é o tutor especialista em concursos do Aivur. Seu objetivo é explicar a matéria em passos lógicos (scaffolding).
 Use OBRIGATORIAMENTE o [CONTEXTO VETORIAL] fornecido abaixo. Se houver 'pegadinhas' ou menções a bancas (como SH Dias, Vunesp) no contexto, destaque isso brutalmente para o aluno. Se o contexto estiver vazio, avise e responda com seu conhecimento.
 
+IMPORTANTE: Mantenha qualquer bloco <think> extremamente curto. Vá direto à geração da aula estruturada em Markdown.
+
 [CONTEXTO VETORIAL]:
 ${contextText || "Nenhum contexto encontrado na base de dados para este tema."}`;
 
@@ -63,12 +65,22 @@ ${contextText || "Nenhum contexto encontrado na base de dados para este tema."}`
     ], {
       model: "qwen/qwen3.6-27b",
       temperature: 0.3,
-      max_tokens: 1500,
+      max_tokens: 5000,
       apiKey: groqApiKey
     });
 
-    // Remove o bloco <think> do modelo Qwen, se existir
-    const cleanContent = result ? result.replace(/<think>[\s\S]*?<\/think>\n*/g, '').trim() : "";
+    // Remove o bloco <think> do modelo Qwen de forma indestrutível
+    let cleanContent = result || "";
+    const thinkStart = cleanContent.indexOf('<think>');
+    if (thinkStart !== -1) {
+      const thinkEnd = cleanContent.indexOf('</think>');
+      if (thinkEnd !== -1) {
+        cleanContent = (cleanContent.substring(0, thinkStart) + cleanContent.substring(thinkEnd + 8)).trim();
+      } else {
+        // Se a tag não fechou, removemos do <think> em diante
+        cleanContent = cleanContent.substring(0, thinkStart).trim();
+      }
+    }
 
     // Retorna 'resposta' (nova spec) e 'teoria' (compatibilidade frontend)
     return NextResponse.json({ 

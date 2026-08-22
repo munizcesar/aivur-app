@@ -92,7 +92,6 @@ Você DEVE retornar APENAS UM JSON VÁLIDO no exato formato abaixo e ABSOLUTAMEN
       model: "qwen/qwen3.6-27b",
       temperature: 0.3,
       max_tokens: 2500, // Margem um pouco maior para array de 3 questões com justificativas completas
-      response_format: { type: "json_object" },
       apiKey: groqApiKey
     });
 

@@ -74,6 +74,12 @@ ${contextText || "Nenhum contexto encontrado na base de dados para este tema."}`
 
   } catch (error: any) {
     console.error("Erro na rota de Teoria (RAG + Groq):", error);
-    return NextResponse.json({ error: error.message || "Erro ao gerar teoria" }, { status: 500 });
+    
+    // Fallback info for debugging API keys
+    const env = resolveEnv();
+    return NextResponse.json({ 
+      error: error.message || "Erro ao gerar teoria",
+      env_keys: Object.keys(env || {})
+    }, { status: 500 });
   }
 }

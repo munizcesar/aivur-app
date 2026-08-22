@@ -63,6 +63,7 @@ ${contextText || "Nenhum contexto encontrado na base de dados para este tema."}`
     ], {
       model: "groq/compound",
       temperature: 0.3,
+      max_tokens: 1500,
       apiKey: groqApiKey
     });
 

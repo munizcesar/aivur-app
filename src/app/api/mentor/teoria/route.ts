@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       if (searchData.results && searchData.results.length > 0) {
         // 3. Mapeia os textos dos resultados
         contextText = searchData.results
-          .map((r, i) => `[Trecho ${i + 1}]:\n${r.text}`)
+          .map((r, i) => `[Trecho ${i + 1}]:\n${r.text.substring(0, 2500)}`) // Limita a 2500 chars por chunk para não explodir o LLM
           .join('\n\n');
       }
     } else {
@@ -61,7 +61,7 @@ ${contextText || "Nenhum contexto encontrado na base de dados para este tema."}`
       { role: "system", content: systemPrompt },
       { role: "user", content: `Explique detalhadamente o tema: ${tema}` }
     ], {
-      model: "qwen/qwen3.6-27b",
+      model: "groq/compound",
       temperature: 0.3,
       max_tokens: 1500,
       apiKey: groqApiKey

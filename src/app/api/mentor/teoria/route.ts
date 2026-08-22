@@ -1,9 +1,24 @@
 export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
+import { getRequestContext } from '@cloudflare/next-on-pages';
+
+// Função auxiliar para resolver bindings e env no Edge
+function resolveEnv(): any {
+  try {
+    const ctx = getRequestContext();
+    if (ctx?.env) return ctx.env;
+  } catch (_) {}
+  const g = globalThis as any;
+  if (g.GROQ_API_KEY) return g;
+  return process.env;
+}
 
 export async function POST(req: Request) {
   try {
+    const env = resolveEnv();
+    const groqApiKey = env?.GROQ_API_KEY;
+
     const body = await req.json() as { tema?: string; label?: string; subject?: string };
     
     // Compatibilidade com a chamada antiga (label/subject) e a nova (tema)
@@ -47,7 +62,8 @@ ${contextText || "Nenhum contexto encontrado na base de dados para este tema."}`
       { role: "user", content: `Explique detalhadamente o tema: ${tema}` }
     ], {
       model: "llama-3.3-70b-versatile",
-      temperature: 0.3
+      temperature: 0.3,
+      apiKey: groqApiKey
     });
 
     // Retorna 'resposta' (nova spec) e 'teoria' (compatibilidade frontend)

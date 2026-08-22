@@ -15,13 +15,16 @@ if (API_KEY_FALLBACK) {
  */
 export async function callGroqWithFallback(
   messages: any[],
-  options: { model?: string; temperature?: number; response_format?: any; max_tokens?: number } = {}
+  options: { model?: string; temperature?: number; response_format?: any; max_tokens?: number; apiKey?: string } = {}
 ) {
   const model = options.model || "llama3-70b-8192";
   const temperature = options.temperature ?? 0.3;
 
-  for (let attempt = 0; attempt < clients.length; attempt++) {
-    const client = clients[attempt];
+  // Use dynamically provided API key if available, otherwise fallback to module-level clients
+  const activeClients = options.apiKey ? [new Groq({ apiKey: options.apiKey })] : clients;
+
+  for (let attempt = 0; attempt < activeClients.length; attempt++) {
+    const client = activeClients[attempt];
     try {
       const response = await client.chat.completions.create({
         messages,

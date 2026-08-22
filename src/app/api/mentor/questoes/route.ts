@@ -97,12 +97,21 @@ Você DEVE retornar APENAS UM JSON VÁLIDO no exato formato abaixo e ABSOLUTAMEN
 
     if (!result) throw new Error("Resposta vazia da API Groq");
     
-    // Limpeza de segurança caso o modelo insista em mandar <think> ou Markdown ```json
-    let cleanResult = result.replace(/<think>[\s\S]*?<\/think>\n*/g, '').trim();
-    if (cleanResult.startsWith('```json')) cleanResult = cleanResult.replace(/^```json/, '');
-    if (cleanResult.startsWith('```')) cleanResult = cleanResult.replace(/^```/, '');
-    if (cleanResult.endsWith('```')) cleanResult = cleanResult.replace(/```$/, '');
-    cleanResult = cleanResult.trim();
+    // Limpeza de segurança super robusta para extrair o JSON mesmo com <think> malformado ou Markdown
+    let cleanResult = result;
+    const thinkEnd = cleanResult.lastIndexOf('</think>');
+    if (thinkEnd !== -1) {
+      cleanResult = cleanResult.substring(thinkEnd + 8);
+    } else if (cleanResult.includes('<think>')) {
+      // Se tiver abertura mas não tiver fechamento (corte abrupto)
+      cleanResult = cleanResult.replace(/<think>[\s\S]*/, '');
+    }
+
+    const jsonStart = cleanResult.indexOf('{');
+    const jsonEnd = cleanResult.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      cleanResult = cleanResult.substring(jsonStart, jsonEnd + 1);
+    }
 
     const json = JSON.parse(cleanResult);
 

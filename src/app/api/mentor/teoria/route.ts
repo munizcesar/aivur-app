@@ -14,6 +14,21 @@ function resolveEnv(): any {
   return process.env;
 }
 
+// Roteamento de domínio: molda o perfil da IA conforme a matéria
+function getDomainRules(subject: string = "") {
+  const materia = subject.toLowerCase();
+  if (materia.includes("português") || materia.includes("portuguesa") || materia.includes("redação")) {
+    return "ATUE COMO GRAMÁTICO EXAMINADOR. Baseie-se exclusivamente nas gramáticas normativas de referência (Cegalla, Bechara, Cunha & Cintra) e no Acordo Ortográfico vigente (VOLP). Foque em regras de exceção e morfossintaxe pura.";
+  }
+  if (materia.includes("matemática") || materia.includes("raciocínio") || materia.includes("lógico") || materia.includes("rlm")) {
+    return "ATUE COMO MATEMÁTICO EXAMINADOR. O universo do modelo é a lógica formal e teoremas exatos. O foco absoluto deve ser o raciocínio passo a passo inquebrável, sem pular etapas de cálculo. A criatividade deve ser zero; a exatidão deve ser total.";
+  }
+  if (materia.includes("informática") || materia.includes("tecnologia") || materia.includes("computação")) {
+    return "ATUE COMO ENGENHEIRO DE TECNOLOGIA EXAMINADOR. Baseie-se em manuais oficiais (Windows, Linux) e cartilhas de segurança (CERT.br).";
+  }
+  return "ATUE COMO JURISTA EXAMINADOR. O universo do modelo se resume à Constituição Federal, Vade Mecum, jurisprudência e leis vigentes. É TERMINANTEMENTE PROIBIDO inventar números de leis, artigos, incisos, penas ou prazos. Na dúvida, explique o princípio jurídico e alerte para a leitura da lei seca.";
+}
+
 export async function POST(req: Request) {
   try {
     const env = resolveEnv();
@@ -23,6 +38,7 @@ export async function POST(req: Request) {
     
     // Compatibilidade com a chamada antiga (label/subject) e a nova (tema)
     const tema = body.tema || body.label;
+    const subject = body.subject || "";
 
     if (!tema) {
       return NextResponse.json({ error: "Parâmetro 'tema' ou 'label' é obrigatório." }, { status: 400 });
@@ -49,9 +65,12 @@ export async function POST(req: Request) {
       console.error(`[RAG Teoria] Falha ao buscar contexto: ${searchResponse.status}`);
     }
 
-    // 4. System Prompt com Scaffolding
+    // 4. System Prompt com Scaffolding + Roteamento de Domínio
+    const domainRules = getDomainRules(subject);
     const systemPrompt = `Você é o tutor especialista em concursos do Aivur. Seu objetivo é explicar a matéria em passos lógicos (scaffolding).
 Use OBRIGATORIAMENTE o [CONTEXTO VETORIAL] fornecido abaixo. Se houver 'pegadinhas' ou menções a bancas (como SH Dias, Vunesp) no contexto, destaque isso brutalmente para o aluno. Se o contexto estiver vazio, avise e responda com seu conhecimento.
+
+PERFIL ATIVO: ${domainRules}
 
 IMPORTANTE: Mantenha qualquer bloco <think> extremamente curto. Vá direto à geração da aula estruturada em Markdown.
 

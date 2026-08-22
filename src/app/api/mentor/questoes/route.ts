@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 
     // 2. System Prompt Turbinado
     const systemPrompt = `Você atua como um Elaborador Sênior de Concursos para Guardas Municipais e Carreiras Policiais.
-Sua missão é gerar 3 questões inéditas de múltipla escolha com alto rigor técnico.
+Sua missão é gerar 2 questões inéditas de múltipla escolha com alto rigor técnico.
 
 Tópico: ${label}
 Matéria: ${subject || "Geral"}
@@ -55,11 +55,12 @@ Dificuldade: ${dificuldade || "Média"}
 Banca: ${banca || "SH Dias / Estilo Municipal"}
 
 REGRAS DE OURO (Siga estritamente):
-1. PADRONIZAÇÃO DAS ALTERNATIVAS: Gere SEMPRE e EXATAMENTE 4 alternativas (A, B, C e D). Nenhuma a mais, nenhuma a menos.
-2. O PERFIL DO EXAMINADOR: Os enunciados DEVEM trazer cenários práticos do dia a dia (aplicação de leis em ocorrências, estatutos em delegacias, regras de trânsito em patrulha, ou matemática/cálculos aplicados à realidade policial/guarda). Evite perguntas teóricas e secas.
-3. CASCAS DE BANANA OBRIGATÓRIAS: Pelo menos UMA alternativa incorreta em cada questão deve ser uma "pegadinha" extremamente plausível, baseada nos erros mais comuns dos candidatos ou em semelhanças que confundem.
-4. JUSTIFICATIVA SOCRÁTICA: A chave "justificativa" NÃO pode ser apenas "A letra X está correta". Você DEVE explicar rapidamente o motivo da correta e DESTRUIR a principal pegadinha da questão, explicando por que ela está errada e como não cair nela.
-5. CONTEXTO VETORIAL: Use OBRIGATORIAMENTE o [CONTEXTO VETORIAL] fornecido abaixo para embasar o conteúdo jurídico, matemático ou teórico das questões. Se o contexto trouxer "pegadinhas", aplique-as nas questões.
+1. PADRONIZAÇÃO DAS ALTERNATIVAS: Gere SEMPRE e EXATAMENTE 4 alternativas (A, B, C e D).
+2. O PERFIL DO EXAMINADOR: Os enunciados DEVEM trazer cenários práticos (aplicação de leis, estatutos em delegacias, regras de trânsito, matemática policial). Evite perguntas teóricas.
+3. CASCAS DE BANANA OBRIGATÓRIAS: Pelo menos UMA alternativa incorreta em cada questão deve ser uma pegadinha altamente plausível.
+4. JUSTIFICATIVA SOCRÁTICA: Explique rapidamente o motivo da correta e destrua a pegadinha. Seja CONCISO para economizar tokens.
+5. CONTEXTO VETORIAL: Use OBRIGATORIAMENTE o [CONTEXTO VETORIAL] abaixo.
+6. PENSAMENTO DIRETO: Mantenha qualquer bloco <think> extremamente curto (máx 200 palavras). Vá direto à geração do JSON.
 
 [CONTEXTO VETORIAL]:
 ${contextText || "Nenhum contexto específico encontrado na base. Utilize seu conhecimento de ponta."}
@@ -91,7 +92,7 @@ Você DEVE retornar APENAS UM JSON VÁLIDO no exato formato abaixo e ABSOLUTAMEN
     ], {
       model: "qwen/qwen3.6-27b",
       temperature: 0.3,
-      max_tokens: 2500, // Margem um pouco maior para array de 3 questões com justificativas completas
+      max_tokens: 5000,
       apiKey: groqApiKey
     });
 
@@ -113,7 +114,13 @@ Você DEVE retornar APENAS UM JSON VÁLIDO no exato formato abaixo e ABSOLUTAMEN
       cleanResult = cleanResult.substring(jsonStart, jsonEnd + 1);
     }
 
-    const json = JSON.parse(cleanResult);
+    let json;
+    try {
+      json = JSON.parse(cleanResult);
+    } catch (e: any) {
+      console.error("JSON parse error:", e);
+      throw new Error("Falha ao parsear JSON gerado pela IA. Texto puro: " + cleanResult);
+    }
 
     // Adiciona IDs randomicos se o modelo esqueceu
     if (json.questoes && Array.isArray(json.questoes)) {

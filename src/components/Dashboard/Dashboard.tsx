@@ -126,7 +126,7 @@ export default function Dashboard() {
         {/* PILLARS GRID */}
         <section className={styles.pillarsGrid}>
           {/* Trilhas */}
-          <Link href="/mentor" className={styles.pillarCard}>
+          <Link href="/mentor/gerar" className={styles.pillarCard}>
             <div className={styles.pillarIcon}>
               <GraduationCap width={24} height={24} />
             </div>
@@ -138,7 +138,7 @@ export default function Dashboard() {
           </Link>
 
           {/* Questões */}
-          <Link href="/mentor" className={styles.pillarCard}>
+          <Link href="/questoes" className={styles.pillarCard}>
             <div className={styles.pillarIcon}>
               <ClipboardList width={24} height={24} />
             </div>
@@ -162,7 +162,7 @@ export default function Dashboard() {
           </Link>
 
           {/* Redação */}
-          <Link href="/mentor" className={styles.pillarCard}>
+          <Link href="/redacao" className={styles.pillarCard}>
             <div className={styles.pillarIcon}>
               <Brain width={24} height={24} />
             </div>

@@ -67,10 +67,13 @@ ${contextText || "Nenhum contexto encontrado na base de dados para este tema."}`
       apiKey: groqApiKey
     });
 
+    // Remove o bloco <think> do modelo Qwen, se existir
+    const cleanContent = result ? result.replace(/<think>[\s\S]*?<\/think>\n*/g, '').trim() : "";
+
     // Retorna 'resposta' (nova spec) e 'teoria' (compatibilidade frontend)
     return NextResponse.json({ 
-      resposta: result,
-      teoria: result 
+      resposta: cleanContent,
+      teoria: cleanContent 
     });
 
   } catch (error: any) {

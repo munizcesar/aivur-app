@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuizStore } from "@/store/useQuizStore";
 import { 
   GraduationCap, X, LayoutDashboard, History, Zap, Sparkles, 
@@ -19,6 +19,8 @@ export default function SideDrawer() {
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<"resumo" | "historico" | "atalhos" | "mentor">("resumo");
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   const closeDrawer = () => setDrawerOpen(false);
 
@@ -27,6 +29,32 @@ export default function SideDrawer() {
     setStep(2);
     closeDrawer();
     router.push('/');
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const diffX = currentX - touchStartX.current;
+    const diffY = currentY - touchStartY.current;
+    
+    // Swipe horizontal maior que 50px e superior ao movimento vertical
+    if (diffX > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+      closeDrawer();
+      touchStartX.current = null;
+      touchStartY.current = null;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStartX.current = null;
+    touchStartY.current = null;
   };
 
   return (
@@ -40,7 +68,12 @@ export default function SideDrawer() {
       ></div>
 
       {/* Drawer */}
-      <aside className={`${styles.sideDrawer} ${isDrawerOpen ? styles.open : ""}`}>
+      <aside 
+        className={`${styles.sideDrawer} ${isDrawerOpen ? styles.open : ""}`}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className={styles.drawerHeader}>
           <div className={styles.drawerHeaderLeft}>
             <span className={styles.drawerLogo}>

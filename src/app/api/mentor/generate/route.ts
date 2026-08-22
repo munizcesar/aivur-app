@@ -1,6 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
+import { extractCleanJson } from '@/lib/ai-protocols';
 
 // Basic in-memory rate limiting
 const ipMap = new Map<string, { count: number; resetTime: number }>();
@@ -160,10 +161,8 @@ Schema esperado do JSON:
       response_format: { type: "json_object" },
     });
 
-    let jsonString = messageContent?.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1];
-    if (!jsonString) {
-      jsonString = messageContent?.trim() || "";
-    }
+    // 4. Extração de JSON centralizada via ai-protocols (extractCleanJson)
+    const jsonString = extractCleanJson(messageContent || "");
 
     let parsedJson;
     try {

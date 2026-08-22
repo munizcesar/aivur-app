@@ -2,6 +2,7 @@ export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
 import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getDomainRules, extractCleanJson } from '@/lib/ai-protocols';
 
 // Função auxiliar para resolver bindings e env no Edge (padrão da nossa arquitetura)
 function resolveEnv(): any {
@@ -12,21 +13,6 @@ function resolveEnv(): any {
   const g = globalThis as any;
   if (g.GROQ_API_KEY) return g;
   return process.env;
-}
-
-// Roteamento de domínio: molda o perfil da IA conforme a matéria
-function getDomainRules(subject: string = "") {
-  const materia = subject.toLowerCase();
-  if (materia.includes("português") || materia.includes("portuguesa") || materia.includes("redação")) {
-    return "ATUE COMO GRAMÁTICO EXAMINADOR. Baseie-se exclusivamente nas gramáticas normativas de referência (Cegalla, Bechara, Cunha & Cintra) e no Acordo Ortográfico vigente (VOLP). Foque em regras de exceção e morfossintaxe pura.";
-  }
-  if (materia.includes("matemática") || materia.includes("raciocínio") || materia.includes("lógico") || materia.includes("rlm")) {
-    return "ATUE COMO MATEMÁTICO EXAMINADOR. O universo do modelo é a lógica formal e teoremas exatos. O foco absoluto deve ser o raciocínio passo a passo inquebrável, sem pular etapas de cálculo. A criatividade deve ser zero; a exatidão deve ser total.";
-  }
-  if (materia.includes("informática") || materia.includes("tecnologia") || materia.includes("computação")) {
-    return "ATUE COMO ENGENHEIRO DE TECNOLOGIA EXAMINADOR. Baseie-se em manuais oficiais (Windows, Linux) e cartilhas de segurança (CERT.br).";
-  }
-  return "ATUE COMO JURISTA EXAMINADOR. O universo do modelo se resume à Constituição Federal, Vade Mecum, jurisprudência e leis vigentes. É TERMINANTEMENTE PROIBIDO inventar números de leis, artigos, incisos, penas ou prazos. Na dúvida, explique o princípio jurídico e alerte para a leitura da lei seca.";
 }
 
 export async function POST(req: Request) {
@@ -66,12 +52,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // 2. System Prompt — Especialista em Memorização + Roteamento de Domínio
-    const domainRules = getDomainRules(subject || "");
+    // 2. System Prompt — Especialista em Memorização + Protocolo de Confiabilidade centralizado
     const systemPrompt = `Você é um Especialista em Memorização e criação de flashcards para concursos públicos.
 Sua missão é criar EXATAMENTE 4 flashcards de alta qualidade baseados no tópico e no contexto fornecido.
-
-PERFIL ATIVO: ${domainRules}
 
 Tópico: ${label}
 Matéria: ${subject || "Geral"}
@@ -97,7 +80,10 @@ Retorne APENAS o JSON abaixo. Absolutamente nenhum texto adicional antes ou depo
     { "id": "placeholder-3", "front": "Pergunta ou termo aqui", "back": "Resposta curta ou mnemônico aqui" },
     { "id": "placeholder-4", "front": "Pergunta ou termo aqui", "back": "Resposta curta ou mnemônico aqui" }
   ]
-}`;
+}
+
+=== PROTOCOLO DE CONFIABILIDADE ===
+${getDomainRules(subject || "")}`;
 
     // 3. Chamada ao Qwen via Groq
     const result = await callGroqWithFallback([
@@ -112,24 +98,8 @@ Retorne APENAS o JSON abaixo. Absolutamente nenhum texto adicional antes ou depo
 
     if (!result) throw new Error("Resposta vazia da API Groq");
 
-    // 4. Extração Indestrutível de JSON — lógica testada e validada em produção
-    let cleanResult = result;
-
-    // Pula tudo antes do fechamento do bloco <think>
-    const thinkEnd = cleanResult.lastIndexOf('</think>');
-    if (thinkEnd !== -1) {
-      cleanResult = cleanResult.substring(thinkEnd + 8);
-    } else if (cleanResult.includes('<think>')) {
-      // Bloco <think> aberto sem fechamento (corte abrupto)
-      cleanResult = cleanResult.replace(/<think>[\s\S]*/, '');
-    }
-
-    // Extrai o JSON bruto pelo índice do primeiro { e último }
-    const jsonStart = cleanResult.indexOf('{');
-    const jsonEnd = cleanResult.lastIndexOf('}');
-    if (jsonStart !== -1 && jsonEnd !== -1) {
-      cleanResult = cleanResult.substring(jsonStart, jsonEnd + 1);
-    }
+    // 4. Extração de JSON centralizada via ai-protocols (extractCleanJson)
+    const cleanResult = extractCleanJson(result);
 
     let parsed;
     try {

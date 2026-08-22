@@ -2,6 +2,7 @@ export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
 import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getDomainRules, extractCleanJson } from '@/lib/ai-protocols';
 
 // Função auxiliar para resolver bindings e env no Edge
 function resolveEnv(): any {
@@ -14,27 +15,18 @@ function resolveEnv(): any {
   return process.env;
 }
 
-// Roteamento de domínio: molda o perfil da IA conforme a matéria
-function getDomainRules(subject: string = "") {
-  const materia = subject.toLowerCase();
-  if (materia.includes("português") || materia.includes("portuguesa") || materia.includes("redação")) {
-    return "ATUE COMO GRAMÁTICO EXAMINADOR. Baseie-se exclusivamente nas gramáticas normativas de referência (Cegalla, Bechara, Cunha & Cintra) e no Acordo Ortográfico vigente (VOLP). Foque em regras de exceção e morfossintaxe pura.";
-  }
-  if (materia.includes("matemática") || materia.includes("raciocínio") || materia.includes("lógico") || materia.includes("rlm")) {
-    return "ATUE COMO MATEMÁTICO EXAMINADOR. O universo do modelo é a lógica formal e teoremas exatos. O foco absoluto deve ser o raciocínio passo a passo inquebrável, sem pular etapas de cálculo. A criatividade deve ser zero; a exatidão deve ser total.";
-  }
-  if (materia.includes("informática") || materia.includes("tecnologia") || materia.includes("computação")) {
-    return "ATUE COMO ENGENHEIRO DE TECNOLOGIA EXAMINADOR. Baseie-se em manuais oficiais (Windows, Linux) e cartilhas de segurança (CERT.br).";
-  }
-  return "ATUE COMO JURISTA EXAMINADOR. O universo do modelo se resume à Constituição Federal, Vade Mecum, jurisprudência e leis vigentes. É TERMINANTEMENTE PROIBIDO inventar números de leis, artigos, incisos, penas ou prazos. Na dúvida, explique o princípio jurídico e alerte para a leitura da lei seca.";
-}
-
 export async function POST(req: Request) {
   try {
     const env = resolveEnv();
     const groqApiKey = env?.GROQ_API_KEY;
 
-    const { label, subject, nicho, dificuldade, banca } = await req.json() as { label?: string; subject?: string; nicho?: string; dificuldade?: string; banca?: string };
+    const { label, subject, nicho, dificuldade, banca } = await req.json() as {
+      label?: string;
+      subject?: string;
+      nicho?: string;
+      dificuldade?: string;
+      banca?: string;
+    };
 
     if (!label) {
       return NextResponse.json({ error: "Falta label" }, { status: 400 });
@@ -60,12 +52,9 @@ export async function POST(req: Request) {
       console.error(`[RAG Questoes] Falha ao buscar contexto: ${searchResponse.status}`);
     }
 
-    // 2. System Prompt Turbinado + Roteamento de Domínio
-    const domainRules = getDomainRules(subject || "");
+    // 2. System Prompt + Protocolo de Confiabilidade centralizado
     const systemPrompt = `Você atua como um Elaborador Sênior de Concursos para Guardas Municipais e Carreiras Policiais.
 Sua missão é gerar 2 questões inéditas de múltipla escolha com alto rigor técnico.
-
-PERFIL ATIVO: ${domainRules}
 
 Tópico: ${label}
 Matéria: ${subject || "Geral"}
@@ -101,9 +90,12 @@ Você DEVE retornar APENAS UM JSON VÁLIDO no exato formato abaixo e ABSOLUTAMEN
       "justificativa": "Explicação matadora da correta e destruição da pegadinha..."
     }
   ]
-}`;
+}
 
-    // 3. Chamada para a Groq com JSON Mode
+=== PROTOCOLO DE CONFIABILIDADE ===
+${getDomainRules(subject || "")}`;
+
+    // 3. Chamada para a Groq
     const result = await callGroqWithFallback([
       { role: "system", content: systemPrompt },
       { role: "user", content: `Gere as questões para: ${label}` }
@@ -115,22 +107,9 @@ Você DEVE retornar APENAS UM JSON VÁLIDO no exato formato abaixo e ABSOLUTAMEN
     });
 
     if (!result) throw new Error("Resposta vazia da API Groq");
-    
-    // Limpeza de segurança super robusta para extrair o JSON mesmo com <think> malformado ou Markdown
-    let cleanResult = result;
-    const thinkEnd = cleanResult.lastIndexOf('</think>');
-    if (thinkEnd !== -1) {
-      cleanResult = cleanResult.substring(thinkEnd + 8);
-    } else if (cleanResult.includes('<think>')) {
-      // Se tiver abertura mas não tiver fechamento (corte abrupto)
-      cleanResult = cleanResult.replace(/<think>[\s\S]*/, '');
-    }
 
-    const jsonStart = cleanResult.indexOf('{');
-    const jsonEnd = cleanResult.lastIndexOf('}');
-    if (jsonStart !== -1 && jsonEnd !== -1) {
-      cleanResult = cleanResult.substring(jsonStart, jsonEnd + 1);
-    }
+    // 4. Extração de JSON centralizada via ai-protocols (extractCleanJson)
+    const cleanResult = extractCleanJson(result);
 
     let json;
     try {
@@ -140,7 +119,7 @@ Você DEVE retornar APENAS UM JSON VÁLIDO no exato formato abaixo e ABSOLUTAMEN
       throw new Error("Falha ao parsear JSON gerado pela IA. Texto puro: " + cleanResult);
     }
 
-    // Adiciona IDs randomicos se o modelo esqueceu
+    // 5. Adiciona IDs randomicos se o modelo esqueceu
     if (json.questoes && Array.isArray(json.questoes)) {
       json.questoes = json.questoes.map((q: any) => ({
         ...q,

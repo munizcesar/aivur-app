@@ -6,6 +6,24 @@ import { useCourseContext } from "@/context/CourseContext";
 import { useLocalCourses } from "@/hooks/useLocalCourses";
 import ReactMarkdown from 'react-markdown';
 
+export function getDisclaimerAivur(subject: string) {
+  const materia = subject?.toLowerCase() || "";
+
+  if (materia.includes("português") || materia.includes("portuguesa") || materia.includes("redação")) {
+    return "🛡️ SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Estruturada por IA com base em gramáticas normativas de referência (ex: Cegalla, Bechara) e regras da ABL. Excelente para retenção e revisão, mas valide sempre as minúcias com o edital oficial.";
+  } 
+  
+  if (materia.includes("matemática") || materia.includes("raciocínio") || materia.includes("lógico") || materia.includes("rlm")) {
+    return "📐 SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Passo a passo lógico e analítico estruturado por IA. Focado em aplicação direta de fórmulas, teoremas consolidados e nas armadilhas clássicas das bancas.";
+  }
+
+  if (materia.includes("informática") || materia.includes("tecnologia") || materia.includes("computação")) {
+    return "💻 SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Material fundamentado em documentações técnicas oficiais (Windows, Linux, Pacote Office) e cartilhas de Segurança da Informação (ex: CERT.br).";
+  }
+
+  return "⚖️ SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Conteúdo estruturado por IA especializada com base na legislação oficial, jurisprudência e doutrinas. Utilize como acelerador de estudos, mantendo a leitura da lei seca (Vade Mecum) como validação final.";
+}
+
 interface TopicDetailsProps {
   topicId: string;
   topicLabel: string;
@@ -181,9 +199,8 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
       {/* TEORIA TAB */}
       {activeTab === "teoria" && (
         <div>
-          <div className={styles.aiWarning}>
-            <span role="img" aria-label="warning">⚠️</span>
-            <span><strong>Conteúdo gerado por IA</strong> — sempre confira a lei atualizada e o edital oficial antes de memorizar. Nomes e números de artigos podem sofrer alucinação.</span>
+          <div className={styles.aiWarning} style={{ padding: "12px", borderRadius: "8px", backgroundColor: "var(--bg-card)", borderLeft: "4px solid var(--color-primary)" }}>
+            <span><strong>{getDisclaimerAivur(subject)}</strong></span>
           </div>
           
           {state.teoria ? (

@@ -5,39 +5,39 @@
 @tailwind utilities;
 
 :root {
-  /* ── AIVUR Color Palette (Light) ── */
-  --color-bg:             #F8FAFC;
+  /* ── AIVUR Color Palette (Light) - Warm Modern EdTech ── */
+  --color-bg:             #F9F6F0;
   --color-surface:        #FFFFFF;
   --color-surface-2:      #FFFFFF;
   --color-surface-raised: #FFFFFF;
   --color-surface-offset: #F1F5F9;
   --color-divider:        #E2E8F0;
   --color-border:         #E2E8F0;
-  --color-text:           #0B1220;
+  --color-text:           #2B4C5F; /* Azul Petróleo / Lagune */
   --color-text-muted:     #64748B;
   --color-text-faint:     #94A3B8;
   
-  --color-primary:        #2563EB;
-  --color-primary-mid:    #1D4ED8;
-  --color-primary-hover:  #1E40AF;
+  --color-primary:        #D96B54; /* Terracota Suave */
+  --color-primary-mid:    #C25B46;
+  --color-primary-hover:  #B54D39;
   
   /* IA Colors */
-  --color-ai:             #7C3AED;
-  --color-ai-hover:       #6D28D9;
+  --color-ai:             #F4A261; /* Pêssego / Areia Quente */
+  --color-ai-hover:       #E09252;
 
-  --color-accent:         #f97316;
-  --color-accent-hover:   #ea580c;
-  --color-success:        #10b981;
-  --color-error:          #ef4444;
-  --color-warning:        #f59e0b;
-  --color-accent-destructive: #ef4444;
-  --color-accent-destructive-hover: #dc2626;
+  --color-accent:         #F4A261;
+  --color-accent-hover:   #E09252;
+  --color-success:        #7A9A8C; /* Menta Calma */
+  --color-error:          #D96B54;
+  --color-warning:        #F4A261;
+  --color-accent-destructive: #D96B54;
+  --color-accent-destructive-hover: #C25B46;
 
   /* ── Gradients (AIVUR) ── */
-  --grad-ai: linear-gradient(135deg, #7C3AED, #6D28D9);
-  --grad-os: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);
-  --grad-brand: linear-gradient(135deg, #4F6EF7 0%, #7C3AED 100%);
-  --grad-brand-h: linear-gradient(135deg, #5B7AF8 0%, #8B4FF5 100%);
+  --grad-ai: linear-gradient(135deg, #F4A261, #D96B54);
+  --grad-os: linear-gradient(135deg, #D96B54 0%, #F4A261 100%);
+  --grad-brand: linear-gradient(135deg, #F4A261 0%, #D96B54 100%);
+  --grad-brand-h: linear-gradient(135deg, #E09252 0%, #C25B46 100%);
   
   /* ── Layout & Aesthetics ── */
   --max-width: 1200px;
@@ -74,41 +74,41 @@
 }
 
 [data-theme="dark"] {
-  /* ── AIVUR Dark Mode ── */
-  --color-bg:             #0f1115;
-  --color-surface:        #16191f;
-  --hero-bg:              linear-gradient(135deg, rgba(22, 25, 31, 0.85), rgba(15, 17, 21, 0.95));
-  --color-surface-2:      #1c1f26;
-  --color-surface-raised: #1c1f26;
-  --color-surface-offset: #232730;
-  --color-divider:        #2a2f3a;
-  --color-border:         #2a2f3a;
+  /* ── AIVUR Dark Mode - Warm Modern EdTech ── */
+  --color-bg:             #181B1F; /* Grafite Profundo */
+  --color-surface:        #202429;
+  --hero-bg:              linear-gradient(135deg, rgba(24, 27, 31, 0.85), rgba(32, 36, 41, 0.95));
+  --color-surface-2:      #262A30;
+  --color-surface-raised: #262A30;
+  --color-surface-offset: #2C3138;
+  --color-divider:        #353B44;
+  --color-border:         #353B44;
   
-  --color-text:           #F8FAFC;
-  --color-text-muted:     #94A3B8;
-  --color-text-faint:     #8094A8; /* was #64748B — increased for WCAG AA contrast */
+  --color-text:           #F9F6F0; /* Off-White Aconchegante for text */
+  --color-text-muted:     #A3A9B2;
+  --color-text-faint:     #7C838D;
   
-  --color-primary:        #2563EB; /* was #3B82F6 — darker blue for 4.5:1 contrast ratio with white */
-  --color-primary-mid:    #1D4ED8;
-  --color-primary-hover:  #60A5FA;
+  --color-primary:        #D96B54;
+  --color-primary-mid:    #C25B46;
+  --color-primary-hover:  #E87D67;
   
   /* IA Colors */
-  --color-ai:             #8B5CF6;
-  --color-ai-hover:       #A78BFA;
+  --color-ai:             #F4A261;
+  --color-ai-hover:       #FFB57A;
 
-  --color-accent:         #fb923c;
-  --color-accent-hover:   #f97316;
-  --color-success:        #34d399;
-  --color-error:          #f87171;
-  --color-warning:        #fbbf24;
-  --color-accent-destructive: #f87171;
-  --color-accent-destructive-hover: #ef4444;
+  --color-accent:         #F4A261;
+  --color-accent-hover:   #FFB57A;
+  --color-success:        #7A9A8C;
+  --color-error:          #D96B54;
+  --color-warning:        #F4A261;
+  --color-accent-destructive: #D96B54;
+  --color-accent-destructive-hover: #E87D67;
 
   /* ── Gradients ── */
-  --grad-ai: linear-gradient(135deg, #8B5CF6, #A78BFA);
-  --grad-os: linear-gradient(135deg, #f87171 0%, #fbbf24 100%);
-  --grad-brand: linear-gradient(135deg, #6480FA 0%, #9060F8 100%);
-  --grad-brand-h: linear-gradient(135deg, #7290FB 0%, #A070FA 100%);
+  --grad-ai: linear-gradient(135deg, #F4A261, #D96B54);
+  --grad-os: linear-gradient(135deg, #D96B54 0%, #F4A261 100%);
+  --grad-brand: linear-gradient(135deg, #F4A261 0%, #D96B54 100%);
+  --grad-brand-h: linear-gradient(135deg, #FFB57A 0%, #E87D67 100%);
 
   /* ── Shadows ── */
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.24);

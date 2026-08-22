@@ -61,7 +61,7 @@ ${contextText || "Nenhum contexto encontrado na base de dados para este tema."}`
       { role: "system", content: systemPrompt },
       { role: "user", content: `Explique detalhadamente o tema: ${tema}` }
     ], {
-      model: "llama3-70b-8192",
+      model: "groq/compound",
       temperature: 0.3,
       apiKey: groqApiKey
     });

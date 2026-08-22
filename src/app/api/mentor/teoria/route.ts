@@ -61,7 +61,7 @@ ${contextText || "Nenhum contexto encontrado na base de dados para este tema."}`
       { role: "system", content: systemPrompt },
       { role: "user", content: `Explique detalhadamente o tema: ${tema}` }
     ], {
-      model: "groq/compound",
+      model: "qwen/qwen3.6-27b",
       temperature: 0.3,
       max_tokens: 1500,
       apiKey: groqApiKey

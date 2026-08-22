@@ -1,0 +1,206 @@
+.dashWrap {
+  background-color: #0B0F17; /* Deep Slate / High-End Dark */
+  min-height: calc(100vh - 70px);
+  padding: 4rem 0 6rem 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.heroStrip {
+  max-width: 800px;
+  margin-bottom: 4rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(217, 107, 84, 0.08); /* Terracota 8% */
+  border: 1px solid rgba(217, 107, 84, 0.3);
+  color: #F4A261; /* Pêssego / Areia Quente */
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.heroTitle {
+  font-family: var(--font-fraunces), var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.05;
+  font-weight: 700;
+  color: #F9F6F0; /* Off-White Aconchegante */
+  letter-spacing: -0.02em;
+  margin-bottom: 1.25rem;
+}
+
+.heroAccent {
+  color: #D96B54; /* Terracota Suave */
+}
+
+.insightBox {
+  transition: opacity 0.4s ease;
+}
+
+.heroSub {
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  color: #A3A9B2; /* Muted text */
+  line-height: 1.5;
+  max-width: 600px;
+  margin-bottom: 2rem;
+}
+
+/* Micro-animação do número (Sage tint) */
+.animatedNumber {
+  color: inherit;
+  transition: color 0.25s ease;
+}
+
+.highlighted {
+  color: #7A9A8C; /* Sage/Menta Calma - success */
+  text-shadow: 0 0 12px rgba(122, 154, 140, 0.4);
+}
+
+.ctaRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btnCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #D96B54 0%, #F4A261 100%);
+  color: #14110E; /* Dark text for contrast on warm colors */
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px; /* Pill */
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(217, 107, 84, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.btnCta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(217, 107, 84, 0.35);
+  filter: brightness(1.05);
+}
+
+.pillarsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+}
+
+@media (max-width: 768px) {
+  .pillarsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pillarCard {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03); /* Glassmorphism base */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08); /* Borda sutil */
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.pillarCard:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(217, 107, 84, 0.3); /* Terracota glow na borda */
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(217, 107, 84, 0.1);
+}
+
+/* Subtle glow behind card on hover */
+.pillarCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at top right, rgba(217, 107, 84, 0.1), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.pillarCard:hover::before {
+  opacity: 1;
+}
+
+.pillarIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(217, 107, 84, 0.1);
+  color: #F4A261;
+  flex-shrink: 0;
+}
+
+.pillarContent {
+  flex: 1;
+}
+
+.pillarTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #F9F6F0;
+  margin-bottom: 0.25rem;
+}
+
+.pillarDesc {
+  font-size: 0.9rem;
+  color: #A3A9B2;
+  line-height: 1.4;
+}
+
+.pillarArrow {
+  color: #D96B54;
+  opacity: 0.5;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+}
+
+.pillarCard:hover .pillarArrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.featureStrip {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+
+.featItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #7C838D;
+  font-weight: 500;
+}
+
+.featIcon {
+  color: #7A9A8C; /* Sage accent */
+}

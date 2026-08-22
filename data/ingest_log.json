@@ -1,13 +1,13 @@
 {
   "processados": 1,
-  "aceitos": 0,
-  "rejeitados": 1,
-  "erros": [
+  "aceitos": 1,
+  "rejeitados": 0,
+  "erros": [],
+  "sucessos": [
     {
       "id": "eca-001",
-      "motivo": "Ingest API retornou 500: {\"error\":\"Bindings ausentes: AI, VECTORIZE, D1_DB. Verifique o painel do Cloudflare Pages > Settings > Bindings.\",\"env_keys\":[\"ASSETS\",\"CF_PAGES\",\"CF_PAGES_BRANCH\",\"CF_PAGES_COMMIT_SHA\",\"CF_PAGES_URL\"]}"
+      "chunks": 1
     }
   ],
-  "sucessos": [],
-  "timestamp": "2026-08-21T00:31:25.228Z"
+  "timestamp": "2026-08-21T00:36:56.901Z"
 }

@@ -1,0 +1,7 @@
+{
+  "curso": "Guarda Municipal 2026",
+  "disciplina": "Matemática",
+  "banca": "SH Dias",
+  "tipo_fonte": "resumo_estrategico",
+  "conteudo": "PEGADINHA DE PORCENTAGEM (Vunesp e SH Dias): Quando a banca diz que um produto sofreu dois aumentos sucessivos de 10%, o erro fatal é somar e achar que o aumento foi de 20%. O cálculo correto exige incidir o segundo aumento sobre o valor já reajustado. Exemplo prático: R$ 100 + 10% = R$ 110. Agora, 10% de R$ 110 = R$ 11. Valor final: R$ 121. O aumento real foi de 21%. Fique atento ao termo 'sucessivos'."
+}

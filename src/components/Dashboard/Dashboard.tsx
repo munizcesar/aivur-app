@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { get } from 'idb-keyval';
 import Link from 'next/link';

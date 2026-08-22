@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import { get, set, del, keys } from "idb-keyval";
 import type { Course } from "@/types/course";

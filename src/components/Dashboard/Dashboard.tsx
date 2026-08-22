@@ -138,7 +138,7 @@ export default function Dashboard() {
           </Link>
 
           {/* Questões */}
-          <Link href="/questoes" className={styles.pillarCard}>
+          <Link href="/mentor/gerar" className={styles.pillarCard}>
             <div className={styles.pillarIcon}>
               <ClipboardList width={24} height={24} />
             </div>

@@ -1,8 +1,9 @@
 .siteHeader {
   padding: var(--space-4) 0;
-  border-bottom: 1px solid var(--color-divider);
-  background: var(--color-bg);
+  border-bottom: 1px solid rgba(107, 153, 179, 0.18); /* GrayBlue sutil */
+  background: var(--elite-navy, #0A2E45);
 }
+
 
 .headerInner {
   display: flex;

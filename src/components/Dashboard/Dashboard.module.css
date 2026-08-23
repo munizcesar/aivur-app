@@ -1,43 +1,74 @@
+/* ═══════════════════════════════════════════════════════════════════
+   DASHBOARD — Paleta Institucional Elite
+   Fundo: Dark Navy #0A2E45 | CTA: Bright Red #C41230
+   ═══════════════════════════════════════════════════════════════════ */
+
 .dashWrap {
-  background-color: #0B0F17; /* Deep Slate / High-End Dark */
+  background-color: var(--elite-navy, #0A2E45);
   min-height: calc(100vh - 70px);
-  padding: 4rem 0 6rem 0;
+  padding: 4.5rem 0 6rem 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
+/* ─── HERO STRIP (layout assimétrico 3fr / 2fr) ─── */
+
 .heroStrip {
-  max-width: 800px;
-  margin-bottom: 4rem;
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 3rem;
+  align-items: center;
+  margin-bottom: 5rem;
 }
 
-.badge {
-  display: inline-flex;
+@media (max-width: 768px) {
+  .heroStrip {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+/* ─── Lado Esquerdo: Texto + CTA ─── */
+
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.heroEyebrow {
+  font-family: var(--font-body, 'Satoshi', sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--elite-grayblue, #6B99B3);
+  margin-bottom: 1.25rem;
+  /* Sem badge-pílula: apenas texto corrido com linha decorativa */
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(217, 107, 84, 0.08); /* Terracota 8% */
-  border: 1px solid rgba(217, 107, 84, 0.3);
-  color: #F4A261; /* Pêssego / Areia Quente */
-  padding: 0.35rem 0.85rem;
-  border-radius: 9999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
+}
+
+.heroEyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 2rem;
+  height: 2px;
+  background: var(--elite-red, #C41230);
+  flex-shrink: 0;
 }
 
 .heroTitle {
-  font-family: var(--font-fraunces), var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  line-height: 1.05;
-  font-weight: 700;
-  color: #F9F6F0; /* Off-White Aconchegante */
-  letter-spacing: -0.02em;
-  margin-bottom: 1.25rem;
-}
-
-.heroAccent {
-  color: #D96B54; /* Terracota Suave */
+  font-family: var(--font-fraunces), var(--font-display, 'Cabinet Grotesk', sans-serif);
+  font-size: clamp(2.75rem, 5.5vw, 4.5rem);
+  line-height: 1.0;
+  font-weight: 900;
+  /* Cor sólida — sem gradiente, sem split linha branca + linha colorida */
+  color: var(--elite-cream, #FBEBD0);
+  letter-spacing: -0.03em;
+  margin-bottom: 1.5rem;
 }
 
 .insightBox {
@@ -45,162 +76,288 @@
 }
 
 .heroSub {
-  font-size: clamp(1rem, 1.5vw, 1.15rem);
-  color: #A3A9B2; /* Muted text */
-  line-height: 1.5;
-  max-width: 600px;
-  margin-bottom: 2rem;
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  color: var(--elite-grayblue, #6B99B3);
+  line-height: 1.65;
+  max-width: 520px;
+  margin-bottom: 2.25rem;
 }
 
-/* Micro-animação do número (Sage tint) */
+.heroSub strong {
+  color: var(--elite-cream, #FBEBD0);
+  font-weight: 600;
+}
+
+/* Micro-animação do número */
 .animatedNumber {
   color: inherit;
   transition: color 0.25s ease;
 }
 
 .highlighted {
-  color: #7A9A8C; /* Sage/Menta Calma - success */
-  text-shadow: 0 0 12px rgba(122, 154, 140, 0.4);
+  color: #7A9A8C;
 }
+
+/* ─── CTA Brutalista ─── */
 
 .ctaRow {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .btnCta {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, #D96B54 0%, #F4A261 100%);
-  color: #14110E; /* Dark text for contrast on warm colors */
+  gap: 0.625rem;
+  /* RETANGULAR — border-radius mínimo, estética editorial/brutalista */
+  border-radius: 2px;
+  background: var(--elite-red, #C41230);
+  color: var(--elite-cream, #FBEBD0);
+  font-family: var(--font-body, 'Satoshi', sans-serif);
   font-weight: 700;
   font-size: 1rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 9999px; /* Pill */
+  padding: 0.875rem 1.75rem;
   text-decoration: none;
-  box-shadow: 0 4px 20px rgba(217, 107, 84, 0.25);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  /* Sombra sólida offset — brutalista elegante, sem gradiente */
+  box-shadow: 4px 4px 0 var(--elite-wine, #6B0000);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 .btnCta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(217, 107, 84, 0.35);
-  filter: brightness(1.05);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--elite-wine, #6B0000);
 }
 
-.pillarsGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 4rem;
+.btnCta:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--elite-wine, #6B0000);
+}
+
+/* ─── Lado Direito: Reservado para mascote Aivo / preview ─── */
+
+.heroRight {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+.heroVisualPlaceholder {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  border: 1.5px solid rgba(107, 153, 179, 0.2);
+  border-radius: 4px;
+  /* Textura sutil de grade alinhada à estética institucional */
+  background-image:
+    linear-gradient(rgba(107, 153, 179, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(107, 153, 179, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-color: rgba(15, 58, 83, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.heroVisualLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(107, 153, 179, 0.4);
 }
 
 @media (max-width: 768px) {
-  .pillarsGrid {
+  .heroRight {
+    min-height: 200px;
+    order: -1; /* Placeholder vai para cima no mobile */
+  }
+  .heroVisualPlaceholder {
+    min-height: 160px;
+  }
+}
+
+/* ─── PILLARS — Layout Editorial Assimétrico ─── */
+
+.pillarsSection {
+  margin-bottom: 4rem;
+}
+
+.pillarsLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(107, 153, 179, 0.5);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(107, 153, 179, 0.12);
+}
+
+.pillarsLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 1px; /* gap de 1px para simular divisórias entre células */
+  background: rgba(107, 153, 179, 0.12); /* fundo das divisórias */
+  border: 1px solid rgba(107, 153, 179, 0.12);
+}
+
+@media (max-width: 768px) {
+  .pillarsLayout {
     grid-template-columns: 1fr;
   }
 }
 
+/* Card de pillar — estética de lista editorial com accent-line */
 .pillarCard {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1.25rem;
-  padding: 1.5rem;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03); /* Glassmorphism base */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08); /* Borda sutil */
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  padding: 1.5rem 1.75rem;
+  background: var(--elite-navy, #0A2E45);
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.2s ease;
   position: relative;
-  overflow: hidden;
+  /* Sem glassmorphism, sem blob radial — clean e institucional */
 }
 
-.pillarCard:hover {
-  transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(217, 107, 84, 0.3); /* Terracota glow na borda */
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(217, 107, 84, 0.1);
-}
-
-/* Subtle glow behind card on hover */
+/* Accent-line esquerda como único elemento decorativo */
 .pillarCard::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(circle at top right, rgba(217, 107, 84, 0.1), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+  left: 0;
+  top: 1.5rem;
+  bottom: 1.5rem;
+  width: 2px;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.pillarCard:hover {
+  background: rgba(15, 58, 83, 0.8);
 }
 
 .pillarCard:hover::before {
-  opacity: 1;
+  background: var(--elite-red, #C41230);
+}
+
+/* Card destaque: ocupa linha inteira no desktop */
+.pillarCardFeatured {
+  grid-column: 1 / -1;
+  padding: 2rem 1.75rem;
+}
+
+.pillarCardFeatured::before {
+  top: 2rem;
+  bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .pillarCardFeatured {
+    grid-column: 1;
+  }
 }
 
 .pillarIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(217, 107, 84, 0.1);
-  color: #F4A261;
+  width: 40px;
+  height: 40px;
+  /* Sem border-radius full; quadrado levemente arredondado */
+  border-radius: 4px;
+  background: rgba(196, 18, 48, 0.12);
+  color: var(--elite-red, #C41230);
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .pillarContent {
   flex: 1;
+  min-width: 0;
 }
 
 .pillarTitle {
-  font-size: 1.1rem;
+  font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
+  font-size: 1.05rem;
   font-weight: 700;
-  color: #F9F6F0;
-  margin-bottom: 0.25rem;
+  color: var(--elite-cream, #FBEBD0);
+  margin-bottom: 0.3rem;
+  line-height: 1.2;
+}
+
+.pillarCardFeatured .pillarTitle {
+  font-size: 1.2rem;
 }
 
 .pillarDesc {
-  font-size: 0.9rem;
-  color: #A3A9B2;
-  line-height: 1.4;
+  font-size: 0.875rem;
+  color: var(--elite-grayblue, #6B99B3);
+  line-height: 1.45;
 }
 
 .pillarArrow {
-  color: #D96B54;
-  opacity: 0.5;
-  transform: translateX(-10px);
-  transition: all 0.3s ease;
+  color: var(--elite-grayblue, #6B99B3);
+  opacity: 0.3;
+  flex-shrink: 0;
+  align-self: center;
+  transition: opacity 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .pillarCard:hover .pillarArrow {
   opacity: 1;
-  transform: translateX(0);
+  color: var(--elite-red, #C41230);
+  transform: translateX(4px);
 }
+
+/* ─── FEATURE STRIP — Rodapé editorial ─── */
 
 .featureStrip {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 0;
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(107, 153, 179, 0.12);
   flex-wrap: wrap;
+  row-gap: 0.5rem;
 }
 
 .featItem {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
-  color: #7C838D;
+  font-size: 0.8rem;
+  color: rgba(107, 153, 179, 0.55);
   font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 0 1.5rem 0 0;
+}
+
+/* Separador | entre items */
+.featItem + .featItem {
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(107, 153, 179, 0.15);
+}
+
+@media (max-width: 600px) {
+  .featItem + .featItem {
+    padding-left: 0;
+    border-left: none;
+  }
+  .featItem {
+    padding-right: 1rem;
+  }
 }
 
 .featIcon {
-  color: #7A9A8C; /* Sage accent */
+  color: rgba(107, 153, 179, 0.5);
+  flex-shrink: 0;
 }

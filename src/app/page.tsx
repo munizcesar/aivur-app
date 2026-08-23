@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main style={{ flex: 1, backgroundColor: "#0B0F17" }}>
+      <main style={{ flex: 1 }}>
         <Dashboard />
       </main>
       <Footer />
@@ -15,3 +15,4 @@ export default function Home() {
     </>
   );
 }
+

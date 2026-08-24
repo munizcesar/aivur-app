@@ -31,7 +31,7 @@ export default function QuestoesPage() {
   return (
     <>
       <Header />
-      <main style={{ flex: 1, padding: "2rem 0", minHeight: "85vh" }}>
+      <main style={{ flex: 1, padding: "2rem 0", minHeight: "85vh", background: "var(--elite-navy, #0A2E45)" }}>
         <div className="container">
           <div className={styles.wizardCard} role="region" aria-live="polite">
             {(step <= 2) && <WizardStep2 />}
@@ -44,3 +44,4 @@ export default function QuestoesPage() {
     </>
   );
 }
+

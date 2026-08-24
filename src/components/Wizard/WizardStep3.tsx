@@ -293,7 +293,6 @@ export default function WizardStep3() {
               {!isAnswered ? (
                 <button 
                   className={styles.qfResolverBtn}
-                  style={{ background: "var(--color-primary)", width: "100%" }}
                   disabled={!selectedOptions[currentIdx]}
                   onClick={handleConfirmAnswer}
                 >
@@ -302,7 +301,6 @@ export default function WizardStep3() {
               ) : (
                 <button 
                   className={styles.qfResolverBtn}
-                  style={{ background: "var(--color-primary)", width: "100%" }}
                   onClick={() => {
                     if (currentIdx < generatedQuestions.length - 1) {
                       setCurrentIdx(currentIdx + 1);

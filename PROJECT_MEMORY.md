@@ -78,6 +78,12 @@ A fundação do Backend de Inteligência Artificial usa o padrão RAG (Retrieval
 - Múltiplos sistemas (Next.js novo + worker legado) podem ter infraestrutura provisionada na Cloudflare (visível no dashboard) que não aparece numa busca de código simples — checar o dashboard da conta é uma fonte de verdade complementar ao código.
 - Ao pedir correções, sempre restringir explicitamente que a IA NÃO deve alterar código de partes já validadas/testadas, só a área da tarefa pedida.
 
----
-*Última atualização: 23/08/2026. Redesign da landing page concluído — Paleta Institucional Elite aplicada (Dark Navy + Bright Red + Dark Wine + Cream + Grayish Blue). Layout hero assimétrico, CTA brutalista, pillars editoriais. Build limpo (0 erros). Commit `713a3c4`.*
+## 8. Regras Inegociáveis de UI/UX
 
+1. **PALETA INSTITUCIONAL ELITE**: O sistema baseia-se em `--elite-navy` (fundo principal escuro), `--elite-red` (ações primárias), `--elite-cream` (textos de destaque/fundos claros), `--elite-wine` (sombras e hovers) e `--elite-grayblue` (apoio/bordas tracejadas).
+2. **BRUTALISMO EDITORIAL**: Proibido o uso de bordas super arredondadas (`border-radius` máximo de `2px`). Proibido o uso de sombras borradas (blurs/glassmorphism). Botões primários devem usar formato rígido com sombra de deslocamento sólida (offset shadows).
+3. **MASCOTE REATIVO**: O componente `<Aivur />` em SVG deve ser atrelado aos eventos do usuário (ex: `isDragActive`) para criar microinterações vivas sem uso de WebGL.
+4. **RESILIÊNCIA DE UI**: Todas as telas dependentes de banco de dados devem ter um botão oculto de "Mock Offline" (Fallback) para evitar paredes de erro que travem a navegação do usuário.
+
+---
+*Última atualização: 23/08/2026. Regras de Design System (Curadoria Institucional Elite) consolidadas após ampla refatoração de UI/UX em Landing Page, Wizard, Gerador e Laboratório de Materiais. Mascote reativo SVG integrado.*

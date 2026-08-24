@@ -246,29 +246,6 @@ export default function WizardStep2() {
               </button>
             </div>
           </div>
-
-          <div className={`${styles.sessionConfigCard} ${styles.configGroup}`}>
-            <div className={styles.sessionCardHead}>
-              <Rows3 width={18} height={18} />
-              <div>
-                <label className={styles.configLabel}>Alternativas</label>
-              </div>
-            </div>
-            <div className={styles.chipGroup} role="group">
-              <button 
-                className={`${styles.chip} ${filters.alternativas === 4 ? styles.active : ''}`} 
-                onClick={() => handleSelectChange('alternativas', '4')}
-              >
-                4
-              </button>
-              <button 
-                className={`${styles.chip} ${filters.alternativas === 5 ? styles.active : ''}`} 
-                onClick={() => handleSelectChange('alternativas', '5')}
-              >
-                5
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     );

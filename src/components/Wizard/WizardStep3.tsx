@@ -91,7 +91,6 @@ export default function WizardStep3() {
       difficulty: filters.dificuldade,
       quantity: filters.quantidade,
       questionType: filters.tipoQuestao,
-      alternativas: filters.alternativas,
       idioma: "pt-BR",
       sessionMode: "normal"
     };
@@ -156,13 +155,51 @@ export default function WizardStep3() {
     setResults(newResults);
   };
 
+  const handleForceMock = () => {
+    const mocks = [
+      {
+        id: "mock-1",
+        text: "De acordo com as disposições constitucionais sobre a Administração Pública (Art. 37 da CF/88), a investidura em cargo ou emprego público depende de:",
+        options: [
+          { key: "a", text: "Aprovação prévia em concurso público de provas ou de provas e títulos, ressalvadas as nomeações para cargo em comissão." },
+          { key: "b", text: "Indicação direta do Chefe do Poder Executivo, independentemente da natureza do cargo." },
+          { key: "c", text: "Processo seletivo simplificado para todas as funções de confiança." },
+          { key: "d", text: "Eleição direta pelos servidores do respectivo órgão." }
+        ],
+        answer: "a",
+        difficulty: "Médio",
+        fonte: "CF/88 - Art. 37",
+        feedback: "Correto. Segundo o Art. 37, II da CF/88: a investidura em cargo ou emprego público depende de aprovação prévia em concurso público de provas ou de provas e títulos, de acordo com a natureza e a complexidade do cargo ou emprego, na forma prevista em lei, ressalvadas as nomeações para cargo em comissão declarado em lei de livre nomeação e exoneração."
+      },
+      {
+        id: "mock-2",
+        text: "Acerca dos princípios expressos da Administração Pública previstos no caput do Art. 37 da Constituição Federal, assinale a alternativa que apresenta todos eles:",
+        options: [
+          { key: "a", text: "Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência." },
+          { key: "b", text: "Legalidade, Igualdade, Moralidade, Proporcionalidade e Eficiência." },
+          { key: "c", text: "Legalidade, Impessoalidade, Motivação, Publicidade e Eficiência." },
+          { key: "d", text: "Legalidade, Finalidade, Moralidade, Publicidade e Segurança Jurídica." }
+        ],
+        answer: "a",
+        difficulty: "Fácil",
+        fonte: "CF/88 - Art. 37",
+        feedback: "Correto. O famoso mnemônico LIMPE consagra os princípios constitucionais expressos: Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência."
+      }
+    ];
+    setGeneratedQuestions(mocks);
+    setSelectedOptions(new Array(mocks.length).fill(null));
+    setResults(new Array(mocks.length).fill(null));
+    setCurrentIdx(0);
+    setError(null);
+  };
+
   if (loading) {
     return (
       <div className={styles.wizardStep}>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div className={styles.spinner} style={{ margin: '0 auto' }}></div>
-          <p style={{ marginTop: '20px', fontWeight: 600, fontSize: '1.1rem' }}>Gerando suas questões personalizadas...</p>
-          <p style={{ color: 'var(--color-text-muted)' }}>Isso leva apenas alguns segundos</p>
+          <p style={{ marginTop: '20px', fontWeight: 600, fontSize: '1.1rem', color: "var(--elite-cream)" }}>Gerando suas questões personalizadas...</p>
+          <p style={{ color: 'var(--elite-grayblue)' }}>Isso leva apenas alguns segundos</p>
         </div>
       </div>
     );
@@ -171,17 +208,34 @@ export default function WizardStep3() {
   if (error) {
     return (
       <div className={styles.wizardStep}>
-        <div style={{ padding: "var(--space-5)", background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", textAlign: "center" }}>
-          <div style={{ marginBottom: "var(--space-3)", color: "var(--color-error)", display: "flex", justifyContent: "center" }}>
+        <div style={{ padding: "var(--space-8)", background: "rgba(251, 235, 208, 0.03)", border: "1px solid rgba(196, 18, 48, 0.3)", borderRadius: "2px", textAlign: "center", boxShadow: "4px 4px 0 rgba(107, 0, 0, 0.25)" }}>
+          <div style={{ marginBottom: "var(--space-3)", color: "var(--elite-red)", display: "flex", justifyContent: "center" }}>
             <AlertTriangle width={48} height={48} />
           </div>
-          <h3 style={{ marginBottom: "var(--space-2)", color: "var(--color-text)" }}>Oops! Algo deu errado</h3>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "1.05rem", marginBottom: "20px" }}>{error}</p>
+          <h3 style={{ marginBottom: "var(--space-2)", color: "var(--elite-cream)" }}>Ops! Geração Interrompida</h3>
+          <p style={{ color: "var(--elite-grayblue)", fontSize: "1.05rem", marginBottom: "24px" }}>{error}</p>
           
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-            <button className="btn btn-secondary" onClick={handleBackToStep2}>Voltar aos Filtros</button>
-            <button className="btn btn-primary" onClick={generateQuestions} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button 
+              className="btn btn-secondary" 
+              style={{ borderRadius: "2px", border: "1px solid rgba(107, 153, 179, 0.25)", background: "transparent", color: "var(--elite-grayblue)" }} 
+              onClick={handleBackToStep2}
+            >
+              Voltar aos Filtros
+            </button>
+            <button 
+              className={styles.qfResolverBtn} 
+              style={{ padding: "12px 24px", fontSize: "0.95rem" }} 
+              onClick={generateQuestions}
+            >
               <RefreshCw width={16} height={16} /> Tentar novamente
+            </button>
+            <button 
+              className={styles.qfResolverBtn} 
+              style={{ padding: "12px 24px", fontSize: "0.95rem", background: "transparent", color: "var(--elite-red)", border: "1px solid var(--elite-red)", boxShadow: "2px 2px 0 var(--elite-wine)" }}
+              onClick={handleForceMock}
+            >
+              Forçar Acesso (Mock Offline)
             </button>
           </div>
         </div>

@@ -123,6 +123,55 @@
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 
+[data-theme="light"] {
+  /* ── AIVUR Light Mode — Paleta Institucional Elite ── */
+  
+  /* Inversão Semântica das Cores Elite para manter a estética em componentes hardcoded */
+  --elite-navy:     #FBEBD0; /* Navy vira Cream no light mode */
+  --elite-cream:    #0A2E45; /* Cream vira Navy no light mode */
+  --elite-grayblue: #4A6B80; /* GrayBlue mais escuro para contraste no fundo claro */
+  
+  /* Cores estruturais */
+  --color-bg:             var(--elite-navy); /* Fundo primário */
+  --color-surface:        #F2DFB8;           /* Superfície elevada sutil */
+  --hero-bg:              var(--elite-navy);
+  --color-surface-2:      #F2DFB8;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-offset: #EAD4A8;
+  --color-divider:        rgba(10, 46, 69, 0.15); /* Navy 15% */
+  --color-border:         rgba(10, 46, 69, 0.2);
+
+  --color-text:           var(--elite-cream); /* Texto principal (Navy) */
+  --color-text-muted:     var(--elite-grayblue); /* Texto secundário */
+  --color-text-faint:     rgba(10, 46, 69, 0.6);
+
+  --color-primary:        var(--elite-red);  /* Bright Red como ação */
+  --color-primary-mid:    #A30F28;
+  --color-primary-hover:  var(--elite-wine); /* Dark Wine no hover */
+
+  /* IA Colors */
+  --color-ai:             #C41230;
+  --color-ai-hover:       #6B0000;
+
+  --color-accent:         var(--elite-red);
+  --color-accent-hover:   var(--elite-wine);
+  --color-success:        #2A5A43;
+  --color-error:          var(--elite-red);
+  --color-warning:        #E28020;
+  --color-accent-destructive: var(--elite-red);
+  --color-accent-destructive-hover: var(--elite-wine);
+
+  /* ── Gradients ── */
+  --grad-ai: linear-gradient(135deg, #C41230, #6B0000);
+  --grad-os: linear-gradient(135deg, #6B0000 0%, #C41230 100%);
+  --grad-brand: linear-gradient(135deg, #C41230 0%, #6B0000 100%);
+  --grad-brand-h: linear-gradient(135deg, #A30F28 0%, #6B0000 100%);
+
+  /* ── Shadows (Mais leves para light mode) ── */
+  --shadow-sm: 0 1px 2px rgba(10, 46, 69, 0.1);
+  --shadow-md: 0 4px 12px rgba(10, 46, 69, 0.12);
+  --shadow-lg: 0 12px 32px rgba(10, 46, 69, 0.15);
+}
 
 /* ── Base Styles ── */
 * { box-sizing: border-box; margin: 0; padding: 0; }

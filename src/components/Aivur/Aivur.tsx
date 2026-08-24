@@ -5,6 +5,25 @@ import React, { useState, useEffect, useRef, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, Mic, Check, X } from "lucide-react";
 
+interface AivurProps {
+  size?: number;
+  state?: string;
+  themeMode?: string;
+  lookTarget?: { x: number; y: number } | null;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+interface AivurTourOverlayProps {
+  message: string;
+  onDismiss?: () => void;
+  mascotState?: string;
+  themeMode?: string;
+  dismissLabel?: string;
+  style?: React.CSSProperties;
+  className?: string;
+}
+
 /**
  * <Aivur />
  * Mascote oficial da AIVOS — duas esferas (cabeça + corpo) com sombreamento
@@ -188,7 +207,7 @@ function getBrowAnim(state, side) {
   }
 }
 
-export function Aivur({ size = 120, state = "idle", themeMode = "light", lookTarget = null, className = "", style }) {
+export function Aivur({ size = 120, state = "idle", themeMode = "light", lookTarget = null, className = "", style }: AivurProps) {
   const uid = useId().replace(/:/g, "");
   const wrapRef = useRef(null);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
@@ -483,7 +502,7 @@ export function Aivur({ size = 120, state = "idle", themeMode = "light", lookTar
  *  - themeMode    tema do Aivur (o card em si é sempre escuro, de propósito)
  *  - dismissLabel texto do botão (padrão "Entendi")
  */
-export function AivurTourOverlay({ message, onDismiss, mascotState = "focus", themeMode = "light", dismissLabel = "Entendi", style, className = "" }) {
+export function AivurTourOverlay({ message, onDismiss, mascotState = "focus", themeMode = "light", dismissLabel = "Entendi", style, className = "" }: AivurTourOverlayProps) {
   const [hovered, setHovered] = useState(false);
   return (
     <div

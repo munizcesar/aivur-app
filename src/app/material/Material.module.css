@@ -41,18 +41,25 @@
 }
 
 .dropzone {
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  background-color: rgba(255, 255, 255, 0.02);
+  position: relative;
+  border: 2px dashed var(--elite-grayblue);
+  border-radius: 2px;
+  background-color: rgba(10, 46, 69, 0.85); /* elite-navy alpha */
   padding: 4rem 2rem;
   text-align: center;
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
-.dropzone:hover {
-  border-color: var(--color-primary);
-  background-color: rgba(255, 255, 255, 0.04);
+.dropzoneActive {
+  background-color: var(--elite-cream);
+  border-color: var(--elite-navy);
+  border-style: solid;
+}
+
+.dropzoneActive .dropzoneInner h3,
+.dropzoneActive .dropzoneInner p {
+  color: var(--elite-navy);
 }
 
 .dropzoneInner {
@@ -63,13 +70,17 @@
 }
 
 .dropIcon {
-  color: var(--color-primary);
+  color: var(--elite-grayblue);
   opacity: 0.8;
+}
+
+.dropzoneActive .dropIcon {
+  color: var(--elite-navy);
 }
 
 .dropzoneInner h3 {
   font-size: 1.3rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text);
 }
 
@@ -80,18 +91,24 @@
 
 .browseBtn {
   margin-top: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: none;
+  background: transparent;
+  color: var(--elite-cream);
+  border: 2px solid var(--elite-grayblue);
   padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 2px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dropzoneActive .browseBtn {
+  border-color: var(--elite-navy);
+  color: var(--elite-navy);
 }
 
 .browseBtn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--elite-grayblue);
+  color: var(--elite-navy);
 }
 
 .actionBlock {
@@ -100,21 +117,23 @@
 }
 
 .primaryBtn {
-  background: var(--color-primary, #2563EB);
-  color: white;
+  background: var(--elite-red);
+  color: var(--elite-cream);
   border: none;
   padding: 1rem 3rem;
   font-size: 1.2rem;
-  font-weight: 700;
-  border-radius: 12px;
+  font-weight: 800;
+  border-radius: 2px;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
+  box-shadow: 4px 4px 0 var(--elite-wine);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .primaryBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(37, 99, 235, 0.4);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--elite-wine);
 }
 
 /* ESTADO 2: LABORATÓRIO */

@@ -141,13 +141,54 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Coluna direita: espaço reservado para mascote Aivo / preview real */}
+          {/* ── Coluna direita: Raio-X Editorial — IA extraindo o ouro do edital ── */}
           <div className={styles.heroRight}>
-            <div className={styles.heroVisualPlaceholder} aria-hidden="true">
-              <span className={styles.heroVisualLabel}>Aivo — em breve</span>
+            <div className={styles.xrayWrapper} aria-label="Demonstração: IA identificando questões no texto da lei">
+
+              {/* Bloco superior: texto bruto da lei (ruído de fundo) */}
+              <div className={styles.xrayLawBlock}>
+                <p>
+                  Art. 1º O trânsito de qualquer natureza nas vias terrestres do
+                  território nacional, abertas à circulação, rege-se por este Código.
+                  §1º Considera-se trânsito a utilização das vias por pessoas, veículos e
+                  animais, isolados ou em grupos, conduzidos ou não, para fins de
+                  circulação, parada, estacionamento e operação de carga ou descarga.
+                  Art. 29. O trânsito de veículos nas vias terrestres abertas à
+                  circulação obedecerá às seguintes normas:{' '}
+                  <span className={styles.xrayHighlight}>
+                    §2º Respeitadas as normas de circulação e conduta, o condutor deverá
+                    guardar distância de segurança lateral e frontal entre o seu e os
+                    demais veículos, bem como em relação ao bordo da pista, considerando,
+                    no momento, a velocidade e as condições do local, da circulação e do
+                    clima.
+                  </span>{' '}
+                  Art. 32. O condutor e seus passageiros são solidariamente responsáveis
+                  pela manutenção dos equipamentos de segurança e pelo uso dos
+                  equipamentos de proteção individual. Art. 40. O uso de luzes em
+                  veículo obedecerá às seguintes determinações: I — o condutor manterá
+                  acesos os faróis do veículo, utilizando luz baixa, durante a noite.
+                </p>
+              </div>
+
+              {/* Linha conectora vertical — elite-red, 2px */}
+              <div className={styles.xrayConnector} aria-hidden="true" />
+
+              {/* Bloco inferior: questão gerada pela IA */}
+              <div className={styles.xrayQuestionBlock}>
+                <div className={styles.xrayTag}>
+                  <span className={styles.xrayTagDot} />
+                  Gerado: Questão VUNESP
+                </div>
+                <p className={styles.xrayQuestion}>
+                  Nos termos do CTB, qual a obrigação do condutor em relação à
+                  distância de segurança entre veículos em circulação?
+                </p>
+              </div>
+
             </div>
           </div>
         </section>
+
 
         {/* ── PILLARS — Layout editorial assimétrico (sem grid uniforme 2×2) ── */}
         <section className={styles.pillarsSection} aria-label="Ferramentas de estudo">

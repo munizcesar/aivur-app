@@ -137,7 +137,7 @@
   box-shadow: 2px 2px 0 var(--elite-wine, #6B0000);
 }
 
-/* ─── Lado Direito: Reservado para mascote Aivo / preview ─── */
+/* ─── Lado Direito: Raio-X Editorial ─── */
 
 .heroRight {
   position: relative;
@@ -147,42 +147,140 @@
   min-height: 320px;
 }
 
-.heroVisualPlaceholder {
+/* Wrapper com rotação microscópica — simula página sobre mesa */
+.xrayWrapper {
   width: 100%;
-  height: 100%;
-  min-height: 280px;
-  border: 1.5px solid rgba(107, 153, 179, 0.2);
-  border-radius: 4px;
-  /* Textura sutil de grade alinhada à estética institucional */
-  background-image:
-    linear-gradient(rgba(107, 153, 179, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(107, 153, 179, 0.05) 1px, transparent 1px);
-  background-size: 32px 32px;
-  background-color: rgba(15, 58, 83, 0.4);
+  transform: rotate(-1deg);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
+  /* Grade de pontos como "mesa de estudos" */
+  background-image:
+    radial-gradient(circle, rgba(107, 153, 179, 0.15) 1px, transparent 1px);
+  background-size: 20px 20px;
+  padding: 0 0.25rem;
 }
 
-.heroVisualLabel {
-  font-size: 0.75rem;
+/* ── Bloco superior: Lei bruta ── */
+.xrayLawBlock {
+  width: 100%;
+  border: 1px solid rgba(107, 153, 179, 0.15);
+  border-radius: 0;
+  background-color: rgba(10, 46, 69, 0.7);
+  padding: 1.25rem 1.5rem;
+  font-family: var(--font-body, 'Satoshi', monospace);
+  font-size: 0.7rem;
+  line-height: 1.7;
+  /* Cor com alpha diretamente — não usar opacity para não afetar filhos */
+  color: rgba(107, 153, 179, 0.38);
+  text-align: justify;
+  hyphens: auto;
+  overflow: hidden;
+  /* Máscara para desvanecer nas bordas superiores e inferiores */
+  -webkit-mask-image: linear-gradient(to bottom,
+    transparent 0%,
+    black 12%,
+    black 88%,
+    transparent 100%);
+  mask-image: linear-gradient(to bottom,
+    transparent 0%,
+    black 12%,
+    black 88%,
+    transparent 100%);
+}
+
+/* Trecho destacado inline — o "ouro" identificado pela IA */
+.xrayHighlight {
+  display: inline;
+  background: var(--elite-cream, #FBEBD0);
+  color: var(--elite-navy, #0A2E45);
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(107, 153, 179, 0.4);
+  border-radius: 0;
+  padding: 0 2px;
+  /* Marcador de texto editorial: sem pill, sem radius */
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
+/* ── Linha conectora vertical ── */
+.xrayConnector {
+  width: 2px;
+  height: 2.5rem;
+  background: var(--elite-red, #C41230);
+  flex-shrink: 0;
+}
+
+/* ── Bloco inferior: Questão extraída ── */
+.xrayQuestionBlock {
+  width: 100%;
+  border: 1px solid rgba(196, 18, 48, 0.35);
+  border-left: 3px solid var(--elite-red, #C41230);
+  border-radius: 0 2px 2px 0;
+  background-color: rgba(10, 46, 69, 0.85);
+  padding: 1.125rem 1.375rem;
+}
+
+.xrayTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body, 'Satoshi', sans-serif);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--elite-red, #C41230);
+  margin-bottom: 0.625rem;
+}
+
+.xrayTagDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--elite-red, #C41230);
+  flex-shrink: 0;
+}
+
+.xrayQuestion {
+  font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--elite-cream, #FBEBD0);
+  margin: 0;
+}
+
+/* Mobile: sem rotação, abaixo do CTA naturalmente */
 @media (max-width: 768px) {
   .heroRight {
-    min-height: 200px;
-    order: -1; /* Placeholder vai para cima no mobile */
+    min-height: auto;
+    /* Remove order: -1 — fica abaixo do CTA no fluxo natural */
   }
-  .heroVisualPlaceholder {
-    min-height: 160px;
+  .xrayWrapper {
+    transform: none; /* sem rotação no mobile para não cortar */
+    background-image: none;
+  }
+  .xrayLawBlock {
+    font-size: 0.65rem;
+    padding: 1rem 1.125rem;
+    -webkit-mask-image: linear-gradient(to bottom,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%);
+    mask-image: linear-gradient(to bottom,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%);
+  }
+  .xrayConnector {
+    height: 1.75rem;
   }
 }
+
+
+
 
 /* ─── PILLARS — Layout Editorial Assimétrico ─── */
 

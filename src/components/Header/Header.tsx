@@ -35,7 +35,7 @@ export default function Header() {
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <Link href="/" className={styles.logo} aria-label="AIVUR - Voltar ao inicio">
               <Image 
-                src="/assets/aivos-logo.png" 
+                src={mounted && theme === "dark" ? "/images/logo-aivur-dark.png" : "/assets/aivos-logo.png"}
                 alt="AIVUR Logo" 
                 width={180} 
                 height={50} 

@@ -65,6 +65,120 @@
   font-size: clamp(2.5rem, 4vw, 4rem);
   line-height: 1.05;
   font-weight: 900;
+  color: var(--color-heading, #0A2E45);
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+}
+
+.heroSub {
+  font-size: clamp(1.1rem, 1.5vw, 1.25rem);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  max-width: 90%;
+}
+
+.heroImageWrapper {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.heroImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  /* Subida sutil flutuando */
+  animation: floatMascot 6s ease-in-out infinite;
+}
+
+@keyframes floatMascot {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0); }
+}
+
+@media (max-width: 992px) {
+  /* No mobile, inverte a ordem para a imagem ficar no topo (opcional via flex/grid) ou só reduz */
+  .heroCol {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .heroEyebrow {
+    justify-content: center;
+  }
+  
+  .heroSub {
+    margin: 0 auto;
+  }
+/* ═══════════════════════════════════════════════════════════════════
+   DASHBOARD — Layout Clean Editorial Brutalista
+   ═══════════════════════════════════════════════════════════════════ */
+
+.dashWrap {
+  background-color: var(--color-bg);
+  min-height: calc(100vh - 70px);
+  padding: 4rem 0 6rem 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboardLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: flex-start;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 992px) {
+  .dashboardLayout {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
+
+/* ─── LADO ESQUERDO: Hero Column ─── */
+.heroCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+}
+
+.heroEyebrow {
+  font-family: var(--font-body, 'Satoshi', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--elite-red, #C41230);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.heroEyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 2rem;
+  height: 2px;
+  background: var(--elite-red, #C41230);
+  flex-shrink: 0;
+}
+
+.heroTitle {
+  font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  line-height: 1.05;
+  font-weight: 900;
   color: var(--elite-navy, #0A2E45);
   letter-spacing: -0.03em;
   margin-bottom: 1.25rem;
@@ -118,12 +232,12 @@
   }
 }
 
-/* ─── LADO DIREITO: Pilares Empilhados (Brutalismo Editorial) ─── */
+/* ─── LADO DIREITO: Pilares Bento Grid (Brutalismo Editorial) ─── */
 .pillarsCol {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding-top: 2rem; /* Alinha visualmente com o topo do hero */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding-top: 2rem;
 }
 
 @media (max-width: 992px) {
@@ -132,19 +246,26 @@
   }
 }
 
+@media (max-width: 600px) {
+  .pillarsCol {
+    grid-template-columns: 1fr;
+  }
+}
+
 .pillarCard {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   background-color: var(--color-surface, #FFFFFF);
   border: 2px solid var(--elite-navy, #0A2E45);
-  border-radius: 8px; /* Rigidez brutalista */
-  padding: 1.5rem;
-  gap: 1.5rem;
+  border-radius: 8px; /* Rigidez brutalista suavizada */
+  padding: 2rem;
   text-decoration: none;
   color: inherit;
   /* Brutalist offset shadow */
   box-shadow: 4px 4px 0 var(--elite-navy, #0A2E45);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
 }
 
 .pillarCard:hover {
@@ -156,92 +277,73 @@
 .pillarCardFeatured {
   background-color: var(--elite-red, #C41230);
   border-color: var(--elite-navy, #0A2E45);
-  color: var(--elite-cream, #FBEBD0);
+  color: #FFFFFF;
 }
 
 .pillarCardFeatured .pillarTitle {
-  color: var(--elite-cream, #FBEBD0);
+  color: #FFFFFF;
 }
 
 .pillarCardFeatured .pillarDesc {
-  color: rgba(251, 235, 208, 0.85); /* cream alpha */
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .pillarCardFeatured .pillarArrow {
-  color: var(--elite-cream, #FBEBD0);
+  color: #FFFFFF;
 }
 
-/* Estrutura interna do card */
+/* Estrutura interna do card Bento */
 .pillarThumb {
-  flex-shrink: 0;
-  width: 70px;
-  height: 70px;
+  width: 120px;
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  margin-bottom: 2rem;
 }
 
 .pillarThumb img {
   width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
 }
 
 .pillarContent {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
 }
 
 .pillarTitle {
   font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  color: var(--elite-navy, #0A2E45);
+  color: var(--color-heading, #0A2E45);
   letter-spacing: -0.01em;
 }
 
 .pillarDesc {
   font-family: var(--font-body, 'Satoshi', sans-serif);
   font-size: 0.95rem;
-  color: var(--color-text-muted);
-  line-height: 1.4;
+  color: var(--color-text, #2B4C5F);
+  line-height: 1.5;
 }
 
 .pillarArrow {
-  flex-shrink: 0;
-  color: var(--elite-navy, #0A2E45);
+  align-self: flex-end;
+  color: var(--color-heading, #0A2E45);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease;
+  margin-top: auto;
 }
 
 .pillarCard:hover .pillarArrow {
   transform: translateX(4px);
 }
 
-@media (max-width: 600px) {
-  .pillarCard {
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-    padding: 1.25rem;
-    gap: 1rem;
-  }
-
-  .pillarThumb {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .pillarArrow {
-    align-self: flex-end;
-  }
-}
-
 :global([data-theme="dark"]) .pillarThumb img { filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); }
-

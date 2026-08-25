@@ -91,7 +91,8 @@
   --color-divider:        rgba(107, 153, 179, 0.15); /* GrayBlue 15% */
   --color-border:         rgba(107, 153, 179, 0.2);
 
-  --color-text:           var(--elite-cream); /* Cream como texto principal */
+  --color-text:           #F8FAFC; /* Branco/Gelo como texto principal */
+  --color-heading:        #FFFFFF; /* Títulos branco puro */
   --color-text-muted:     var(--elite-grayblue); /* GrayBlue como texto secundário */
   --color-text-faint:     rgba(107, 153, 179, 0.6);
 
@@ -141,7 +142,8 @@
   --color-divider:        rgba(10, 46, 69, 0.15); /* Navy 15% */
   --color-border:         rgba(10, 46, 69, 0.2);
 
-  --color-text:           var(--elite-cream); /* Texto principal (Navy) */
+  --color-text:           #2B4C5F; /* Azul Petróleo como texto principal */
+  --color-heading:        #0A2E45; /* Navy como títulos */
   --color-text-muted:     var(--elite-grayblue); /* Texto secundário */
   --color-text-faint:     rgba(10, 46, 69, 0.6);
 

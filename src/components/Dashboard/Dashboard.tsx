@@ -1,283 +1,107 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { get } from 'idb-keyval';
 import Link from 'next/link';
-import {
-  ClipboardList,
-  FileText,
-  Brain,
-  GraduationCap,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
-} from 'lucide-react';
-import { useLocalCourses } from '@/hooks/useLocalCourses';
+import { ArrowRight } from 'lucide-react';
 import styles from './Dashboard.module.css';
 
-interface DashboardInsight {
-  subject: string;
-  pctAcerto: number;
-  courseId: string;
-}
-
 export default function Dashboard() {
-  const { courses, isHydrated } = useLocalCourses();
-  const [insight, setInsight] = useState<DashboardInsight | null>(null);
-  const [isCalculated, setIsCalculated] = useState(false);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-
-    async function calculateInsight() {
-      if (courses.length === 0) {
-        setIsCalculated(true);
-        return;
-      }
-
-      let lowestAcerto = 101;
-      let worstSubject: DashboardInsight | null = null;
-
-      for (const course of courses) {
-        const prog = await get(`aivur_progress_${course.id}`);
-        if (prog && prog.subjects) {
-          for (const [subjectName, subjData] of Object.entries(
-            prog.subjects as Record<string, any>
-          )) {
-            const historico = Object.values(subjData.historicoQuestoes || {});
-            const total = historico.length;
-            if (total >= 5) {
-              const corretas = historico.filter(Boolean).length;
-              const pct = Math.round((corretas / total) * 100);
-
-              if (pct < lowestAcerto) {
-                lowestAcerto = pct;
-                worstSubject = { subject: subjectName, pctAcerto: pct, courseId: course.id };
-              }
-            }
-          }
-        }
-      }
-
-      setInsight(worstSubject);
-      setIsCalculated(true);
-    }
-
-    calculateInsight();
-  }, [courses, isHydrated]);
-
-  // Animated number wrapper
-  const AnimatedNumber = ({ value }: { value: number }) => {
-    const [displayVal, setDisplayVal] = useState(value);
-    const [highlight, setHighlight] = useState(false);
-
-    useEffect(() => {
-      if (value !== displayVal) {
-        setDisplayVal(value);
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (!prefersReducedMotion) {
-          setHighlight(true);
-          const t = setTimeout(() => setHighlight(false), 300);
-          return () => clearTimeout(t);
-        }
-      }
-    }, [value, displayVal]);
-
-    return (
-      <span className={`${styles.animatedNumber} ${highlight ? styles.highlighted : ''}`}>
-        {displayVal}
-      </span>
-    );
-  };
-
   return (
     <div className={styles.dashWrap}>
       <div className="container">
-
-        {/* ── HERO STRIP — Layout assimétrico 3fr / 2fr ── */}
-        <section className={styles.heroStrip}>
-
-          {/* Coluna esquerda: headline + subtexto + CTA */}
-          <div className={styles.heroLeft}>
-            {/* Eyebrow — sem badge-pílula; linha decorativa + texto corrido */}
-            <p className={styles.heroEyebrow}>Preparação para Concursos &amp; Vestibulares</p>
-
-            {/* Headline com peso editorial, cor sólida — sem split colorido */}
-            <h1 className={styles.heroTitle}>
-              {insight
-                ? 'Hora de consolidar o que falta.'
-                : 'Estude com precisão cirúrgica.'}
-            </h1>
-
-            {/* Subtexto forte */}
-            <div className={styles.insightBox} style={{ opacity: isCalculated ? 1 : 0 }}>
-              {insight ? (
-                <p className={styles.heroSub}>
-                  Você está com{' '}
-                  <AnimatedNumber value={insight.pctAcerto} />% de acerto em{' '}
-                  <strong>{insight.subject}</strong>. Foque na revisão para consolidar e avançar.
-                </p>
-              ) : (
-                <p className={styles.heroSub}>
-                  O Mentor AIVUR lê seu edital, estrutura todas as matérias e converte seu tempo
-                  em aprovação — não em planilha.
-                </p>
-              )}
+        
+        <div className={styles.dashboardLayout}>
+          
+          {/* LADO ESQUERDO: Âncora visual com Imagem 3D */}
+          <div className={styles.heroCol}>
+            <div className={styles.heroText}>
+              <p className={styles.heroEyebrow}>Preparação para Concursos &amp; Vestibulares</p>
+              <h1 className={styles.heroTitle}>Estude com precisão cirúrgica.</h1>
+              <p className={styles.heroSub}>
+                O Mentor AIVUR organiza seus editais, domina seu material e converte seu tempo em aprovação de forma definitiva.
+              </p>
             </div>
-
-            {/* CTA — retângulo rígido com sombra sólida offset, sem pill, sem gradiente */}
-            <div className={styles.ctaRow}>
-              {insight ? (
-                <Link href={`/mentor/${insight.courseId}`} className={styles.btnCta}>
-                  Revisar {insight.subject}
-                  <ArrowRight width={16} height={16} />
-                </Link>
-              ) : (
-                <Link href="/mentor/gerar" className={styles.btnCta}>
-                  Gerar minha trilha
-                  <ArrowRight width={16} height={16} />
-                </Link>
-              )}
+            
+            <div className={styles.heroImageWrapper}>
+              {/*eslint-disable-next-line @next/next/no-img-element*/}
+              <img src="/images/aivur/hero-main.png" alt="Aivur Mascote Inteligente" className={styles.heroImage} />
             </div>
           </div>
 
-          {/* ── Coluna direita: Raio-X Editorial — IA extraindo o ouro do edital ── */}
-          <div className={styles.heroRight}>
-            <div className={styles.xrayWrapper} aria-label="Demonstração: IA identificando questões no texto da lei">
-
-              {/* Bloco superior: texto bruto da lei (ruído de fundo) */}
-              <div className={styles.xrayLawBlock}>
-                <p>
-                  Art. 1º O trânsito de qualquer natureza nas vias terrestres do
-                  território nacional, abertas à circulação, rege-se por este Código.
-                  §1º Considera-se trânsito a utilização das vias por pessoas, veículos e
-                  animais, isolados ou em grupos, conduzidos ou não, para fins de
-                  circulação, parada, estacionamento e operação de carga ou descarga.
-                  Art. 29. O trânsito de veículos nas vias terrestres abertas à
-                  circulação obedecerá às seguintes normas:{' '}
-                  <span className={styles.xrayHighlight}>
-                    §2º Respeitadas as normas de circulação e conduta, o condutor deverá
-                    guardar distância de segurança lateral e frontal entre o seu e os
-                    demais veículos, bem como em relação ao bordo da pista, considerando,
-                    no momento, a velocidade e as condições do local, da circulação e do
-                    clima.
-                  </span>{' '}
-                  Art. 32. O condutor e seus passageiros são solidariamente responsáveis
-                  pela manutenção dos equipamentos de segurança e pelo uso dos
-                  equipamentos de proteção individual. Art. 40. O uso de luzes em
-                  veículo obedecerá às seguintes determinações: I — o condutor manterá
-                  acesos os faróis do veículo, utilizando luz baixa, durante a noite.
-                </p>
-              </div>
-
-              {/* Linha conectora vertical — elite-red, 2px */}
-              <div className={styles.xrayConnector} aria-hidden="true" />
-
-              {/* Bloco inferior: questão gerada pela IA */}
-              <div className={styles.xrayQuestionBlock}>
-                <div className={styles.xrayTag}>
-                  <span className={styles.xrayTagDot} />
-                  Gerado: Questão VUNESP
-                </div>
-                <p className={styles.xrayQuestion}>
-                  Nos termos do CTB, qual a obrigação do condutor em relação à
-                  distância de segurança entre veículos em circulação?
-                </p>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-
-        {/* ── PILLARS — Layout editorial assimétrico (sem grid uniforme 2×2) ── */}
-        <section className={styles.pillarsSection} aria-label="Ferramentas de estudo">
-          <p className={styles.pillarsLabel}>Plataforma</p>
-
-          <div className={styles.pillarsLayout}>
-            {/* Card destaque: Trilhas de Estudo ocupa linha inteira */}
-            <Link
-              href="/mentor/gerar"
-              className={`${styles.pillarCard} ${styles.pillarCardFeatured}`}
-            >
-              <div className={styles.pillarIcon}>
-                <GraduationCap width={22} height={22} />
+          {/* LADO DIREITO: Grid de Cards dos Pilares Empilhados */}
+          <div className={styles.pillarsCol}>
+            
+            {/* CARD 1 - Destaque */}
+            <Link href="/mentor/gerar" className={`${styles.pillarCard} ${styles.pillarCardFeatured}`}>
+              <div className={styles.pillarThumb}>
+                {/*eslint-disable-next-line @next/next/no-img-element*/}
+                <img src="/images/aivur/trilhas.png" alt="Trilhas de Estudo" />
               </div>
               <div className={styles.pillarContent}>
                 <h3 className={styles.pillarTitle}>Trilhas de Estudo</h3>
                 <p className={styles.pillarDesc}>
-                  Cronograma ativo estruturado por IA a partir do seu edital ou tema livre.
+                  Seu edital transformado em um plano de metas diárias.
                 </p>
               </div>
               <div className={styles.pillarArrow}>
-                <ArrowRight width={18} height={18} />
+                <ArrowRight width={20} height={20} />
               </div>
             </Link>
 
-            {/* Cards secundários em lista */}
+            {/* CARD 2 */}
             <Link href="/questoes" className={styles.pillarCard}>
-              <div className={styles.pillarIcon}>
-                <ClipboardList width={20} height={20} />
+              <div className={styles.pillarThumb}>
+                {/*eslint-disable-next-line @next/next/no-img-element*/}
+                <img src="/images/aivur/questoes.png" alt="Caderno de Questões" />
               </div>
               <div className={styles.pillarContent}>
                 <h3 className={styles.pillarTitle}>Caderno de Questões</h3>
                 <p className={styles.pillarDesc}>
-                  Simulados com justificativa socrática por matéria e banca.
+                  Treine com questões focadas na sua banca e cargo.
                 </p>
               </div>
               <div className={styles.pillarArrow}>
-                <ArrowRight width={18} height={18} />
+                <ArrowRight width={20} height={20} />
               </div>
             </Link>
 
+            {/* CARD 3 */}
             <Link href="/material" className={styles.pillarCard}>
-              <div className={styles.pillarIcon}>
-                <FileText width={20} height={20} />
+              <div className={styles.pillarThumb}>
+                {/*eslint-disable-next-line @next/next/no-img-element*/}
+                <img src="/images/aivur/material.png" alt="Meu Material" />
               </div>
               <div className={styles.pillarContent}>
-                <h3 className={styles.pillarTitle}>Seu Material</h3>
+                <h3 className={styles.pillarTitle}>Meu Material</h3>
                 <p className={styles.pillarDesc}>
-                  Converta PDFs e resumos em flashcards e questões instantaneamente.
+                  Envie seus PDFs e deixe a IA organizar seus resumos.
                 </p>
               </div>
               <div className={styles.pillarArrow}>
-                <ArrowRight width={18} height={18} />
+                <ArrowRight width={20} height={20} />
               </div>
             </Link>
 
+            {/* CARD 4 */}
             <Link href="/redacao" className={styles.pillarCard}>
-              <div className={styles.pillarIcon}>
-                <Brain width={20} height={20} />
+              <div className={styles.pillarThumb}>
+                {/*eslint-disable-next-line @next/next/no-img-element*/}
+                <img src="/images/aivur/redacao.png" alt="Redação Coach" />
               </div>
               <div className={styles.pillarContent}>
                 <h3 className={styles.pillarTitle}>Redação Coach</h3>
                 <p className={styles.pillarDesc}>
-                  Feedback estrutural avançado e reescrita orientada à nota máxima.
+                  Correção instantânea com nota e feedback do examinador.
                 </p>
               </div>
               <div className={styles.pillarArrow}>
-                <ArrowRight width={18} height={18} />
+                <ArrowRight width={20} height={20} />
               </div>
             </Link>
-          </div>
-        </section>
 
-        {/* ── FEATURE STRIP — rodapé editorial em texto corrido ── */}
-        <section className={styles.featureStrip} aria-label="Diferenciais">
-          <div className={styles.featItem}>
-            <ShieldCheck width={14} height={14} className={styles.featIcon} />
-            <span>Sem alucinações de IA</span>
           </div>
-          <div className={styles.featItem}>
-            <Zap width={14} height={14} className={styles.featIcon} />
-            <span>Justificativas Socráticas</span>
-          </div>
-          <div className={styles.featItem}>
-            <Brain width={14} height={14} className={styles.featIcon} />
-            <span>Retenção Ativa</span>
-          </div>
-        </section>
 
+        </div>
       </div>
     </div>
   );

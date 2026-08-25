@@ -127,17 +127,17 @@
   /* ── AIVUR Light Mode — Paleta Institucional Elite ── */
   
   /* Inversão Semântica das Cores Elite para manter a estética em componentes hardcoded */
-  --elite-navy:     #FBEBD0; /* Navy vira Cream no light mode */
+  --elite-navy:     #F8FAFC; /* Navy vira Off-white no light mode para não pesar a tela */
   --elite-cream:    #0A2E45; /* Cream vira Navy no light mode */
   --elite-grayblue: #4A6B80; /* GrayBlue mais escuro para contraste no fundo claro */
   
   /* Cores estruturais */
-  --color-bg:             var(--elite-navy); /* Fundo primário */
-  --color-surface:        #F2DFB8;           /* Superfície elevada sutil */
-  --hero-bg:              var(--elite-navy);
-  --color-surface-2:      #F2DFB8;
+  --color-bg:             #F8FAFC; /* Fundo primário ultra limpo */
+  --color-surface:        #FFFFFF; /* Superfície elevada limpa */
+  --hero-bg:              #F8FAFC;
+  --color-surface-2:      #FFFFFF;
   --color-surface-raised: #FFFFFF;
-  --color-surface-offset: #EAD4A8;
+  --color-surface-offset: #F1F5F9;
   --color-divider:        rgba(10, 46, 69, 0.15); /* Navy 15% */
   --color-border:         rgba(10, 46, 69, 0.2);
 

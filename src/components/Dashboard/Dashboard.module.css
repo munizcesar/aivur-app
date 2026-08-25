@@ -1,51 +1,51 @@
 /* ═══════════════════════════════════════════════════════════════════
-   DASHBOARD — Paleta Institucional Elite
-   Fundo: Dark Navy #0A2E45 | CTA: Bright Red #C41230
+   DASHBOARD — Layout Clean Editorial Brutalista
    ═══════════════════════════════════════════════════════════════════ */
 
 .dashWrap {
-  background-color: var(--elite-navy, #0A2E45);
+  background-color: var(--color-bg);
   min-height: calc(100vh - 70px);
-  padding: 4.5rem 0 6rem 0;
+  padding: 4rem 0 6rem 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
-/* ─── HERO STRIP (layout assimétrico 3fr / 2fr) ─── */
-
-.heroStrip {
+.dashboardLayout {
   display: grid;
-  grid-template-columns: 3fr 2fr;
-  gap: 3rem;
-  align-items: center;
-  margin-bottom: 5rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: flex-start;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-@media (max-width: 768px) {
-  .heroStrip {
+@media (max-width: 992px) {
+  .dashboardLayout {
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    gap: 3rem;
   }
 }
 
-/* ─── Lado Esquerdo: Texto + CTA ─── */
-
-.heroLeft {
+/* ─── LADO ESQUERDO: Hero Column ─── */
+.heroCol {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2rem;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
 }
 
 .heroEyebrow {
   font-family: var(--font-body, 'Satoshi', sans-serif);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--elite-grayblue, #6B99B3);
-  margin-bottom: 1.25rem;
-  /* Sem badge-pílula: apenas texto corrido com linha decorativa */
+  color: var(--elite-red, #C41230);
+  margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -61,401 +61,184 @@
 }
 
 .heroTitle {
-  font-family: var(--font-fraunces), var(--font-display, 'Cabinet Grotesk', sans-serif);
-  font-size: clamp(2.75rem, 5.5vw, 4.5rem);
-  line-height: 1.0;
+  font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  line-height: 1.05;
   font-weight: 900;
-  /* Cor sólida — sem gradiente, sem split linha branca + linha colorida */
-  color: var(--elite-cream, #FBEBD0);
+  color: var(--elite-navy, #0A2E45);
   letter-spacing: -0.03em;
-  margin-bottom: 1.5rem;
-}
-
-.insightBox {
-  transition: opacity 0.4s ease;
+  margin-bottom: 1.25rem;
 }
 
 .heroSub {
-  font-size: clamp(1rem, 1.5vw, 1.125rem);
-  color: var(--elite-grayblue, #6B99B3);
-  line-height: 1.65;
-  max-width: 520px;
-  margin-bottom: 2.25rem;
+  font-size: clamp(1.1rem, 1.5vw, 1.25rem);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  max-width: 90%;
 }
 
-.heroSub strong {
-  color: var(--elite-cream, #FBEBD0);
-  font-weight: 600;
-}
-
-/* Micro-animação do número */
-.animatedNumber {
-  color: inherit;
-  transition: color 0.25s ease;
-}
-
-.highlighted {
-  color: #7A9A8C;
-}
-
-/* ─── CTA Brutalista ─── */
-
-.ctaRow {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.btnCta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.625rem;
-  /* RETANGULAR — border-radius mínimo, estética editorial/brutalista */
-  border-radius: 2px;
-  background: var(--elite-red, #C41230);
-  color: var(--elite-cream, #FBEBD0);
-  font-family: var(--font-body, 'Satoshi', sans-serif);
-  font-weight: 700;
-  font-size: 1rem;
-  padding: 0.875rem 1.75rem;
-  text-decoration: none;
-  /* Sombra sólida offset — brutalista elegante, sem gradiente */
-  box-shadow: 4px 4px 0 var(--elite-wine, #6B0000);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  letter-spacing: 0.01em;
-  line-height: 1;
-}
-
-.btnCta:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 var(--elite-wine, #6B0000);
-}
-
-.btnCta:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--elite-wine, #6B0000);
-}
-
-/* ─── Lado Direito: Raio-X Editorial ─── */
-
-.heroRight {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 320px;
-}
-
-/* Wrapper com rotação microscópica — simula página sobre mesa */
-.xrayWrapper {
+.heroImageWrapper {
   width: 100%;
-  transform: rotate(-1deg);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.heroImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  /* Subida sutil flutuando */
+  animation: floatMascot 6s ease-in-out infinite;
+}
+
+@keyframes floatMascot {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0); }
+}
+
+@media (max-width: 992px) {
+  /* No mobile, inverte a ordem para a imagem ficar no topo (opcional via flex/grid) ou só reduz */
+  .heroCol {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .heroEyebrow {
+    justify-content: center;
+  }
+  
+  .heroSub {
+    margin: 0 auto;
+  }
+
+  .heroImageWrapper {
+    max-width: 320px;
+  }
+}
+
+/* ─── LADO DIREITO: Pilares Empilhados (Brutalismo Editorial) ─── */
+.pillarsCol {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  /* Grade de pontos como "mesa de estudos" */
-  background-image:
-    radial-gradient(circle, rgba(107, 153, 179, 0.15) 1px, transparent 1px);
-  background-size: 20px 20px;
-  padding: 0 0.25rem;
+  gap: 1.25rem;
+  padding-top: 2rem; /* Alinha visualmente com o topo do hero */
 }
 
-/* ── Bloco superior: Lei bruta ── */
-.xrayLawBlock {
-  width: 100%;
-  border: 1px solid rgba(107, 153, 179, 0.15);
-  border-radius: 0;
-  background-color: rgba(10, 46, 69, 0.7);
-  padding: 1.25rem 1.5rem;
-  font-family: var(--font-body, 'Satoshi', monospace);
-  font-size: 0.7rem;
-  line-height: 1.7;
-  /* Cor com alpha diretamente — não usar opacity para não afetar filhos */
-  color: rgba(107, 153, 179, 0.38);
-  text-align: justify;
-  hyphens: auto;
-  overflow: hidden;
-  /* Máscara para desvanecer nas bordas superiores e inferiores */
-  -webkit-mask-image: linear-gradient(to bottom,
-    transparent 0%,
-    black 12%,
-    black 88%,
-    transparent 100%);
-  mask-image: linear-gradient(to bottom,
-    transparent 0%,
-    black 12%,
-    black 88%,
-    transparent 100%);
-}
-
-/* Trecho destacado inline — o "ouro" identificado pela IA */
-.xrayHighlight {
-  display: inline;
-  background: var(--elite-cream, #FBEBD0);
-  color: var(--elite-navy, #0A2E45);
-  font-weight: 700;
-  border-radius: 0;
-  padding: 0 2px;
-  /* Marcador de texto editorial: sem pill, sem radius */
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-}
-
-/* ── Linha conectora vertical ── */
-.xrayConnector {
-  width: 2px;
-  height: 2.5rem;
-  background: var(--elite-red, #C41230);
-  flex-shrink: 0;
-}
-
-/* ── Bloco inferior: Questão extraída ── */
-.xrayQuestionBlock {
-  width: 100%;
-  border: 1px solid rgba(196, 18, 48, 0.35);
-  border-left: 3px solid var(--elite-red, #C41230);
-  border-radius: 0 2px 2px 0;
-  background-color: rgba(10, 46, 69, 0.85);
-  padding: 1.125rem 1.375rem;
-}
-
-.xrayTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--font-body, 'Satoshi', sans-serif);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--elite-red, #C41230);
-  margin-bottom: 0.625rem;
-}
-
-.xrayTagDot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--elite-red, #C41230);
-  flex-shrink: 0;
-}
-
-.xrayQuestion {
-  font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
-  font-size: 0.8rem;
-  font-weight: 600;
-  line-height: 1.55;
-  color: var(--elite-cream, #FBEBD0);
-  margin: 0;
-}
-
-/* Mobile: sem rotação, abaixo do CTA naturalmente */
-@media (max-width: 768px) {
-  .heroRight {
-    min-height: auto;
-    /* Remove order: -1 — fica abaixo do CTA no fluxo natural */
-  }
-  .xrayWrapper {
-    transform: none; /* sem rotação no mobile para não cortar */
-    background-image: none;
-  }
-  .xrayLawBlock {
-    font-size: 0.65rem;
-    padding: 1rem 1.125rem;
-    -webkit-mask-image: linear-gradient(to bottom,
-      transparent 0%,
-      black 8%,
-      black 92%,
-      transparent 100%);
-    mask-image: linear-gradient(to bottom,
-      transparent 0%,
-      black 8%,
-      black 92%,
-      transparent 100%);
-  }
-  .xrayConnector {
-    height: 1.75rem;
+@media (max-width: 992px) {
+  .pillarsCol {
+    padding-top: 0;
   }
 }
 
-
-
-
-/* ─── PILLARS — Layout Editorial Assimétrico ─── */
-
-.pillarsSection {
-  margin-bottom: 4rem;
-}
-
-.pillarsLabel {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(107, 153, 179, 0.5);
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(107, 153, 179, 0.12);
-}
-
-.pillarsLayout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 1px; /* gap de 1px para simular divisórias entre células */
-  background: rgba(107, 153, 179, 0.12); /* fundo das divisórias */
-  border: 1px solid rgba(107, 153, 179, 0.12);
-}
-
-@media (max-width: 768px) {
-  .pillarsLayout {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Card de pillar — estética de lista editorial com accent-line */
 .pillarCard {
   display: flex;
-  align-items: flex-start;
-  gap: 1.25rem;
-  padding: 1.5rem 1.75rem;
-  background: var(--elite-navy, #0A2E45);
+  align-items: center;
+  background-color: var(--color-surface, #FFFFFF);
+  border: 2px solid var(--elite-navy, #0A2E45);
+  border-radius: 2px; /* Rigidez brutalista */
+  padding: 1.5rem;
+  gap: 1.5rem;
   text-decoration: none;
-  transition: background 0.2s ease;
-  position: relative;
-  /* Sem glassmorphism, sem blob radial — clean e institucional */
-}
-
-/* Accent-line esquerda como único elemento decorativo */
-.pillarCard::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 1.5rem;
-  bottom: 1.5rem;
-  width: 2px;
-  background: transparent;
-  transition: background 0.2s ease;
+  color: inherit;
+  /* Brutalist offset shadow */
+  box-shadow: 4px 4px 0 var(--elite-navy, #0A2E45);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .pillarCard:hover {
-  background: rgba(15, 58, 83, 0.8);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--elite-navy, #0A2E45);
 }
 
-.pillarCard:hover::before {
-  background: var(--elite-red, #C41230);
-}
-
-/* Card destaque: ocupa linha inteira no desktop */
+/* Card em destaque (Trilhas) */
 .pillarCardFeatured {
-  grid-column: 1 / -1;
-  padding: 2rem 1.75rem;
+  background-color: var(--elite-red, #C41230);
+  border-color: var(--elite-navy, #0A2E45);
+  color: var(--elite-cream, #FBEBD0);
 }
 
-.pillarCardFeatured::before {
-  top: 2rem;
-  bottom: 2rem;
+.pillarCardFeatured .pillarTitle {
+  color: var(--elite-cream, #FBEBD0);
 }
 
-@media (max-width: 768px) {
-  .pillarCardFeatured {
-    grid-column: 1;
-  }
+.pillarCardFeatured .pillarDesc {
+  color: rgba(251, 235, 208, 0.85); /* cream alpha */
 }
 
-.pillarIcon {
+.pillarCardFeatured .pillarArrow {
+  color: var(--elite-cream, #FBEBD0);
+}
+
+/* Estrutura interna do card */
+.pillarThumb {
+  flex-shrink: 0;
+  width: 70px;
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  /* Sem border-radius full; quadrado levemente arredondado */
-  border-radius: 4px;
-  background: rgba(196, 18, 48, 0.12);
-  color: var(--elite-red, #C41230);
-  flex-shrink: 0;
-  margin-top: 2px;
+  border-radius: 2px;
+}
+
+.pillarThumb img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
 }
 
 .pillarContent {
   flex: 1;
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .pillarTitle {
   font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--elite-cream, #FBEBD0);
-  margin-bottom: 0.3rem;
-  line-height: 1.2;
-}
-
-.pillarCardFeatured .pillarTitle {
-  font-size: 1.2rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--elite-navy, #0A2E45);
+  letter-spacing: -0.01em;
 }
 
 .pillarDesc {
-  font-size: 0.875rem;
-  color: var(--elite-grayblue, #6B99B3);
-  line-height: 1.45;
+  font-family: var(--font-body, 'Satoshi', sans-serif);
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
 }
 
 .pillarArrow {
-  color: var(--elite-grayblue, #6B99B3);
-  opacity: 0.3;
   flex-shrink: 0;
-  align-self: center;
-  transition: opacity 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  color: var(--elite-navy, #0A2E45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
 }
 
 .pillarCard:hover .pillarArrow {
-  opacity: 1;
-  color: var(--elite-red, #C41230);
   transform: translateX(4px);
 }
 
-/* ─── FEATURE STRIP — Rodapé editorial ─── */
-
-.featureStrip {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(107, 153, 179, 0.12);
-  flex-wrap: wrap;
-  row-gap: 0.5rem;
-}
-
-.featItem {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: rgba(107, 153, 179, 0.55);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  padding: 0 1.5rem 0 0;
-}
-
-/* Separador | entre items */
-.featItem + .featItem {
-  padding-left: 1.5rem;
-  border-left: 1px solid rgba(107, 153, 179, 0.15);
-}
-
 @media (max-width: 600px) {
-  .featItem + .featItem {
-    padding-left: 0;
-    border-left: none;
+  .pillarCard {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    padding: 1.25rem;
+    gap: 1rem;
   }
-  .featItem {
-    padding-right: 1rem;
-  }
-}
 
-.featIcon {
-  color: rgba(107, 153, 179, 0.5);
-  flex-shrink: 0;
+  .pillarThumb {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .pillarArrow {
+    align-self: flex-end;
+  }
 }

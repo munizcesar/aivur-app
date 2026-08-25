@@ -20,7 +20,7 @@
   position: relative;
   /* Fundo translúcido Cream — sutil, sem glassmorphism pesado */
   background: rgba(251, 235, 208, 0.04);
-  border-radius: 2px;
+  border-radius: 8px;
   /* Sombra compacta sólida, sem difusão excessiva */
   box-shadow: 4px 4px 0 rgba(107, 0, 0, 0.35);
   padding: var(--space-8);
@@ -84,7 +84,7 @@
   width: 36px;
   height: 36px;
   /* Quadrado editorial — sem border-radius circular */
-  border-radius: 2px;
+  border-radius: 8px;
   background: rgba(107, 153, 179, 0.1);
   display: flex;
   align-items: center;
@@ -365,7 +365,7 @@
 .cafSection {
   padding: var(--space-4) var(--space-5);
   background: rgba(251, 235, 208, 0.03);
-  border-radius: 2px;
+  border-radius: 8px;
   border: 1px solid rgba(107, 153, 179, 0.15);
   margin-bottom: var(--space-3);
 }
@@ -410,7 +410,7 @@
   width: 100%;
   padding: var(--space-2) var(--space-3);
   border: 1px solid rgba(107, 153, 179, 0.25);
-  border-radius: 2px;
+  border-radius: 8px;
   background: rgba(10, 46, 69, 0.6);
   color: var(--elite-cream, #FBEBD0);
   font-family: inherit;
@@ -435,7 +435,7 @@
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
-  border-radius: 2px;
+  border-radius: 8px;
   background: rgba(196, 18, 48, 0.1);
   border: 1px solid rgba(196, 18, 48, 0.3);
   color: var(--elite-red, #C41230);
@@ -482,7 +482,7 @@
   gap: var(--space-1);
   max-width: 100%;
   padding: var(--space-2) var(--space-3);
-  border-radius: 2px;
+  border-radius: 8px;
   border: 1px solid rgba(107, 153, 179, 0.25);
   background: rgba(251, 235, 208, 0.04);
   color: var(--elite-grayblue, #6B99B3);
@@ -530,7 +530,7 @@
 .sessionConfigCard {
   padding: var(--space-5);
   border: 1px solid rgba(107, 153, 179, 0.18);
-  border-radius: 2px;
+  border-radius: 8px;
   background: rgba(251, 235, 208, 0.03);
 }
 
@@ -573,7 +573,7 @@
   justify-content: center;
   min-width: 44px;
   padding: var(--space-1) var(--space-2);
-  border-radius: 2px;
+  border-radius: 8px;
   background: var(--elite-red, #C41230);
   color: var(--elite-cream, #FBEBD0);
   font-weight: 800;
@@ -650,7 +650,7 @@
   width: 36px;
   height: 36px;
   /* Retangular, sem pill */
-  border-radius: 2px;
+  border-radius: 8px;
   color: var(--elite-cream, #FBEBD0);
   background: rgba(196, 18, 48, 0.15);
   border: 1px solid rgba(196, 18, 48, 0.3);
@@ -700,7 +700,7 @@
     /* Card retangular com borda GrayBlue — sem border-radius xl, sem sombra difusa */
     background: rgba(251, 235, 208, 0.03);
     border: 1px solid rgba(107, 153, 179, 0.2);
-    border-radius: 2px;
+    border-radius: 8px;
     padding: var(--space-8);
     padding-bottom: var(--space-10);
     box-shadow: 4px 4px 0 rgba(107, 0, 0, 0.25);
@@ -741,7 +741,7 @@
   font-weight: 600;
   font-size: var(--text-sm);
   padding: var(--space-2) var(--space-3);
-  border-radius: 2px;
+  border-radius: 8px;
   transition: background var(--transition), color var(--transition);
   cursor: pointer;
   border: none;
@@ -764,7 +764,7 @@
   font-size: var(--text-sm);
   padding: var(--space-2) var(--space-3);
   border: 1px solid rgba(107, 153, 179, 0.2);
-  border-radius: 2px;
+  border-radius: 8px;
   background: rgba(251, 235, 208, 0.04);
   color: var(--elite-cream, #FBEBD0);
 }
@@ -776,7 +776,7 @@
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-4) var(--space-6);
-  border-radius: 2px;
+  border-radius: 8px;
   background: var(--elite-red, #C41230);
   color: var(--elite-cream, #FBEBD0);
   font-weight: 700;
@@ -820,7 +820,7 @@
 .qfExitModal {
   background: var(--elite-navy, #0A2E45);
   border: 1px solid rgba(107, 153, 179, 0.25);
-  border-radius: 2px 2px 0 0;
+  border-radius: 8px 2px 0 0;
   padding: var(--space-6) var(--space-5) var(--space-8);
   width: 100%;
   max-width: 480px;
@@ -832,7 +832,7 @@
     align-items: center;
   }
   .qfExitModal {
-    border-radius: 2px;
+    border-radius: 8px;
     padding: var(--space-8);
     box-shadow: 4px 4px 0 var(--elite-wine, #6B0000);
   }
@@ -873,7 +873,7 @@
   font-size: var(--text-base);
   font-family: inherit;
   border: none;
-  border-radius: 2px;
+  border-radius: 8px;
   cursor: pointer;
   box-shadow: 4px 4px 0 var(--elite-wine, #6B0000);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -898,7 +898,7 @@
   font-size: var(--text-sm);
   font-family: inherit;
   border: 1px solid rgba(107, 153, 179, 0.25);
-  border-radius: 2px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all var(--transition);
 }

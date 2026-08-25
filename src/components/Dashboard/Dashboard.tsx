@@ -15,7 +15,7 @@ export default function Dashboard() {
           {/* LADO ESQUERDO: Âncora visual com Imagem 3D */}
           <div className={styles.heroCol}>
             <div className={styles.heroText}>
-              <p className={styles.heroEyebrow}>Preparação para Concursos &amp; Vestibulares</p>
+              <p className={styles.heroEyebrow}>MENTORIA DE ELITE PARA CONCURSOS</p>
               <h1 className={styles.heroTitle}>Estude com precisão cirúrgica.</h1>
               <p className={styles.heroSub}>
                 O Mentor AIVUR organiza seus editais, domina seu material e converte seu tempo em aprovação de forma definitiva.

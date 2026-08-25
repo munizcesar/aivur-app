@@ -374,7 +374,7 @@ export function Aivur({ size = 120, state = "idle", themeMode = "light", lookTar
       className={className}
       style={{
         width: size, height: size, flexShrink: 0,
-        filter: themeMode === "light" ? "drop-shadow(0 14px 22px rgba(24,24,27,0.16))" : "drop-shadow(0 14px 24px rgba(0,0,0,0.55))",
+        filter: themeMode === "light" ? "drop-shadow(0 15px 25px rgba(0, 0, 0, 0.15))" : "drop-shadow(0 14px 24px rgba(0,0,0,0.55))",
         transition: "filter 0.3s ease",
         ...style,
       }}

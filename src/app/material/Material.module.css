@@ -43,7 +43,7 @@
 .dropzone {
   position: relative;
   border: 2px dashed var(--elite-grayblue);
-  border-radius: 2px;
+  border-radius: 8px;
   background-color: rgba(10, 46, 69, 0.85); /* elite-navy alpha */
   padding: 4rem 2rem;
   text-align: center;
@@ -95,7 +95,7 @@
   color: var(--elite-cream);
   border: 2px solid var(--elite-grayblue);
   padding: 0.6rem 1.2rem;
-  border-radius: 2px;
+  border-radius: 8px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
@@ -123,7 +123,7 @@
   padding: 1rem 3rem;
   font-size: 1.2rem;
   font-weight: 800;
-  border-radius: 2px;
+  border-radius: 8px;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 4px 4px 0 var(--elite-wine);

@@ -156,7 +156,7 @@
 .generatorInput {
   width: 100%;
   padding: 12px;
-  border-radius: 2px;
+  border-radius: 8px;
   background: var(--color-surface);
   border: 2px solid var(--color-border);
   color: var(--color-text);
@@ -175,7 +175,7 @@
   background: var(--elite-red);
   color: var(--elite-cream);
   padding: 16px;
-  border-radius: 2px;
+  border-radius: 8px;
   font-weight: 800;
   font-size: 1rem;
   cursor: pointer;

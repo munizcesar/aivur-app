@@ -137,7 +137,7 @@
   align-items: center;
   background-color: var(--color-surface, #FFFFFF);
   border: 2px solid var(--elite-navy, #0A2E45);
-  border-radius: 2px; /* Rigidez brutalista */
+  border-radius: 8px; /* Rigidez brutalista */
   padding: 1.5rem;
   gap: 1.5rem;
   text-decoration: none;
@@ -179,7 +179,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 2px;
+  border-radius: 8px;
 }
 
 .pillarThumb img {
@@ -242,3 +242,6 @@
     align-self: flex-end;
   }
 }
+
+:global([data-theme="dark"]) .pillarThumb img { filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); }
+

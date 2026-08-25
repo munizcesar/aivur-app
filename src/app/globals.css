@@ -82,9 +82,9 @@
 
 [data-theme="dark"] {
   /* ── AIVUR Dark Mode — Paleta Institucional Elite ── */
-  --color-bg:             var(--elite-navy); /* Dark Navy como fundo primário */
+  --color-bg:             #020C14; /* Tom abissal */
   --color-surface:        #0F3A53;           /* Navy ligeiramente elevado */
-  --hero-bg:              var(--elite-navy);
+  --hero-bg:              #020C14;
   --color-surface-2:      #0F3A53;
   --color-surface-raised: #143F5A;
   --color-surface-offset: #1A4A66;

@@ -156,27 +156,7 @@
 
 /* Card em destaque (Trilhas) */
 .pillarCardFeatured {
-  background-color: var(--elite-red, #C41230);
-  border-color: var(--elite-navy, #0A2E45);
-  color: #FFFFFF;
-}
-
-.pillarCardFeatured .pillarTitle {
-  color: #FFFFFF;
-}
-
-.pillarCardFeatured .pillarDesc {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.pillarCardFeatured .pillarArrow {
-  color: #FFFFFF;
-}
-
-.pillarCardFeatured .pillarThumb {
-  background-color: #F8FAFC; /* Fundo sólido para destacar o ícone escuro/vermelho */
-  border: 1px solid var(--elite-navy, #0A2E45);
-  box-shadow: 2px 2px 0 var(--elite-navy, #0A2E45);
+  border-left: 4px solid var(--elite-red, #C41230);
 }
 
 /* Estrutura interna do card (Horizontal) */

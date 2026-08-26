@@ -61,6 +61,7 @@ A fundação do Backend de Inteligência Artificial usa o padrão RAG (Retrieval
 
 ## 5. Bugs Conhecidos (verificar se já corrigidos)
 
+- ✅ **Destravamento da API de Questões** — Removida a trava artificial (RAG validation) no worker.js do Cloudflare Worker (studymaster-agent). Agora a IA gera questões em tempo real via fallback LLM (Groq) ignorando a falta de contexto vetorial. Rota de geração já era pública, o erro 401 de /api/sync/pull no console é apenas um polling de sync não autenticado e não bloqueia a geração.
 - ✅ **Aba ativa do TopicDetails reseta ao fechar/reabrir o tópico** (perda de estado — filtros de dificuldade/banca voltam ao padrão). *Corrigido — estado elevado para CourseContext, compartilhado por sessão.*
 - ✅ **Skeleton loader ausente** nos botões de ação enquanto o IntersectionObserver carrega as contagens. *Corrigido — CSS shimmer implementado.*
 - ✅ **Layout "pulando"** no ReviewPanel ao remover item (sem fade-out). *Corrigido — Framer Motion integrado com AnimatePresence.*
@@ -81,9 +82,10 @@ A fundação do Backend de Inteligência Artificial usa o padrão RAG (Retrieval
 ## 8. Regras Inegociáveis de UI/UX
 
 1. **PALETA INSTITUCIONAL ELITE**: O sistema baseia-se em `--elite-navy` (fundo principal escuro), `--elite-red` (ações primárias), `--elite-cream` (textos de destaque/fundos claros), `--elite-wine` (sombras e hovers) e `--elite-grayblue` (apoio/bordas tracejadas).
-2. **BRUTALISMO EDITORIAL**: Proibido o uso de bordas super arredondadas (`border-radius` máximo de `2px`). Proibido o uso de sombras borradas (blurs/glassmorphism). Botões primários devem usar formato rígido com sombra de deslocamento sólida (offset shadows).
-3. **MASCOTE REATIVO**: O componente `<Aivur />` em SVG deve ser atrelado aos eventos do usuário (ex: `isDragActive`) para criar microinterações vivas sem uso de WebGL.
-4. **RESILIÊNCIA DE UI**: Todas as telas dependentes de banco de dados devem ter um botão oculto de "Mock Offline" (Fallback) para evitar paredes de erro que travem a navegação do usuário.
+2. **BRUTALISMO EDITORIAL**: A interface adota curvas levemente suavizadas (`8px`) mantendo sombras sólidas de deslocamento (offset shadows) sem blur.
+3. **MASCOTE REATIVO**: O componente `<Aivur />` em SVG deve ser atrelado aos eventos do usuário para criar microinterações vivas sem uso de WebGL.
+4. **RESILIÊNCIA DE UI**: Todas as telas dependentes de banco de dados devem ter um botão oculto de "Mock Offline".
+5. **REGRA DE OURO: FUGA DO MURAL PESADO**: A navegação principal (Dashboard/Home) deve ser um menu de alta velocidade focado em escaneabilidade da esquerda para a direita (Horizontal List Cards). Elementos visuais nunca devem brigar pela atenção do usuário. O 'Minimalismo Rico' (ícones táticos, fundos limpos) dita a interface de conversão. Artes 3D imersivas e complexas devem ser reservadas EXCLUSIVAMENTE para os cabeçalhos das páginas internas, gerando imersão apenas após o clique da decisão.
 
 ---
 *Última atualização: 23/08/2026. Regras de Design System (Curadoria Institucional Elite) consolidadas após ampla refatoração de UI/UX em Landing Page, Wizard, Gerador e Laboratório de Materiais. Mascote reativo SVG integrado.*

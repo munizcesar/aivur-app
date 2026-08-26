@@ -13,6 +13,8 @@ export default function WizardStep2() {
   const freeStudy = useQuizStore((state) => state.freeStudy);
   const setFreeStudy = useQuizStore((state) => state.setFreeStudy);
   const setStep = useQuizStore((state) => state.setStep);
+  const editalText = useQuizStore((state) => state.editalText);
+  const setEditalText = useQuizStore((state) => state.setEditalText);
   const [essayText, setEssayText] = useState("");
   const [aivosHours, setAivosHours] = useState(4);
   const [aivosDate, setAivosDate] = useState("");
@@ -29,7 +31,6 @@ export default function WizardStep2() {
     if (mode === 'redacao') {
       setFreeStudy({ text: essayText });
     } else if (mode === 'aivos360') {
-      const editalText = useQuizStore.getState().editalText;
       const nivelInicial = filters.nivel === 'Todos' ? 'iniciante' : filters.nivel;
       setFreeStudy({ text: JSON.stringify({ hours: aivosHours, date: aivosDate, daysOff: [], editalText, nivelInicial }) });
     }
@@ -338,8 +339,8 @@ export default function WizardStep2() {
               placeholder="Cole aqui os tópicos do seu edital ou descreva o concurso..." 
               rows={4} 
               style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg)", color: "var(--color-text)", resize: "vertical" }}
-              value={useQuizStore.getState().editalText || ""}
-              onChange={(e) => useQuizStore.getState().setEditalText(e.target.value)}
+              value={editalText || ""}
+              onChange={(e) => setEditalText(e.target.value)}
             />
           </div>
 

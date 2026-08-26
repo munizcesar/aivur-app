@@ -107,7 +107,10 @@ export default function WizardStep3() {
       
       if (!res.ok) throw new Error(data.userMessage || `Erro HTTP ${res.status}`);
       if (data.success === false) throw new Error(data.userMessage || 'Falha ao processar requisição.');
-      if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada.');
+      if (!data.questions || !Array.isArray(data.questions) || data.questions.length === 0) {
+        console.error("ERRO NA API DE QUESTÕES: O payload retornado não contém um Array válido de questões.", data);
+        throw new Error(data.userMessage || 'O formato da resposta não é válido ou nenhuma questão foi retornada.');
+      }
 
       setGeneratedQuestions(data.questions as any[]);
       setSelectedOptions(new Array(data.questions.length).fill(null));
@@ -115,6 +118,7 @@ export default function WizardStep3() {
       setCurrentIdx(0);
       setLoading(false);
     } catch (err: any) {
+      console.error("ERRO NA API DE QUESTÕES:", err);
       if (err.name === 'AbortError') {
         setError('Tempo esgotado (timeout). O servidor demorou muito para responder.');
       } else {

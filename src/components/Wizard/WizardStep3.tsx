@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useQuizStore } from "@/store/useQuizStore";
 import { AlertTriangle, RefreshCw, ChevronLeft, ChevronRight, CheckCircle, XCircle, X, Brain, RotateCcw, BookOpen } from "lucide-react";
 import styles from "./Wizard.module.css";
@@ -285,49 +285,16 @@ export default function WizardStep3() {
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "32px" }}>
               {question.options?.map((opt: any) => {
                 const isSelected = selectedOptions[currentIdx] === opt.key;
-                let optionStyle = {
-                  padding: "16px",
-                  borderRadius: "8px",
-                  border: `2px solid ${isSelected ? "var(--color-primary)" : "var(--color-border)"}`,
-                  background: isSelected ? "oklch(from var(--color-primary) l c h / 0.05)" : "var(--color-surface-offset)",
-                  cursor: isAnswered ? "default" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  transition: "all 0.2s"
-                };
-
-                if (isAnswered) {
-                  if (opt.key === question.answer) {
-                    optionStyle.border = "2px solid var(--color-success)";
-                    optionStyle.background = "oklch(from var(--color-success) l c h / 0.1)";
-                  } else if (isSelected && !isCorrect) {
-                    optionStyle.border = "2px solid var(--color-error)";
-                    optionStyle.background = "oklch(from var(--color-error) l c h / 0.1)";
-                  }
-                }
-
                 return (
-                  <div 
-                    key={opt.key}
-                    style={optionStyle}
-                    onClick={() => handleSelectOption(opt.key)}
-                  >
-                    <div style={{ 
-                      width: "36px", height: "36px", borderRadius: "50%", 
-                      background: isSelected ? "var(--color-primary)" : "var(--color-bg)",
-                      border: "1px solid var(--color-border)",
-                      color: isSelected ? "white" : "var(--color-text)",
-                      display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0
-                    }}>
-                      {opt.key.toUpperCase()}
-                    </div>
-                    <div style={{ flex: 1, lineHeight: 1.5, fontSize: "1rem" }}>
-                      {opt.text}
-                    </div>
-                    {isAnswered && opt.key === question.answer && <CheckCircle color="var(--color-success)" width={20} />}
-                    {isAnswered && isSelected && !isCorrect && <XCircle color="var(--color-error)" width={20} />}
-                  </div>
+                  <QuizOption 
+                    key={`${currentIdx}-${opt.key}`}
+                    opt={opt}
+                    isSelected={isSelected}
+                    isAnswered={isAnswered}
+                    isCorrect={isCorrect}
+                    questionAnswer={question.answer}
+                    onSelect={handleSelectOption}
+                  />
                 );
               })}
             </div>
@@ -410,5 +377,95 @@ export default function WizardStep3() {
         </div>
       )}
     </>
+  );
+}
+
+function QuizOption({ opt, isSelected, isAnswered, isCorrect, questionAnswer, onSelect }: any) {
+  const [eliminated, setEliminated] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const startX = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isAnswered) return;
+    startX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isAnswered || startX.current === null) return;
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - startX.current;
+    
+    // limit drag visual offset
+    if (Math.abs(diff) < 100) {
+      setDragOffset(diff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isAnswered || startX.current === null) return;
+    if (Math.abs(dragOffset) > 50) {
+      setEliminated(!eliminated);
+    }
+    setDragOffset(0);
+    startX.current = null;
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isAnswered) return;
+    setEliminated(!eliminated);
+  };
+
+  let optionStyle: React.CSSProperties = {
+    padding: "16px",
+    borderRadius: "8px",
+    border: `2px solid ${isSelected ? "var(--color-primary)" : "var(--color-border)"}`,
+    background: isSelected ? "oklch(from var(--color-primary) l c h / 0.05)" : "var(--color-surface-offset)",
+    cursor: isAnswered ? "default" : "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    transition: "all 0.3s ease",
+    transform: `translateX(${dragOffset}px)`,
+    opacity: eliminated ? 0.5 : 1,
+  };
+
+  if (isAnswered) {
+    if (opt.key === questionAnswer) {
+      optionStyle.border = "2px solid var(--color-success)";
+      optionStyle.background = "oklch(from var(--color-success) l c h / 0.1)";
+    } else if (isSelected && !isCorrect) {
+      optionStyle.border = "2px solid var(--color-error)";
+      optionStyle.background = "oklch(from var(--color-error) l c h / 0.1)";
+    }
+  }
+
+  return (
+    <div 
+      style={optionStyle}
+      onClick={() => {
+        if (!eliminated) onSelect(opt.key);
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onContextMenu={handleContextMenu}
+    >
+      <div style={{ 
+        width: "36px", height: "36px", borderRadius: "50%", 
+        background: isSelected ? "var(--color-primary)" : "var(--color-bg)",
+        border: "1px solid var(--color-border)",
+        color: isSelected ? "white" : "var(--color-text)",
+        display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0,
+        transition: "all 0.3s ease"
+      }}>
+        {opt.key.toUpperCase()}
+      </div>
+      <div style={{ flex: 1, lineHeight: 1.5, fontSize: "1rem", textDecoration: eliminated ? 'line-through' : 'none', transition: 'all 0.3s ease' }}>
+        {opt.text}
+      </div>
+      {isAnswered && opt.key === questionAnswer && <CheckCircle color="var(--color-success)" width={20} />}
+      {isAnswered && isSelected && !isCorrect && <XCircle color="var(--color-error)" width={20} />}
+    </div>
   );
 }

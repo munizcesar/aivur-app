@@ -61,6 +61,7 @@ A fundação do Backend de Inteligência Artificial usa o padrão RAG (Retrieval
 
 ## 5. Bugs Conhecidos (verificar se já corrigidos)
 
+- ✅ **Remoção de Falso Positivo (Frontend)** — Removido definitivamente o botão 'Forçar Acesso (Mock Offline)' e a função associada do WizardStep3.tsx que causava confusão visual mesmo com o backend destravado.
 - ✅ **Destravamento da API de Questões** — Removida a trava artificial (RAG validation) no worker.js do Cloudflare Worker (studymaster-agent). Agora a IA gera questões em tempo real via fallback LLM (Groq) ignorando a falta de contexto vetorial. Rota de geração já era pública, o erro 401 de /api/sync/pull no console é apenas um polling de sync não autenticado e não bloqueia a geração.
 - ✅ **Aba ativa do TopicDetails reseta ao fechar/reabrir o tópico** (perda de estado — filtros de dificuldade/banca voltam ao padrão). *Corrigido — estado elevado para CourseContext, compartilhado por sessão.*
 - ✅ **Skeleton loader ausente** nos botões de ação enquanto o IntersectionObserver carrega as contagens. *Corrigido — CSS shimmer implementado.*

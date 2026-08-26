@@ -174,7 +174,9 @@
 }
 
 .pillarCardFeatured .pillarThumb {
-  background-color: rgba(255, 255, 255, 0.15); /* Destaque maior na moldura do card vermelho */
+  background-color: #F8FAFC; /* Fundo sólido para destacar o ícone escuro/vermelho */
+  border: 1px solid var(--elite-navy, #0A2E45);
+  box-shadow: 2px 2px 0 var(--elite-navy, #0A2E45);
 }
 
 /* Estrutura interna do card (Horizontal) */
@@ -241,7 +243,4 @@
 }
 :global([data-theme="dark"]) .pillarThumb img { 
   filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); 
-}
-:global([data-theme="dark"]) .pillarCardFeatured .pillarThumb {
-  background-color: rgba(255, 255, 255, 0.15);
 }

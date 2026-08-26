@@ -1,107 +1,58 @@
 import Link from "next/link";
-import { Brain, ArrowLeft, Sparkles } from "lucide-react";
+import Header from "@/components/Header/Header";
+import Footer from "@/components/Footer/Footer";
+import { Sparkles, PenTool } from "lucide-react";
 
 export default function RedacaoPage() {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#0B0F17",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "2rem",
-        textAlign: "center",
-      }}
-    >
-      {/* Icon */}
-      <div
-        style={{
-          width: 80,
-          height: 80,
-          borderRadius: 20,
-          background: "rgba(217, 107, 84, 0.1)",
-          border: "1px solid rgba(217, 107, 84, 0.3)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: "2rem",
-          color: "#F4A261",
-        }}
-      >
-        <Brain width={36} height={36} />
-      </div>
-
-      {/* Badge */}
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "0.4rem",
-          background: "rgba(217, 107, 84, 0.08)",
-          border: "1px solid rgba(217, 107, 84, 0.25)",
-          color: "#F4A261",
-          padding: "0.3rem 0.85rem",
-          borderRadius: 9999,
-          fontSize: "0.8rem",
-          fontWeight: 600,
-          marginBottom: "1.5rem",
-        }}
-      >
-        <Sparkles width={12} height={12} /> Em breve
-      </div>
-
-      {/* Title */}
-      <h1
-        style={{
-          fontSize: "clamp(2rem, 4vw, 3rem)",
-          fontWeight: 700,
-          color: "#F9F6F0",
-          marginBottom: "1rem",
-          letterSpacing: "-0.02em",
-          lineHeight: 1.1,
-        }}
-      >
-        Redação Coach
-      </h1>
-
-      {/* Description */}
-      <p
-        style={{
-          color: "#A3A9B2",
-          fontSize: "1.05rem",
-          lineHeight: 1.6,
-          maxWidth: 480,
-          marginBottom: "2.5rem",
-        }}
-      >
-        Este módulo está passando por uma atualização para integrar a nova IA
-        examinadora. Em breve você terá acesso a feedback estruturado e
-        reescrita otimizada para atingir nota máxima.
-      </p>
-
-      {/* Back Button */}
-      <Link
-        href="/"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "0.5rem",
-          background: "rgba(255, 255, 255, 0.06)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          color: "#F9F6F0",
-          padding: "0.7rem 1.5rem",
-          borderRadius: 9999,
-          textDecoration: "none",
-          fontWeight: 600,
-          fontSize: "0.95rem",
-          transition: "all 0.2s ease",
-        }}
-      >
-        <ArrowLeft width={16} height={16} />
-        Voltar para a Home
-      </Link>
-    </div>
+    <>
+      <Header />
+      <main style={{ flex: 1, padding: "4rem 0", minHeight: "85vh", background: "var(--color-bg, #0B0F17)" }}>
+        <div className="container">
+          <div style={{ display: 'flex', flexWrap: 'wrap-reverse', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', marginBottom: '4rem' }}>
+            <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column' }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  background: "rgba(217, 107, 84, 0.08)",
+                  border: "1px solid rgba(217, 107, 84, 0.25)",
+                  color: "#F4A261",
+                  padding: "0.3rem 0.85rem",
+                  borderRadius: 9999,
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  marginBottom: "1.5rem",
+                  width: "fit-content"
+                }}
+              >
+                <Sparkles width={12} height={12} /> Em breve
+              </div>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-heading, #F9F6F0)', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
+                Redação Coach
+              </h1>
+              <p style={{ color: 'var(--color-text-muted, rgba(249, 246, 240, 0.7))', fontSize: '1.1rem' }}>
+                Correção instantânea com nota e feedback detalhado focado nas competências da sua banca.
+              </p>
+            </div>
+            <div style={{ flex: '0 0 auto', display: 'flex', justifyContent: 'flex-end' }}>
+              {/*eslint-disable-next-line @next/next/no-img-element*/}
+              <img src="/images/aivur/redacao.png" alt="Aivur Redação 3D" style={{ width: '220px', height: 'auto', objectFit: 'contain', background: 'transparent', filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.3))' }} />
+            </div>
+          </div>
+          
+          <div style={{ textAlign: 'center', background: 'rgba(217, 107, 84, 0.05)', border: '1px solid rgba(217, 107, 84, 0.15)', borderRadius: '12px', padding: '4rem 2rem' }}>
+            <PenTool width={48} height={48} color="rgba(217, 107, 84, 0.4)" style={{ marginBottom: '1rem', display: 'inline-block' }} />
+            <h2 style={{ color: 'var(--color-heading, #F9F6F0)', fontSize: '1.5rem', marginBottom: '0.5rem' }}>Módulo em Desenvolvimento</h2>
+            <p style={{ color: 'var(--color-text-muted, rgba(249, 246, 240, 0.6))' }}>O nosso laboratório de redação com IA está recebendo os últimos ajustes.</p>
+            <Link href="/" style={{ display: 'inline-block', marginTop: '2rem', padding: '0.75rem 1.5rem', background: 'var(--elite-red, #D96B54)', color: 'white', fontWeight: 700, borderRadius: '4px', textDecoration: 'none' }}>
+              Voltar ao Início
+            </Link>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }

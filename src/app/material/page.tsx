@@ -79,10 +79,7 @@ export default function MaterialPage() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
             >
-              <div style={{ position: "absolute", top: "-80px", left: "50%", transform: "translateX(-50%)", pointerEvents: "none" }}>
-                <Aivur size={140} state={aivurState} themeMode="dark" />
-              </div>
-              
+
               <div className={styles.dropzoneInner} style={{ paddingTop: "2rem" }}>
                 <UploadCloud width={48} height={48} className={styles.dropIcon} />
                 <h3>Arraste seu PDF ou cole o texto aqui</h3>

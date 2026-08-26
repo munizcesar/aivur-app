@@ -27,6 +27,45 @@
   text-align: center;
 }
 
+.heroHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.heroTextCol {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  flex: 1;
+}
+
+.heroImageCol {
+  flex: 0 0 auto;
+}
+
+.heroImageCol img {
+  width: 220px;
+  height: auto;
+  object-fit: contain;
+  background-color: transparent;
+  filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15));
+}
+
+@media (max-width: 768px) {
+  .heroHeader {
+    flex-direction: column-reverse;
+    text-align: center;
+    gap: 1rem;
+  }
+  .heroTextCol {
+    text-align: center;
+  }
+}
+
 .title {
   font-size: 2.5rem;
   font-weight: 800;
@@ -35,9 +74,17 @@
   letter-spacing: -0.02em;
 }
 
+.heroTextCol .title {
+  text-align: inherit;
+}
+
 .subtitle {
   color: var(--color-text-muted);
   font-size: 1.1rem;
+}
+
+.heroTextCol .subtitle {
+  text-align: inherit;
 }
 
 .dropzone {

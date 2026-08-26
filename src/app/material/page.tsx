@@ -59,11 +59,17 @@ export default function MaterialPage() {
         {!isProcessed ? (
           // ESTADO 1: O UPLOAD
           <div className={styles.uploadContainer} style={{ marginTop: "4rem" }}>
-            <div className={styles.headerClean}>
-              <h1 className={styles.title}>Cofre Editorial</h1>
-              <p className={styles.subtitle}>
-                Envie aquele PDF denso ou resumo e deixe a IA extrair o suprassumo em segundos.
-              </p>
+            <div className={styles.heroHeader}>
+              <div className={styles.heroTextCol}>
+                <h1 className={styles.title}>Cofre Editorial</h1>
+                <p className={styles.subtitle}>
+                  Envie aquele PDF denso ou resumo e deixe a IA extrair o suprassumo em segundos.
+                </p>
+              </div>
+              <div className={styles.heroImageCol}>
+                {/*eslint-disable-next-line @next/next/no-img-element*/}
+                <img src="/images/aivur/material.png" alt="Aivur Cofre 3D" />
+              </div>
             </div>
 
             <div 

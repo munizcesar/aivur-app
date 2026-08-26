@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { useQuizStore } from "@/store/useQuizStore";
 import { concursosFilters, concursoTopicMap, bancas, agencias, niveis } from "@/lib/constants";
-import { BookOpen, Landmark, Calendar, Brain, ListChecks, SlidersHorizontal, ClipboardList, Rows3 } from "lucide-react";
+import { BookOpen, Landmark, Calendar, Brain, ListChecks, SlidersHorizontal, ClipboardList } from "lucide-react";
 import styles from "./Wizard.module.css";
 
 export default function WizardStep2() {

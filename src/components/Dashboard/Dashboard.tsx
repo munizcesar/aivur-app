@@ -35,7 +35,7 @@ export default function Dashboard() {
             <Link href="/mentor/gerar" className={`${styles.pillarCard} ${styles.pillarCardFeatured}`}>
               <div className={styles.pillarThumb}>
                 {/*eslint-disable-next-line @next/next/no-img-element*/}
-                <img src="/images/aivur/trilhas.png" alt="Trilhas de Estudo" />
+                <img src="/images/aivur/icon-trilhas.png" alt="Trilhas de Estudo" />
               </div>
               <div className={styles.pillarContent}>
                 <h3 className={styles.pillarTitle}>Trilhas de Estudo</h3>
@@ -52,7 +52,7 @@ export default function Dashboard() {
             <Link href="/questoes" className={styles.pillarCard}>
               <div className={styles.pillarThumb}>
                 {/*eslint-disable-next-line @next/next/no-img-element*/}
-                <img src="/images/aivur/questoes.png" alt="Caderno de Questões" />
+                <img src="/images/aivur/icon-questoes.png" alt="Caderno de Questões" />
               </div>
               <div className={styles.pillarContent}>
                 <h3 className={styles.pillarTitle}>Caderno de Questões</h3>
@@ -69,7 +69,7 @@ export default function Dashboard() {
             <Link href="/material" className={styles.pillarCard}>
               <div className={styles.pillarThumb}>
                 {/*eslint-disable-next-line @next/next/no-img-element*/}
-                <img src="/images/aivur/material.png" alt="Meu Material" />
+                <img src="/images/aivur/icon-material.png" alt="Meu Material" />
               </div>
               <div className={styles.pillarContent}>
                 <h3 className={styles.pillarTitle}>Meu Material</h3>
@@ -86,7 +86,7 @@ export default function Dashboard() {
             <Link href="/redacao" className={styles.pillarCard}>
               <div className={styles.pillarThumb}>
                 {/*eslint-disable-next-line @next/next/no-img-element*/}
-                <img src="/images/aivur/redacao.png" alt="Redação Coach" />
+                <img src="/images/aivur/icon-redacao.png" alt="Redação Coach" />
               </div>
               <div className={styles.pillarContent}>
                 <h3 className={styles.pillarTitle}>Redação Coach</h3>

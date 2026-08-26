@@ -118,11 +118,11 @@
   }
 }
 
-/* ─── LADO DIREITO: Pilares Bento Grid (Brutalismo Editorial) ─── */
+/* ─── LADO DIREITO: Pilares em Lista Horizontal ─── */
 .pillarsCol {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding-top: 2rem;
 }
 
@@ -132,26 +132,21 @@
   }
 }
 
-@media (max-width: 600px) {
-  .pillarsCol {
-    grid-template-columns: 1fr;
-  }
-}
-
 .pillarCard {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
   background-color: var(--color-surface, #FFFFFF);
   border: 2px solid var(--elite-navy, #0A2E45);
-  border-radius: 8px; /* Rigidez brutalista suavizada */
-  padding: 2rem;
+  border-radius: 8px;
+  padding: 20px 24px;
   text-decoration: none;
   color: inherit;
   /* Brutalist offset shadow */
   box-shadow: 4px 4px 0 var(--elite-navy, #0A2E45);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  height: 100%;
+  width: 100%;
 }
 
 .pillarCard:hover {
@@ -178,34 +173,42 @@
   color: #FFFFFF;
 }
 
-/* Estrutura interna do card Bento */
+.pillarCardFeatured .pillarThumb {
+  background-color: rgba(255, 255, 255, 0.15); /* Destaque maior na moldura do card vermelho */
+}
+
+/* Estrutura interna do card (Horizontal) */
 .pillarThumb {
-  width: 120px;
-  height: 120px;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 2rem;
+  background-color: rgba(10, 46, 69, 0.05); /* translúcido suave */
+  border-radius: 12px;
 }
 
 .pillarThumb img {
   width: 100%;
   height: 100%;
+  background-color: transparent;
   object-fit: contain;
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
 }
 
 .pillarContent {
+  margin-left: 20px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  text-align: left;
   flex-grow: 1;
+  gap: 0.25rem;
 }
 
 .pillarTitle {
   font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--color-heading, #0A2E45);
   letter-spacing: -0.01em;
@@ -215,21 +218,30 @@
   font-family: var(--font-body, 'Satoshi', sans-serif);
   font-size: 0.95rem;
   color: var(--color-text, #2B4C5F);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .pillarArrow {
-  align-self: flex-end;
+  align-self: center;
+  margin-left: auto;
   color: var(--color-heading, #0A2E45);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease;
-  margin-top: auto;
 }
 
 .pillarCard:hover .pillarArrow {
   transform: translateX(4px);
 }
 
-:global([data-theme="dark"]) .pillarThumb img { filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); }
+/* Dark Mode Overrides */
+:global([data-theme="dark"]) .pillarThumb {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+:global([data-theme="dark"]) .pillarThumb img { 
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); 
+}
+:global([data-theme="dark"]) .pillarCardFeatured .pillarThumb {
+  background-color: rgba(255, 255, 255, 0.15);
+}

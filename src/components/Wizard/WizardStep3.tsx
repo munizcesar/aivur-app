@@ -159,43 +159,7 @@ export default function WizardStep3() {
     setResults(newResults);
   };
 
-  const handleForceMock = () => {
-    const mocks = [
-      {
-        id: "mock-1",
-        text: "De acordo com as disposições constitucionais sobre a Administração Pública (Art. 37 da CF/88), a investidura em cargo ou emprego público depende de:",
-        options: [
-          { key: "a", text: "Aprovação prévia em concurso público de provas ou de provas e títulos, ressalvadas as nomeações para cargo em comissão." },
-          { key: "b", text: "Indicação direta do Chefe do Poder Executivo, independentemente da natureza do cargo." },
-          { key: "c", text: "Processo seletivo simplificado para todas as funções de confiança." },
-          { key: "d", text: "Eleição direta pelos servidores do respectivo órgão." }
-        ],
-        answer: "a",
-        difficulty: "Médio",
-        fonte: "CF/88 - Art. 37",
-        feedback: "Correto. Segundo o Art. 37, II da CF/88: a investidura em cargo ou emprego público depende de aprovação prévia em concurso público de provas ou de provas e títulos, de acordo com a natureza e a complexidade do cargo ou emprego, na forma prevista em lei, ressalvadas as nomeações para cargo em comissão declarado em lei de livre nomeação e exoneração."
-      },
-      {
-        id: "mock-2",
-        text: "Acerca dos princípios expressos da Administração Pública previstos no caput do Art. 37 da Constituição Federal, assinale a alternativa que apresenta todos eles:",
-        options: [
-          { key: "a", text: "Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência." },
-          { key: "b", text: "Legalidade, Igualdade, Moralidade, Proporcionalidade e Eficiência." },
-          { key: "c", text: "Legalidade, Impessoalidade, Motivação, Publicidade e Eficiência." },
-          { key: "d", text: "Legalidade, Finalidade, Moralidade, Publicidade e Segurança Jurídica." }
-        ],
-        answer: "a",
-        difficulty: "Fácil",
-        fonte: "CF/88 - Art. 37",
-        feedback: "Correto. O famoso mnemônico LIMPE consagra os princípios constitucionais expressos: Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência."
-      }
-    ];
-    setGeneratedQuestions(mocks);
-    setSelectedOptions(new Array(mocks.length).fill(null));
-    setResults(new Array(mocks.length).fill(null));
-    setCurrentIdx(0);
-    setError(null);
-  };
+  ;
 
   if (loading) {
     return (
@@ -234,13 +198,7 @@ export default function WizardStep3() {
             >
               <RefreshCw width={16} height={16} /> Tentar novamente
             </button>
-            <button 
-              className={styles.qfResolverBtn} 
-              style={{ padding: "12px 24px", fontSize: "0.95rem", background: "transparent", color: "var(--elite-red)", border: "1px solid var(--elite-red)", boxShadow: "2px 2px 0 var(--elite-wine)" }}
-              onClick={handleForceMock}
-            >
-              Forçar Acesso (Mock Offline)
-            </button>
+            
           </div>
         </div>
       </div>

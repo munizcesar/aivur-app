@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -181,17 +181,17 @@ export default function WizardStep3() {
 
   /* RENDER PRINCIPAL via Portal - escapa do DOM pai que quebra o fixed */
   const playerUI = (
-    <div style={{ position: "fixed", inset: 0, zIndex: 99999, backgroundColor: "#f3f4f6", overflowY: "auto" }}>
+    <div className="fixed inset-0 w-full h-full z-[99999] bg-gray-100 overflow-y-auto">
 
       {/* Mobile top bar */}
-      <div className="md:hidden sticky top-0 z-[100] w-full bg-[#f68b33] text-white flex items-center justify-between px-4 py-3 shadow-md">
-        <button onClick={() => setShowExitModal(true)} className="p-1 rounded hover:bg-[#e07722] transition-colors">
+      <div className="md:hidden sticky top-0 z-[100] w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 flex items-center justify-between px-4 py-3 shadow-sm">
+        <button onClick={() => setShowExitModal(true)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
           <ChevronLeft size={24} />
         </button>
         <span className="font-semibold text-base truncate max-w-[180px]">
-          {mode === "concurso" ? filters.materia || "Questoes" : "Questoes"}
+          {mode === "concurso" ? filters.materia || "Questões" : "Questões"}
         </span>
-        <button onClick={handleBackToStep2} className="p-1 rounded hover:bg-[#e07722] transition-colors">
+        <button onClick={handleBackToStep2} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
           <Filter size={20} />
         </button>
       </div>
@@ -199,7 +199,7 @@ export default function WizardStep3() {
       {/* Desktop top bar */}
       <div className="hidden md:flex sticky top-0 z-[100] w-full bg-white border-b border-gray-200 items-center justify-between px-8 py-3 shadow-sm">
         <span className="font-semibold text-gray-700">
-          {mode === "concurso" ? filters.materia || "Questoes" : "Questoes"}
+          {mode === "concurso" ? filters.materia || "Questões" : "Questões"}
         </span>
         <button onClick={handleBackToStep2} className="flex items-center gap-2 text-sm text-[#f68b33] hover:bg-orange-50 px-3 py-1.5 rounded-lg transition-colors font-medium">
           <Filter size={16} /> Alterar Filtros
@@ -207,7 +207,7 @@ export default function WizardStep3() {
       </div>
 
       {/* Container mestre */}
-      <div style={{ width: "100%", maxWidth: "56rem", margin: "0 auto", padding: "1.5rem 1rem 8rem" }}>
+      <div className="relative w-full max-w-4xl mx-auto px-4 pb-32 pt-6">
         {generatedQuestions.map((question: any, idx: number) => {
           const showMobile = idx === currentIdx;
           const isAnswered = results[idx] !== null;
@@ -231,7 +231,7 @@ export default function WizardStep3() {
       </div>
 
       {/* Mobile bottom bar */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, width: "100%", backgroundColor: "white", borderTop: "1px solid #e5e7eb", padding: "1rem 1.5rem", zIndex: 99999, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 -10px 15px -3px rgba(0,0,0,0.1)" }} className="md:hidden">
+      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 z-[99999] flex justify-between items-center shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] md:hidden">
         <button
           disabled={currentIdx === 0}
           onClick={() => setCurrentIdx(Math.max(0, currentIdx - 1))}
@@ -239,7 +239,7 @@ export default function WizardStep3() {
         >
           <ChevronLeft size={20} /> Anterior
         </button>
-        <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#374151", backgroundColor: "#f9fafb", border: "1px solid #e5e7eb", padding: "0.375rem 1rem", borderRadius: "9999px" }}>
+        <div className="text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-200 px-4 py-1.5 rounded-full">
           {currentIdx + 1} / {generatedQuestions.length}
         </div>
         <button
@@ -247,24 +247,24 @@ export default function WizardStep3() {
           onClick={() => setCurrentIdx(Math.min(generatedQuestions.length - 1, currentIdx + 1))}
           className="flex items-center gap-1.5 font-semibold text-gray-600 hover:text-[#f68b33] disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
         >
-          Proximo <ChevronRight size={20} />
+          Próximo <ChevronRight size={20} />
         </button>
       </div>
 
       {/* Exit modal */}
       {showExitModal && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 999999, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.6)", padding: "1rem" }}>
-          <div style={{ backgroundColor: "white", borderRadius: "1rem", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)", maxWidth: "24rem", width: "100%", padding: "1.5rem" }}>
-            <h3 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#111827", marginBottom: "0.5rem" }}>Sair do Modo Foco?</h3>
-            <p style={{ color: "#6b7280", marginBottom: "1.5rem", fontSize: "0.875rem", lineHeight: "1.625" }}>
-              Seu progresso nesta sessao sera perdido. Deseja sair?
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Sair do Modo Foco?</h3>
+            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+              Seu progresso nesta sessão será perdido. Deseja sair?
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <button onClick={() => setShowExitModal(false)} style={{ width: "100%", padding: "0.75rem 1rem", backgroundColor: "#f68b33", color: "white", fontWeight: 700, borderRadius: "0.75rem", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => setShowExitModal(false)} className="w-full py-3 px-4 bg-[#f68b33] hover:bg-[#e07722] text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
                 <BookOpen size={18} /> Continuar estudando
               </button>
-              <button onClick={() => { setShowExitModal(false); handleBackToStep2(); }} style={{ width: "100%", padding: "0.75rem 1rem", backgroundColor: "white", color: "#374151", fontWeight: 700, borderRadius: "0.75rem", border: "1px solid #d1d5db", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
-                <RotateCcw size={18} /> Sair e comecar novo quiz
+              <button onClick={() => { setShowExitModal(false); handleBackToStep2(); }} className="w-full py-3 px-4 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
+                <RotateCcw size={18} /> Sair e começar novo quiz
               </button>
             </div>
           </div>
@@ -283,41 +283,35 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
   const [showExplanation, setShowExplanation] = useState(false);
   useEffect(() => { if (isAnswered) setShowExplanation(true); }, [isAnswered]);
 
-  const cardStyle: React.CSSProperties = {
-    backgroundColor: "white",
-    borderRadius: "1rem",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px 0 rgba(0,0,0,0.1)",
-    padding: "1.5rem",
-    marginBottom: "2rem",
-    display: showMobile ? "flex" : "none",
-    flexDirection: "column",
-    gap: "1rem",
-  };
-
   return (
-    <div style={cardStyle} className="md:!flex">
+    <div className={[
+      "bg-white dark:bg-gray-800",
+      "rounded-2xl border border-gray-200 dark:border-gray-700",
+      "shadow-sm p-6 mb-8",
+      "flex-col gap-4 relative z-10",
+      showMobile ? "flex" : "hidden md:flex",
+    ].join(" ")}>
 
       {/* Metadados */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center", marginBottom: "0.5rem" }}>
-        <span style={{ color: "#f68b33", fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Q{idx + 1}</span>
-        <span style={{ width: "1px", height: "12px", backgroundColor: "#d1d5db" }} />
-        <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Inedita (IA)</span>
+      <div className="flex flex-wrap gap-2 items-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+        <span className="text-[#f68b33]">Q{idx + 1}</span>
+        <span className="w-px h-3 bg-gray-300" />
+        <span>Inédita (IA)</span>
         {filters.banca && filters.banca !== "Todas" && (
-          <><span style={{ width: "1px", height: "12px", backgroundColor: "#d1d5db" }} /><span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>{filters.banca}</span></>
+          <><span className="w-px h-3 bg-gray-300" /><span>{filters.banca}</span></>
         )}
         {filters.materia && (
-          <><span style={{ width: "1px", height: "12px", backgroundColor: "#d1d5db" }} /><span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>{filters.materia}</span></>
+          <><span className="w-px h-3 bg-gray-300" /><span>{filters.materia}</span></>
         )}
       </div>
 
-      {/* Enunciado */}
-      <h3 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#111827", lineHeight: "1.75", whiteSpace: "pre-wrap", margin: 0 }}>
-        {question.text}
-      </h3>
+      {/* Enunciado (CRÍTICO: RESTAURADO) */}
+      <p className="text-lg text-gray-800 dark:text-gray-100 font-medium my-6 leading-relaxed whitespace-pre-wrap">
+        {question.text || question.title || question.question}
+      </p>
 
       {/* Alternativas */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "1rem" }}>
+      <div className="flex flex-col gap-3 mt-4">
         {question.options?.map((opt: any) => (
           <OptionButton
             key={opt.key}
@@ -331,24 +325,13 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
         ))}
       </div>
 
-      {/* Botao Responder */}
+      {/* Botão Responder */}
       {!isAnswered && (
-        <div style={{ paddingTop: "0.5rem" }}>
+        <div className="pt-2">
           <button
             disabled={!selectedOption}
             onClick={onAnswer}
-            style={{
-              width: "100%",
-              padding: "0.875rem 2.5rem",
-              backgroundColor: selectedOption ? "#f68b33" : "#e5e7eb",
-              color: selectedOption ? "white" : "#9ca3af",
-              fontWeight: 700,
-              borderRadius: "0.75rem",
-              border: "none",
-              cursor: selectedOption ? "pointer" : "not-allowed",
-              transition: "all 0.2s",
-              fontSize: "1rem",
-            }}
+            className="w-full md:w-auto px-10 py-3.5 bg-[#f68b33] hover:bg-[#e07722] disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-colors shadow-sm"
           >
             Responder
           </button>
@@ -357,39 +340,33 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
 
       {/* Action bar */}
       {isAnswered && (
-        <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: "1rem", marginTop: "0.5rem" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+        <div className="border-t border-gray-100 pt-4 mt-2">
+          <div className="flex flex-wrap gap-2 text-sm font-medium text-gray-500">
             <button
               onClick={() => setShowExplanation((v) => !v)}
-              style={{
-                display: "flex", alignItems: "center", gap: "0.5rem",
-                padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "none",
-                backgroundColor: showExplanation ? "#fff7ed" : "transparent",
-                color: showExplanation ? "#f68b33" : "#4b5563",
-                fontWeight: 500, cursor: "pointer", fontSize: "0.875rem",
-              }}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${showExplanation ? "text-[#f68b33] bg-orange-50" : "hover:bg-gray-100 text-gray-600"}`}
             >
-              <BookOpen size={15} /> Gabarito Comentado
+              <GraduationCap size={16} /> Mentor AIVUR
             </button>
-            <button onClick={() => alert("Estatisticas: Em breve")} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "none", backgroundColor: "transparent", color: "#4b5563", fontWeight: 500, cursor: "pointer", fontSize: "0.875rem" }}>
-              <BarChart2 size={15} /> Estatisticas
+            <button onClick={() => alert("Estatísticas: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <BarChart2 size={16} /> Estatísticas
             </button>
-            <button onClick={() => alert("Criar Anotacoes: Em breve")} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "none", backgroundColor: "transparent", color: "#4b5563", fontWeight: 500, cursor: "pointer", fontSize: "0.875rem" }}>
-              <Edit3 size={15} /> Criar Anotacoes
+            <button onClick={() => alert("Criar Anotações: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <Edit3 size={16} /> Criar Anotações
             </button>
-            <button onClick={() => alert("Notificar Erro: Em breve")} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "none", backgroundColor: "transparent", color: "#4b5563", fontWeight: 500, cursor: "pointer", fontSize: "0.875rem" }}>
-              <Flag size={15} /> Notificar Erro
+            <button onClick={() => alert("Notificar Erro: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <Flag size={16} /> Notificar Erro
             </button>
           </div>
 
-          {/* Explicacao expandivel */}
-          <div style={{ overflow: "hidden", maxHeight: showExplanation ? "3000px" : "0px", opacity: showExplanation ? 1 : 0, transition: "max-height 0.3s ease, opacity 0.3s ease", marginTop: showExplanation ? "0.5rem" : "0" }}>
-            <div style={{ position: "relative", padding: "1.25rem", backgroundColor: "#f9fafb", borderRadius: "0.75rem", border: "1px solid #e5e7eb", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, width: "6px", height: "100%", backgroundColor: "#f68b33" }} />
-              <h4 style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, color: "#1f2937", fontSize: "0.875rem", marginBottom: "0.75rem", paddingLeft: "0.5rem" }}>
-                <Brain size={16} style={{ color: "#f68b33" }} /> Resolucao da IA
+          {/* Explicação expansível */}
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? "max-h-[3000px] opacity-100 mt-4" : "max-h-0 opacity-0"}`}>
+            <div className="relative p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33]" />
+              <h4 className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200 text-sm mb-3 pl-2">
+                <Brain size={16} className="text-[#f68b33]" /> Resolução da IA
               </h4>
-              <div style={{ color: "#374151", fontSize: "0.875rem", lineHeight: "1.625", whiteSpace: "pre-wrap", paddingLeft: "0.5rem" }}>
+              <div className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap pl-2">
                 {question.feedback}
               </div>
             </div>
@@ -402,83 +379,39 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
 
 /* OptionButton */
 function OptionButton({ opt, isSelected, isAnswered, isCorrect, correctAnswer, onSelect }: any) {
-  const isRight = opt.key === correctAnswer;
-  const isWrong = isSelected && !isCorrect;
+  // Corrigindo case-sensitivity para garantir match correto
+  const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
+  const isWrong = isSelected && !isRight;
 
-  let bgColor = "white";
-  let borderColor = "#d1d5db";
-  let circleColor = "white";
-  let circleBorder = "#d1d5db";
-  let circleText = "#6b7280";
-  let opacity = 1;
-
+  let container = "w-full text-left p-4 rounded-xl border flex items-start gap-4 transition-all duration-200 ";
   if (!isAnswered) {
-    if (isSelected) {
-      borderColor = "#f68b33";
-      bgColor = "#fff7ed";
-      circleColor = "#f68b33";
-      circleBorder = "#f68b33";
-      circleText = "white";
-    }
+    container += isSelected
+      ? "border-[#f68b33] bg-orange-50 cursor-pointer"
+      : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer";
   } else {
-    if (isRight) {
-      bgColor = "#f0fdf4";
-      borderColor = "#4ade80";
-      circleColor = "#22c55e";
-      circleBorder = "#22c55e";
-      circleText = "white";
-    } else if (isWrong) {
-      bgColor = "#fef2f2";
-      borderColor = "#f87171";
-      circleColor = "#ef4444";
-      circleBorder = "#ef4444";
-      circleText = "white";
-    } else {
-      opacity = 0.4;
-    }
+    // Se a questao foi respondida, a alternativa CORRETA sempre fica verde, independente do que o usuario marcou.
+    if (isRight) container += "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 cursor-default";
+    else if (isWrong) container += "border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-900/20 cursor-default";
+    else container += "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 opacity-45 cursor-default";
+  }
+
+  let circle = "flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm mt-0.5 transition-all duration-200 ";
+  if (!isAnswered) {
+    circle += isSelected ? "bg-[#f68b33] border-[#f68b33] text-white" : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500";
+  } else {
+    if (isRight) circle += "bg-green-500 border-green-500 text-white";
+    else if (isWrong) circle += "bg-red-500 border-red-500 text-white";
+    else circle += "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400";
   }
 
   return (
-    <button
-      onClick={() => !isAnswered && onSelect()}
-      disabled={isAnswered}
-      style={{
-        width: "100%",
-        textAlign: "left",
-        padding: "1rem",
-        borderRadius: "0.75rem",
-        border: `2px solid ${borderColor}`,
-        backgroundColor: bgColor,
-        display: "flex",
-        alignItems: "flex-start",
-        gap: "1rem",
-        cursor: isAnswered ? "default" : "pointer",
-        transition: "all 0.2s",
-        opacity,
-      }}
-    >
-      <span style={{
-        flexShrink: 0,
-        width: "2rem", height: "2rem",
-        borderRadius: "50%",
-        border: `2px solid ${circleBorder}`,
-        backgroundColor: circleColor,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontWeight: 700, fontSize: "0.875rem",
-        color: circleText,
-        marginTop: "2px",
-      }}>
-        {opt.key.toUpperCase()}
-      </span>
-      <span style={{
-        flex: 1, fontSize: "1rem", lineHeight: "1.5",
-        color: isAnswered && (isRight || isWrong) ? "#111827" : "#374151",
-        fontWeight: isAnswered && (isRight || isWrong) ? 600 : 400,
-      }}>
+    <button className={container} onClick={() => !isAnswered && onSelect()} disabled={isAnswered}>
+      <span className={circle}>{opt.key.toUpperCase()}</span>
+      <span className={`flex-1 text-base leading-snug ${isAnswered && (isRight || isWrong) ? "font-semibold text-gray-900 dark:text-gray-100" : "text-gray-700 dark:text-gray-300"}`}>
         {opt.text}
       </span>
-      {isAnswered && isRight && <CheckCircle size={22} style={{ color: "#22c55e", flexShrink: 0, marginTop: "2px" }} />}
-      {isAnswered && isWrong && <XCircle size={22} style={{ color: "#ef4444", flexShrink: 0, marginTop: "2px" }} />}
+      {isAnswered && isRight && <CheckCircle size={22} className="flex-shrink-0 text-green-500 mt-0.5" />}
+      {isAnswered && isWrong && <XCircle size={22} className="flex-shrink-0 text-red-500 mt-0.5" />}
     </button>
   );
 }

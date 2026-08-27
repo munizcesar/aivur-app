@@ -131,9 +131,11 @@ export default function WizardStep3() {
       setLoading(false);
     } catch (err: any) {
       console.error("ERRO NA API DE QUESTÕES:", err);
-      let erroBruto = err.message || String(err);
-      if (err.name === 'AbortError') erroBruto = 'Tempo esgotado (timeout).';
-      setError(`[DEBUG DA API]: ${erroBruto}`);
+      if (err.name === 'AbortError') {
+        setError('Tempo esgotado (timeout). O servidor demorou muito para responder.');
+      } else {
+        setError('Ocorreu uma instabilidade na conexão com a IA. Tente novamente em instantes.');
+      }
       setLoading(false);
     }
   };
@@ -191,7 +193,7 @@ export default function WizardStep3() {
             <AlertTriangle width={48} height={48} />
           </div>
           <h3 style={{ marginBottom: "var(--space-2)", color: "var(--elite-cream)" }}>Ops! Geração Interrompida</h3>
-          <pre style={{ color: "#ff4d4d", fontSize: "0.95rem", marginBottom: "24px", padding: "16px", background: "#1a1a1a", borderRadius: "8px", border: "1px solid #ff4d4d", textAlign: "left", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{error}</pre>
+          <p style={{ color: "var(--elite-grayblue)", fontSize: "1.05rem", marginBottom: "24px" }}>{error}</p>
           
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button 

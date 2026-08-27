@@ -6,7 +6,7 @@ import { useQuizStore } from "@/store/useQuizStore";
 import {
   AlertTriangle, RefreshCw, ChevronLeft, ChevronRight,
   CheckCircle, XCircle, Brain, RotateCcw, BookOpen,
-  Filter, BarChart2, Edit3, Flag,
+  Filter, BarChart2, Edit3, Flag, GraduationCap,
 } from "lucide-react";
 import styles from "./Wizard.module.css";
 

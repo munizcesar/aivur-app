@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 
-const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || 'https://studymaster-worker.cesarmuniz0816.workers.dev';
+const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || 'https://aivur-worker.cesarmuniz0816.workers.dev';
 
 export interface RedacaoResult {
   scores: {

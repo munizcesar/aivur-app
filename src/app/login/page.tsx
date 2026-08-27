@@ -36,7 +36,7 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("https://studymaster-worker.cesarmuniz0816.workers.dev/api/auth/magic-link", {
+      const res = await fetch("https://aivur-worker.cesarmuniz0816.workers.dev/api/auth/magic-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })

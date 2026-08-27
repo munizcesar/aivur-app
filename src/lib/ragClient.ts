@@ -1,4 +1,4 @@
-const RAG_URL = process.env.RAG_WORKER_URL || 'https://studymaster-worker.cesarmuniz0816.workers.dev/api/rag-search';
+const RAG_URL = process.env.RAG_WORKER_URL || 'https://aivur-worker.cesarmuniz0816.workers.dev/api/rag-search';
 
 export async function fetchRagContext(query: string): Promise<{ context: string; matchCount: number; topScore: number | null }> {
   const controller = new AbortController();

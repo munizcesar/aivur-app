@@ -35,7 +35,7 @@ export default function Search() {
     setResults(null);
 
     try {
-      const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || "https://studymaster-worker.cesarmuniz0816.workers.dev";
+      const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || "https://aivur-worker.cesarmuniz0816.workers.dev";
       const res = await fetch(`${WORKER_URL}/api/editais/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

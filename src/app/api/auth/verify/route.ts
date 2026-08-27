@@ -6,7 +6,7 @@ export async function POST(req: Request) {
   try {
     const { token } = await req.json() as { token?: string };
     
-    const res = await fetch("https://studymaster-worker.cesarmuniz0816.workers.dev/api/auth/verify", {
+    const res = await fetch("https://aivur-worker.cesarmuniz0816.workers.dev/api/auth/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token })

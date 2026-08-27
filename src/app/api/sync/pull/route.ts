@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const body = await req.json() as Record<string, unknown>;
     (body as Record<string, string>).userId = sessionCookie.value; // Inject userId securely
     
-    const res = await fetch("https://studymaster-worker.cesarmuniz0816.workers.dev/api/sync/pull", {
+    const res = await fetch("https://aivur-worker.cesarmuniz0816.workers.dev/api/sync/pull", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)

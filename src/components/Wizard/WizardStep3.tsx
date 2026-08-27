@@ -223,7 +223,7 @@ export default function WizardStep3() {
       </div>
 
       {/* Main Content Area */}
-      <div className="w-full max-w-4xl mx-auto pb-24 md:pb-8 space-y-0 md:space-y-6 flex-1 md:px-4">
+      <div className="w-full max-w-4xl mx-auto pb-32 md:pb-12 space-y-0 flex-1 px-4 pt-6">
         {generatedQuestions.map((question, idx) => {
           const showMobile = idx === currentIdx;
           const isAnswered = results[idx] !== null;
@@ -250,7 +250,7 @@ export default function WizardStep3() {
       </div>
 
       {/* Bottom Bar Mobile */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex justify-between items-center p-4 shadow-[0_-4px_10px_-1px_rgba(0,0,0,0.05)]">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 p-4 px-6 flex justify-between items-center z-[100] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <button 
           disabled={currentIdx === 0}
           onClick={() => setCurrentIdx(Math.max(0, currentIdx - 1))}
@@ -311,104 +311,94 @@ function QuestionCard({
   }, [isAnswered]);
 
   return (
-    <div className={`bg-white md:rounded-lg md:shadow-sm md:border md:border-gray-200 ${showMobile ? 'block' : 'hidden md:block'} w-full md:mb-8`}>
-      {/* Header Info Desktop */}
-      <div className="hidden md:flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50 rounded-t-lg">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 font-medium">
-           <span className="font-bold text-gray-400 mr-2">Q{idx + 1}</span>
-           <span className="bg-white border border-gray-200 shadow-sm px-2.5 py-1 rounded-md text-gray-700">Origem: Questão Inédita (IA)</span>
-           <span className="bg-white border border-gray-200 shadow-sm px-2.5 py-1 rounded-md text-gray-700">Estilo: {filters.banca && filters.banca !== 'Todas' ? filters.banca : 'Personalizado'}</span>
-           <span className="bg-white border border-gray-200 shadow-sm px-2.5 py-1 rounded-md text-gray-700">Disciplina: {filters.materia || 'Variada'}</span>
+    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex-col gap-4 mb-6 ${showMobile ? 'flex' : 'hidden md:flex'} w-full`}>
+      {/* Metadata */}
+      <div className="flex justify-between items-start">
+        <div className="flex flex-wrap gap-3 items-center text-sm text-gray-500 mb-4">
+           <span className="font-bold text-gray-400">Q{idx + 1}</span>
+           <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-700">Origem: Inédita (IA)</span>
+           <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-700">Estilo: {filters.banca && filters.banca !== 'Todas' ? filters.banca : 'Personalizado'}</span>
+           <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-700">Disciplina: {filters.materia || 'Variada'}</span>
         </div>
         <button onClick={onFilterClick} className="p-2 text-[#f68b33] hover:bg-orange-50 rounded-full transition-colors" title="Voltar aos Filtros">
           <Filter size={18} />
         </button>
       </div>
 
-      {/* Mobile-only header line (metadata) */}
-      <div className="md:hidden p-4 pb-0 flex flex-wrap gap-2 text-[10px] sm:text-xs text-gray-600">
-        <span className="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-gray-700 font-medium">Inédita (IA)</span>
-        <span className="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-gray-700 font-medium">{filters.banca && filters.banca !== 'Todas' ? filters.banca : 'Personalizado'}</span>
-        <span className="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-gray-700 font-medium truncate max-w-[150px]">{filters.materia || 'Variada'}</span>
-      </div>
-
       {/* Body */}
-      <div className="p-4 md:p-6 md:pt-6 pt-4">
-        
-        <div className="text-gray-800 text-base md:text-[17px] mb-8 whitespace-pre-wrap leading-relaxed font-medium">
-          {question.text}
-        </div>
-        
-        <div className="space-y-3 mb-6">
-           {question.options?.map((opt: any) => (
-             <QuizOptionTailwind
-                key={opt.key}
-                opt={opt}
-                isSelected={selectedOption === opt.key}
-                isAnswered={isAnswered}
-                isCorrect={isCorrect}
-                questionAnswer={question.answer}
-                onSelect={() => onSelect(opt.key)}
-             />
-           ))}
-        </div>
-        
-        {/* Responder Button */}
-        {!isAnswered && (
-          <div className="pt-2">
-            <button 
-               disabled={!selectedOption}
-               onClick={onAnswer}
-               className="w-full md:w-auto px-10 py-3.5 bg-[#f68b33] hover:bg-[#e07722] disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold rounded-lg transition-colors shadow-sm"
-            >
-              Responder
-            </button>
-          </div>
-        )}
-
-        {/* Action Bar */}
-        {isAnswered && (
-          <div className="mt-8 border-t border-gray-100 pt-5">
-             <div className="flex flex-wrap gap-2 md:gap-4 text-sm font-medium text-gray-600 mb-4">
-                <button 
-                  onClick={() => setShowExplanation(!showExplanation)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${showExplanation ? 'text-[#f68b33] bg-orange-50' : 'hover:bg-gray-100'}`}
-                >
-                  <BookOpen size={16} /> Gabarito Comentado
-                </button>
-                <button onClick={() => alert('Estatísticas: Em breve')} className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
-                  <BarChart2 size={16} /> Estatísticas
-                </button>
-                <button onClick={() => alert('Criar Anotações: Em breve')} className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
-                  <Edit3 size={16} /> Criar Anotações
-                </button>
-                <button onClick={() => alert('Notificar Erro: Em breve')} className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
-                  <Flag size={16} /> Notificar Erro
-                </button>
-             </div>
-             
-             {/* Explanation */}
-             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? 'max-h-[2000px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
-                <div className="p-5 md:p-6 bg-[#f9fafb] rounded-xl border border-gray-200/60 shadow-sm relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33]"></div>
-                  <h4 className="font-bold flex items-center gap-2 mb-3 text-gray-800 text-[15px]">
-                    <Brain size={18} className="text-[#f68b33]" /> Resolução da IA
-                  </h4>
-                  <div className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]">
-                    {question.feedback}
-                  </div>
-                </div>
-             </div>
-          </div>
-        )}
+      <div className="text-lg text-gray-800 font-medium whitespace-pre-wrap leading-relaxed">
+        {question.text}
       </div>
+      
+      <div className="flex flex-col gap-3 mt-4">
+         {question.options?.map((opt: any) => (
+           <QuizOptionTailwind
+              key={opt.key}
+              opt={opt}
+              isSelected={selectedOption === opt.key}
+              isAnswered={isAnswered}
+              isCorrect={isCorrect}
+              questionAnswer={question.answer}
+              onSelect={() => onSelect(opt.key)}
+           />
+         ))}
+      </div>
+      
+      {/* Responder Button */}
+      {!isAnswered && (
+        <div className="pt-2">
+          <button 
+             disabled={!selectedOption}
+             onClick={onAnswer}
+             className="w-full md:w-auto px-10 py-3.5 bg-[#f68b33] hover:bg-[#e07722] disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold rounded-lg transition-colors shadow-sm"
+          >
+            Responder
+          </button>
+        </div>
+      )}
+
+      {/* Action Bar */}
+      {isAnswered && (
+        <div className="mt-4 border-t border-gray-100 pt-5">
+           <div className="flex flex-wrap gap-2 md:gap-4 text-sm font-medium text-gray-600 mb-4">
+              <button 
+                onClick={() => setShowExplanation(!showExplanation)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${showExplanation ? 'text-[#f68b33] bg-orange-50' : 'hover:bg-gray-100'}`}
+              >
+                <BookOpen size={16} /> Gabarito Comentado
+              </button>
+              <button onClick={() => alert('Estatísticas: Em breve')} className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
+                <BarChart2 size={16} /> Estatísticas
+              </button>
+              <button onClick={() => alert('Criar Anotações: Em breve')} className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
+                <Edit3 size={16} /> Criar Anotações
+              </button>
+              <button onClick={() => alert('Notificar Erro: Em breve')} className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
+                <Flag size={16} /> Notificar Erro
+              </button>
+           </div>
+           
+           {/* Explanation */}
+           <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? 'max-h-[2000px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+              <div className="p-5 md:p-6 bg-[#f9fafb] rounded-xl border border-gray-200/60 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33]"></div>
+                <h4 className="font-bold flex items-center gap-2 mb-3 text-gray-800 text-[15px]">
+                  <Brain size={18} className="text-[#f68b33]" /> Resolução da IA
+                </h4>
+                <div className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]">
+                  {question.feedback}
+                </div>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function QuizOptionTailwind({ opt, isSelected, isAnswered, isCorrect, questionAnswer, onSelect }: any) {
-  let containerClasses = "p-3.5 md:p-4 rounded-xl border-2 flex items-center gap-4 transition-all duration-200 ";
-  let labelClasses = "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm shrink-0 transition-all duration-200 ";
+  let containerClasses = "w-full text-left p-4 rounded-lg border flex items-start gap-3 transition-colors ";
+  let labelClasses = "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm shrink-0 transition-all duration-200 mt-0.5 ";
   
   if (!isAnswered) {
     containerClasses += "cursor-pointer ";
@@ -439,15 +429,15 @@ function QuizOptionTailwind({ opt, isSelected, isAnswered, isCorrect, questionAn
   }
 
   return (
-    <div className={containerClasses} onClick={() => !isAnswered && onSelect()}>
+    <button className={containerClasses} onClick={() => !isAnswered && onSelect()} disabled={isAnswered}>
       <div className={labelClasses}>
         {opt.key.toUpperCase()}
       </div>
-      <div className={`flex-1 text-[15px] md:text-base leading-snug ${isAnswered && (opt.key === questionAnswer || (isSelected && !isCorrect)) ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+      <div className={`flex-1 text-base leading-snug ${isAnswered && (opt.key === questionAnswer || (isSelected && !isCorrect)) ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
         {opt.text}
       </div>
-      {isAnswered && opt.key === questionAnswer && <CheckCircle className="text-[#22c55e] shrink-0" size={22} />}
-      {isAnswered && isSelected && !isCorrect && <XCircle className="text-[#ef4444] shrink-0" size={22} />}
-    </div>
+      {isAnswered && opt.key === questionAnswer && <CheckCircle className="text-[#22c55e] shrink-0 mt-0.5" size={22} />}
+      {isAnswered && isSelected && !isCorrect && <XCircle className="text-[#ef4444] shrink-0 mt-0.5" size={22} />}
+    </button>
   );
 }

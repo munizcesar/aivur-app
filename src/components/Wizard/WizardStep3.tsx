@@ -178,26 +178,18 @@ export default function WizardStep3() {
   }
 
   if (!generatedQuestions || generatedQuestions.length === 0) {
-    return (
-      <div className={styles.wizardStep}>
-        <div style={{ padding: "var(--space-8)", background: "rgba(251,235,208,0.03)", border: "1px solid rgba(196,18,48,0.3)", borderRadius: "8px", textAlign: "center" }}>
-          <AlertTriangle width={48} height={48} style={{ color: "#f68b33", margin: "0 auto 16px auto" }} />
-          <h3 style={{ color: "white", marginBottom: "8px", fontSize: "1.25rem", fontWeight: "bold" }}>Nenhuma questão encontrada</h3>
-          <p style={{ color: "#9ca3af", marginBottom: "24px" }}>A IA não conseguiu gerar questões para estes filtros ou o formato recebido é inválido.</p>
-          <button 
-            onClick={handleBackToStep2}
-            style={{ padding: "10px 24px", backgroundColor: "#f68b33", color: "white", fontWeight: "bold", borderRadius: "8px", border: "none", cursor: "pointer" }}
-          >
-            Voltar aos Filtros
-          </button>
-        </div>
-      </div>
-    );
+    return <h2 className="text-white text-2xl text-center p-10">ERRO: Nenhuma questão chegou neste componente. O Array está vazio.</h2>;
   }
 
-  /* RENDER PRINCIPAL via Portal - escapa do DOM pai que quebra o fixed */
+  /* RENDER PRINCIPAL */
   const playerUI = (
     <div className="fixed inset-0 w-full h-full z-[99999] bg-gray-100 overflow-y-auto">
+      
+      {/* INJEÇÃO DO RAIO-X VISUAL */}
+      <div className="bg-red-900 text-white p-4 font-mono text-xs overflow-auto max-h-64 z-[999999] relative">
+        <p className="font-bold text-lg mb-2">RAIO-X DE DADOS (DEBUG):</p>
+        <pre>{JSON.stringify(generatedQuestions, null, 2)}</pre>
+      </div>
 
       {/* Mobile top bar */}
       <div className="md:hidden sticky top-0 z-[100] w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 flex items-center justify-between px-4 py-3 shadow-sm">
@@ -289,9 +281,7 @@ export default function WizardStep3() {
     </div>
   );
 
-  // Renderiza via Portal no body para escapar de qualquer transform/overflow pai
-  if (!mounted) return null;
-  return createPortal(playerUI, document.body);
+  return playerUI;
 }
 
 /* QuestionCard */

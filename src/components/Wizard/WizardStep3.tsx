@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useQuizStore } from "@/store/useQuizStore";
 import {
   AlertTriangle, RefreshCw, ChevronLeft, ChevronRight,
@@ -27,10 +28,14 @@ export default function WizardStep3() {
   const [selectedOptions, setSelectedOptions] = useState<(string | null)[]>([]);
   const [results, setResults] = useState<(boolean | null)[]>([]);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
 
-  /* â”€â”€ History back-button interception â”€â”€ */
+  // Garante que o Portal so monta no client
+  useEffect(() => { setMounted(true); }, []);
+
+  /* History back-button interception */
   useEffect(() => {
     if (!loading && !error && generatedQuestions.length > 0) {
       window.history.pushState({ quizActive: true }, "");
@@ -44,7 +49,7 @@ export default function WizardStep3() {
     }
   }, [loading, error, generatedQuestions]);
 
-  /* â”€â”€ Boot â”€â”€ */
+  /* Boot */
   useEffect(() => {
     if (generatedQuestions.length === 0 && !error) {
       fetchQuestions();
@@ -55,7 +60,7 @@ export default function WizardStep3() {
     return () => abortRef.current?.abort();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* â”€â”€ API call â”€â”€ */
+  /* API call */
   const fetchQuestions = async () => {
     setLoading(true);
     setError(null);
@@ -99,9 +104,9 @@ export default function WizardStep3() {
       try { data = JSON.parse(rawText); } catch { throw new Error(`[JSON_PARSE_ERROR]: ${rawText.substring(0, 150)}`); }
 
       if (!res.ok) throw new Error(data?.error || data?.userMessage || `Erro HTTP ${res.status}`);
-      if (data?.success === false) throw new Error(data?.error || data?.userMessage || "Falha ao processar requisiÃ§Ã£o.");
+      if (data?.success === false) throw new Error(data?.error || data?.userMessage || "Falha ao processar requisicao.");
       if (!Array.isArray(data?.questions) || data.questions.length === 0)
-        throw new Error(data?.userMessage || "O formato da resposta nÃ£o Ã© vÃ¡lido ou nenhuma questÃ£o foi retornada.");
+        throw new Error(data?.userMessage || "O formato da resposta nao e valido ou nenhuma questao foi retornada.");
 
       setGeneratedQuestions(data.questions);
       setSelectedOptions(new Array(data.questions.length).fill(null));
@@ -112,13 +117,13 @@ export default function WizardStep3() {
       setError(
         err.name === "AbortError"
           ? "Tempo esgotado. O servidor demorou muito para responder."
-          : "Ocorreu uma instabilidade na conexÃ£o com a IA. Tente novamente."
+          : "Ocorreu uma instabilidade na conexao com a IA. Tente novamente."
       );
       setLoading(false);
     }
   };
 
-  /* â”€â”€ Helpers â”€â”€ */
+  /* Helpers */
   const handleBackToStep2 = () => { setGeneratedQuestions([]); setStep(2); };
   const handleSelectOption = (idx: number, key: string) => {
     if (results[idx] !== null) return;
@@ -134,14 +139,14 @@ export default function WizardStep3() {
     setResults(next);
   };
 
-  /* â”€â”€ Loading â”€â”€ */
+  /* Loading */
   if (loading) {
     return (
       <div className={styles.wizardStep}>
         <div style={{ textAlign: "center", padding: "60px 20px" }}>
           <div className={styles.spinner} style={{ margin: "0 auto" }} />
           <p style={{ marginTop: "20px", fontWeight: 600, fontSize: "1.1rem", color: "var(--elite-cream)" }}>
-            Gerando suas questÃµes personalizadas...
+            Gerando suas questoes personalizadas...
           </p>
           <p style={{ color: "var(--elite-grayblue)" }}>Isso leva apenas alguns segundos</p>
         </div>
@@ -149,7 +154,7 @@ export default function WizardStep3() {
     );
   }
 
-  /* â”€â”€ Error â”€â”€ */
+  /* Error */
   if (error) {
     return (
       <div className={styles.wizardStep}>
@@ -157,7 +162,7 @@ export default function WizardStep3() {
           <div style={{ marginBottom: "var(--space-3)", color: "var(--elite-red)", display: "flex", justifyContent: "center" }}>
             <AlertTriangle width={48} height={48} />
           </div>
-          <h3 style={{ marginBottom: "var(--space-2)", color: "var(--elite-cream)" }}>Ops! GeraÃ§Ã£o Interrompida</h3>
+          <h3 style={{ marginBottom: "var(--space-2)", color: "var(--elite-cream)" }}>Ops! Geracao Interrompida</h3>
           <p style={{ color: "var(--elite-grayblue)", fontSize: "1.05rem", marginBottom: "24px" }}>{error}</p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <button className="btn btn-secondary" style={{ borderRadius: "2px", border: "1px solid rgba(107,153,179,0.25)", background: "transparent", color: "var(--elite-grayblue)" }} onClick={handleBackToStep2}>
@@ -174,44 +179,40 @@ export default function WizardStep3() {
 
   if (!generatedQuestions || generatedQuestions.length === 0) return null;
 
-  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     RENDER PRINCIPAL
-  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-  return (
-    /* Tela cheia com scroll vertical â€“ sem flex que encolhe filhos */
-    <div className="fixed inset-0 z-[100] bg-gray-100 overflow-y-auto">
+  /* RENDER PRINCIPAL via Portal - escapa do DOM pai que quebra o fixed */
+  const playerUI = (
+    <div style={{ position: "fixed", inset: 0, zIndex: 99999, backgroundColor: "#f3f4f6", overflowY: "auto" }}>
 
       {/* Mobile top bar */}
-      <div className="md:hidden sticky top-0 z-40 w-full bg-[#f68b33] text-white flex items-center justify-between px-4 py-3 shadow-md">
+      <div className="md:hidden sticky top-0 z-[100] w-full bg-[#f68b33] text-white flex items-center justify-between px-4 py-3 shadow-md">
         <button onClick={() => setShowExitModal(true)} className="p-1 rounded hover:bg-[#e07722] transition-colors">
           <ChevronLeft size={24} />
         </button>
         <span className="font-semibold text-base truncate max-w-[180px]">
-          {mode === "concurso" ? filters.materia || "QuestÃµes" : "QuestÃµes"}
+          {mode === "concurso" ? filters.materia || "Questoes" : "Questoes"}
         </span>
-        <button onClick={handleBackToStep2} className="p-1 rounded hover:bg-[#e07722] transition-colors" title="Alterar Filtros">
+        <button onClick={handleBackToStep2} className="p-1 rounded hover:bg-[#e07722] transition-colors">
           <Filter size={20} />
         </button>
       </div>
 
       {/* Desktop top bar */}
-      <div className="hidden md:flex sticky top-0 z-40 w-full bg-white border-b border-gray-200 items-center justify-between px-8 py-3 shadow-sm">
+      <div className="hidden md:flex sticky top-0 z-[100] w-full bg-white border-b border-gray-200 items-center justify-between px-8 py-3 shadow-sm">
         <span className="font-semibold text-gray-700">
-          {mode === "concurso" ? filters.materia || "QuestÃµes" : "QuestÃµes"}
+          {mode === "concurso" ? filters.materia || "Questoes" : "Questoes"}
         </span>
         <button onClick={handleBackToStep2} className="flex items-center gap-2 text-sm text-[#f68b33] hover:bg-orange-50 px-3 py-1.5 rounded-lg transition-colors font-medium">
           <Filter size={16} /> Alterar Filtros
         </button>
       </div>
 
-      {/* Container mestre das questÃµes */}
-      <div className="relative w-full max-w-4xl mx-auto px-4 pb-32 pt-6">
+      {/* Container mestre */}
+      <div style={{ width: "100%", maxWidth: "56rem", margin: "0 auto", padding: "1.5rem 1rem 8rem" }}>
         {generatedQuestions.map((question: any, idx: number) => {
           const showMobile = idx === currentIdx;
           const isAnswered = results[idx] !== null;
           const isCorrect = results[idx] as boolean | null;
           const selectedOption = selectedOptions[idx];
-
           return (
             <QuestionCard
               key={idx}
@@ -229,8 +230,8 @@ export default function WizardStep3() {
         })}
       </div>
 
-      {/* Mobile bottom bar â€“ fixada na raiz da tela, fora do scroll */}
-      <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-4 z-[9999] flex justify-between items-center shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] md:hidden">
+      {/* Mobile bottom bar */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, width: "100%", backgroundColor: "white", borderTop: "1px solid #e5e7eb", padding: "1rem 1.5rem", zIndex: 99999, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 -10px 15px -3px rgba(0,0,0,0.1)" }} className="md:hidden">
         <button
           disabled={currentIdx === 0}
           onClick={() => setCurrentIdx(Math.max(0, currentIdx - 1))}
@@ -238,7 +239,7 @@ export default function WizardStep3() {
         >
           <ChevronLeft size={20} /> Anterior
         </button>
-        <div className="text-sm font-semibold text-gray-700 bg-gray-100 px-4 py-2 rounded-full border border-gray-200">
+        <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#374151", backgroundColor: "#f9fafb", border: "1px solid #e5e7eb", padding: "0.375rem 1rem", borderRadius: "9999px" }}>
           {currentIdx + 1} / {generatedQuestions.length}
         </div>
         <button
@@ -246,24 +247,24 @@ export default function WizardStep3() {
           onClick={() => setCurrentIdx(Math.min(generatedQuestions.length - 1, currentIdx + 1))}
           className="flex items-center gap-1.5 font-semibold text-gray-600 hover:text-[#f68b33] disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
         >
-          PrÃ³ximo <ChevronRight size={20} />
+          Proximo <ChevronRight size={20} />
         </button>
       </div>
 
       {/* Exit modal */}
       {showExitModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Sair do Modo Foco?</h3>
-            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
-              Seu progresso nesta sessÃ£o serÃ¡ perdido. Deseja sair e iniciar um novo quiz?
+        <div style={{ position: "fixed", inset: 0, zIndex: 999999, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.6)", padding: "1rem" }}>
+          <div style={{ backgroundColor: "white", borderRadius: "1rem", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)", maxWidth: "24rem", width: "100%", padding: "1.5rem" }}>
+            <h3 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#111827", marginBottom: "0.5rem" }}>Sair do Modo Foco?</h3>
+            <p style={{ color: "#6b7280", marginBottom: "1.5rem", fontSize: "0.875rem", lineHeight: "1.625" }}>
+              Seu progresso nesta sessao sera perdido. Deseja sair?
             </p>
-            <div className="flex flex-col gap-3">
-              <button onClick={() => setShowExitModal(false)} className="w-full py-3 px-4 bg-[#f68b33] hover:bg-[#e07722] text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <button onClick={() => setShowExitModal(false)} style={{ width: "100%", padding: "0.75rem 1rem", backgroundColor: "#f68b33", color: "white", fontWeight: 700, borderRadius: "0.75rem", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
                 <BookOpen size={18} /> Continuar estudando
               </button>
-              <button onClick={() => { setShowExitModal(false); handleBackToStep2(); }} className="w-full py-3 px-4 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
-                <RotateCcw size={18} /> Sair e comeÃ§ar novo quiz
+              <button onClick={() => { setShowExitModal(false); handleBackToStep2(); }} style={{ width: "100%", padding: "0.75rem 1rem", backgroundColor: "white", color: "#374151", fontWeight: 700, borderRadius: "0.75rem", border: "1px solid #d1d5db", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                <RotateCcw size={18} /> Sair e comecar novo quiz
               </button>
             </div>
           </div>
@@ -271,40 +272,52 @@ export default function WizardStep3() {
       )}
     </div>
   );
+
+  // Renderiza via Portal no body para escapar de qualquer transform/overflow pai
+  if (!mounted) return null;
+  return createPortal(playerUI, document.body);
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   QuestionCard
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* QuestionCard */
 function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrect, selectedOption, onSelect, onAnswer }: any) {
   const [showExplanation, setShowExplanation] = useState(false);
   useEffect(() => { if (isAnswered) setShowExplanation(true); }, [isAnswered]);
 
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: "white",
+    borderRadius: "1rem",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px 0 rgba(0,0,0,0.1)",
+    padding: "1.5rem",
+    marginBottom: "2rem",
+    display: showMobile ? "flex" : "none",
+    flexDirection: "column",
+    gap: "1rem",
+  };
+
   return (
-    <div className={[
-      "bg-white dark:bg-gray-800",
-      "rounded-2xl border border-gray-200 dark:border-gray-700",
-      "shadow-sm p-6 mb-8",
-      "flex flex-col gap-4 relative z-10",
-      showMobile ? "flex" : "hidden md:flex",
-    ].join(" ")}>
+    <div style={cardStyle} className="md:!flex">
 
       {/* Metadados */}
-      <div className="flex flex-wrap gap-2 items-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-        <span className="text-[#f68b33]">Q{idx + 1}</span>
-        <span className="w-px h-3 bg-gray-300" />
-        <span>InÃ©dita (IA)</span>
-        {filters.banca && filters.banca !== "Todas" && (<><span className="w-px h-3 bg-gray-300" /><span>{filters.banca}</span></>)}
-        {filters.materia && (<><span className="w-px h-3 bg-gray-300" /><span>{filters.materia}</span></>)}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center", marginBottom: "0.5rem" }}>
+        <span style={{ color: "#f68b33", fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Q{idx + 1}</span>
+        <span style={{ width: "1px", height: "12px", backgroundColor: "#d1d5db" }} />
+        <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Inedita (IA)</span>
+        {filters.banca && filters.banca !== "Todas" && (
+          <><span style={{ width: "1px", height: "12px", backgroundColor: "#d1d5db" }} /><span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>{filters.banca}</span></>
+        )}
+        {filters.materia && (
+          <><span style={{ width: "1px", height: "12px", backgroundColor: "#d1d5db" }} /><span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>{filters.materia}</span></>
+        )}
       </div>
 
       {/* Enunciado */}
-      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 leading-relaxed whitespace-pre-wrap">
+      <h3 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#111827", lineHeight: "1.75", whiteSpace: "pre-wrap", margin: 0 }}>
         {question.text}
       </h3>
 
       {/* Alternativas */}
-      <div className="flex flex-col gap-3 mt-4">
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "1rem" }}>
         {question.options?.map((opt: any) => (
           <OptionButton
             key={opt.key}
@@ -318,13 +331,24 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
         ))}
       </div>
 
-      {/* BotÃ£o Responder */}
+      {/* Botao Responder */}
       {!isAnswered && (
-        <div className="pt-2">
+        <div style={{ paddingTop: "0.5rem" }}>
           <button
             disabled={!selectedOption}
             onClick={onAnswer}
-            className="w-full md:w-auto px-10 py-3.5 bg-[#f68b33] hover:bg-[#e07722] disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-colors shadow-sm"
+            style={{
+              width: "100%",
+              padding: "0.875rem 2.5rem",
+              backgroundColor: selectedOption ? "#f68b33" : "#e5e7eb",
+              color: selectedOption ? "white" : "#9ca3af",
+              fontWeight: 700,
+              borderRadius: "0.75rem",
+              border: "none",
+              cursor: selectedOption ? "pointer" : "not-allowed",
+              transition: "all 0.2s",
+              fontSize: "1rem",
+            }}
           >
             Responder
           </button>
@@ -333,33 +357,39 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
 
       {/* Action bar */}
       {isAnswered && (
-        <div className="border-t border-gray-100 pt-4 mt-2">
-          <div className="flex flex-wrap gap-2 text-sm font-medium text-gray-500">
+        <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: "1rem", marginTop: "0.5rem" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
             <button
               onClick={() => setShowExplanation((v) => !v)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${showExplanation ? "text-[#f68b33] bg-orange-50" : "hover:bg-gray-100 text-gray-600"}`}
+              style={{
+                display: "flex", alignItems: "center", gap: "0.5rem",
+                padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "none",
+                backgroundColor: showExplanation ? "#fff7ed" : "transparent",
+                color: showExplanation ? "#f68b33" : "#4b5563",
+                fontWeight: 500, cursor: "pointer", fontSize: "0.875rem",
+              }}
             >
               <BookOpen size={15} /> Gabarito Comentado
             </button>
-            <button onClick={() => alert("EstatÃ­sticas: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <BarChart2 size={15} /> EstatÃ­sticas
+            <button onClick={() => alert("Estatisticas: Em breve")} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "none", backgroundColor: "transparent", color: "#4b5563", fontWeight: 500, cursor: "pointer", fontSize: "0.875rem" }}>
+              <BarChart2 size={15} /> Estatisticas
             </button>
-            <button onClick={() => alert("Criar AnotaÃ§Ãµes: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Edit3 size={15} /> Criar AnotaÃ§Ãµes
+            <button onClick={() => alert("Criar Anotacoes: Em breve")} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "none", backgroundColor: "transparent", color: "#4b5563", fontWeight: 500, cursor: "pointer", fontSize: "0.875rem" }}>
+              <Edit3 size={15} /> Criar Anotacoes
             </button>
-            <button onClick={() => alert("Notificar Erro: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <button onClick={() => alert("Notificar Erro: Em breve")} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "none", backgroundColor: "transparent", color: "#4b5563", fontWeight: 500, cursor: "pointer", fontSize: "0.875rem" }}>
               <Flag size={15} /> Notificar Erro
             </button>
           </div>
 
-          {/* Gabarito comentado â€“ expansÃ£o suave */}
-          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? "max-h-[3000px] opacity-100 mt-4" : "max-h-0 opacity-0"}`}>
-            <div className="relative p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33] rounded-l-xl" />
-              <h4 className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200 text-sm mb-3 pl-2">
-                <Brain size={16} className="text-[#f68b33]" /> ResoluÃ§Ã£o da IA
+          {/* Explicacao expandivel */}
+          <div style={{ overflow: "hidden", maxHeight: showExplanation ? "3000px" : "0px", opacity: showExplanation ? 1 : 0, transition: "max-height 0.3s ease, opacity 0.3s ease", marginTop: showExplanation ? "0.5rem" : "0" }}>
+            <div style={{ position: "relative", padding: "1.25rem", backgroundColor: "#f9fafb", borderRadius: "0.75rem", border: "1px solid #e5e7eb", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, width: "6px", height: "100%", backgroundColor: "#f68b33" }} />
+              <h4 style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, color: "#1f2937", fontSize: "0.875rem", marginBottom: "0.75rem", paddingLeft: "0.5rem" }}>
+                <Brain size={16} style={{ color: "#f68b33" }} /> Resolucao da IA
               </h4>
-              <div className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap pl-2">
+              <div style={{ color: "#374151", fontSize: "0.875rem", lineHeight: "1.625", whiteSpace: "pre-wrap", paddingLeft: "0.5rem" }}>
                 {question.feedback}
               </div>
             </div>
@@ -370,41 +400,85 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   OptionButton
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* OptionButton */
 function OptionButton({ opt, isSelected, isAnswered, isCorrect, correctAnswer, onSelect }: any) {
   const isRight = opt.key === correctAnswer;
   const isWrong = isSelected && !isCorrect;
 
-  let container = "w-full text-left p-4 rounded-xl border flex items-start gap-4 transition-all duration-200 ";
-  if (!isAnswered) {
-    container += isSelected
-      ? "border-[#f68b33] bg-orange-50 cursor-pointer"
-      : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer";
-  } else {
-    if (isRight) container += "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 cursor-default";
-    else if (isWrong) container += "border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-900/20 cursor-default";
-    else container += "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 opacity-45 cursor-default";
-  }
+  let bgColor = "white";
+  let borderColor = "#d1d5db";
+  let circleColor = "white";
+  let circleBorder = "#d1d5db";
+  let circleText = "#6b7280";
+  let opacity = 1;
 
-  let circle = "flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm mt-0.5 transition-all duration-200 ";
   if (!isAnswered) {
-    circle += isSelected ? "bg-[#f68b33] border-[#f68b33] text-white" : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500";
+    if (isSelected) {
+      borderColor = "#f68b33";
+      bgColor = "#fff7ed";
+      circleColor = "#f68b33";
+      circleBorder = "#f68b33";
+      circleText = "white";
+    }
   } else {
-    if (isRight) circle += "bg-green-500 border-green-500 text-white";
-    else if (isWrong) circle += "bg-red-500 border-red-500 text-white";
-    else circle += "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400";
+    if (isRight) {
+      bgColor = "#f0fdf4";
+      borderColor = "#4ade80";
+      circleColor = "#22c55e";
+      circleBorder = "#22c55e";
+      circleText = "white";
+    } else if (isWrong) {
+      bgColor = "#fef2f2";
+      borderColor = "#f87171";
+      circleColor = "#ef4444";
+      circleBorder = "#ef4444";
+      circleText = "white";
+    } else {
+      opacity = 0.4;
+    }
   }
 
   return (
-    <button className={container} onClick={() => !isAnswered && onSelect()} disabled={isAnswered}>
-      <span className={circle}>{opt.key.toUpperCase()}</span>
-      <span className={`flex-1 text-base leading-snug ${isAnswered && (isRight || isWrong) ? "font-semibold text-gray-900 dark:text-gray-100" : "text-gray-700 dark:text-gray-300"}`}>
+    <button
+      onClick={() => !isAnswered && onSelect()}
+      disabled={isAnswered}
+      style={{
+        width: "100%",
+        textAlign: "left",
+        padding: "1rem",
+        borderRadius: "0.75rem",
+        border: `2px solid ${borderColor}`,
+        backgroundColor: bgColor,
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "1rem",
+        cursor: isAnswered ? "default" : "pointer",
+        transition: "all 0.2s",
+        opacity,
+      }}
+    >
+      <span style={{
+        flexShrink: 0,
+        width: "2rem", height: "2rem",
+        borderRadius: "50%",
+        border: `2px solid ${circleBorder}`,
+        backgroundColor: circleColor,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontWeight: 700, fontSize: "0.875rem",
+        color: circleText,
+        marginTop: "2px",
+      }}>
+        {opt.key.toUpperCase()}
+      </span>
+      <span style={{
+        flex: 1, fontSize: "1rem", lineHeight: "1.5",
+        color: isAnswered && (isRight || isWrong) ? "#111827" : "#374151",
+        fontWeight: isAnswered && (isRight || isWrong) ? 600 : 400,
+      }}>
         {opt.text}
       </span>
-      {isAnswered && isRight && <CheckCircle size={22} className="flex-shrink-0 text-green-500 mt-0.5" />}
-      {isAnswered && isWrong && <XCircle size={22} className="flex-shrink-0 text-red-500 mt-0.5" />}
+      {isAnswered && isRight && <CheckCircle size={22} style={{ color: "#22c55e", flexShrink: 0, marginTop: "2px" }} />}
+      {isAnswered && isWrong && <XCircle size={22} style={{ color: "#ef4444", flexShrink: 0, marginTop: "2px" }} />}
     </button>
   );
 }

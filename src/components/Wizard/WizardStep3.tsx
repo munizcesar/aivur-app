@@ -177,7 +177,23 @@ export default function WizardStep3() {
     );
   }
 
-  if (!generatedQuestions || generatedQuestions.length === 0) return null;
+  if (!generatedQuestions || generatedQuestions.length === 0) {
+    return (
+      <div className={styles.wizardStep}>
+        <div style={{ padding: "var(--space-8)", background: "rgba(251,235,208,0.03)", border: "1px solid rgba(196,18,48,0.3)", borderRadius: "8px", textAlign: "center" }}>
+          <AlertTriangle width={48} height={48} style={{ color: "#f68b33", margin: "0 auto 16px auto" }} />
+          <h3 style={{ color: "white", marginBottom: "8px", fontSize: "1.25rem", fontWeight: "bold" }}>Nenhuma questão encontrada</h3>
+          <p style={{ color: "#9ca3af", marginBottom: "24px" }}>A IA não conseguiu gerar questões para estes filtros ou o formato recebido é inválido.</p>
+          <button 
+            onClick={handleBackToStep2}
+            style={{ padding: "10px 24px", backgroundColor: "#f68b33", color: "white", fontWeight: "bold", borderRadius: "8px", border: "none", cursor: "pointer" }}
+          >
+            Voltar aos Filtros
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   /* RENDER PRINCIPAL via Portal - escapa do DOM pai que quebra o fixed */
   const playerUI = (
@@ -283,6 +299,34 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
   const [showExplanation, setShowExplanation] = useState(false);
   useEffect(() => { if (isAnswered) setShowExplanation(true); }, [isAnswered]);
 
+  // Robust parsing of AI payload which may use different keys
+  const qText = question.text || question.title || question.question || question.enunciado || "Enunciado não disponível na resposta da IA.";
+  const qAnswer = question.answer || question.resposta || question.resposta_correta || question.correctAnswer || question.correct_option || question.gabarito || "";
+  const qFeedback = question.feedback || question.explicacao || question.justificativa || question.comentario || "Nenhuma explicação fornecida pela IA.";
+
+  let qOptions: any[] = [];
+  const rawOptions = question.options || question.alternativas || question.choices || [];
+  
+  if (Array.isArray(rawOptions)) {
+    if (rawOptions.length > 0 && typeof rawOptions[0] === 'string') {
+      const letters = ["A", "B", "C", "D", "E"];
+      qOptions = rawOptions.map((text: string, i: number) => ({
+        key: letters[i] || String(i),
+        text: text
+      }));
+    } else {
+      qOptions = rawOptions.map((opt: any, i: number) => ({
+        key: opt.key || opt.id || opt.letra || ["A","B","C","D","E"][i] || String(i),
+        text: opt.text || opt.value || opt.texto || opt.descricao || ""
+      }));
+    }
+  } else if (typeof rawOptions === 'object' && rawOptions !== null) {
+    qOptions = Object.entries(rawOptions).map(([k, v]) => ({
+      key: k,
+      text: String(v)
+    }));
+  }
+
   return (
     <div className={[
       "bg-white dark:bg-gray-800",
@@ -305,21 +349,21 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
         )}
       </div>
 
-      {/* Enunciado (CRÍTICO: RESTAURADO) */}
+      {/* Enunciado (CRÍTICO: RESTAURADO COM ROBUSTEZ) */}
       <p className="text-lg text-gray-800 dark:text-gray-100 font-medium my-6 leading-relaxed whitespace-pre-wrap">
-        {question.text || question.title || question.question}
+        {qText}
       </p>
 
-      {/* Alternativas */}
+      {/* Alternativas (ROBUSTAS) */}
       <div className="flex flex-col gap-3 mt-4">
-        {question.options?.map((opt: any) => (
+        {qOptions.map((opt: any) => (
           <OptionButton
             key={opt.key}
             opt={opt}
             isSelected={selectedOption === opt.key}
             isAnswered={isAnswered}
             isCorrect={isCorrect}
-            correctAnswer={question.answer}
+            correctAnswer={qAnswer}
             onSelect={() => onSelect(opt.key)}
           />
         ))}
@@ -367,7 +411,7 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
                 <Brain size={16} className="text-[#f68b33]" /> Resolução da IA
               </h4>
               <div className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap pl-2">
-                {question.feedback}
+                {qFeedback}
               </div>
             </div>
           </div>
@@ -389,7 +433,6 @@ function OptionButton({ opt, isSelected, isAnswered, isCorrect, correctAnswer, o
       ? "border-[#f68b33] bg-orange-50 cursor-pointer"
       : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer";
   } else {
-    // Se a questao foi respondida, a alternativa CORRETA sempre fica verde, independente do que o usuario marcou.
     if (isRight) container += "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 cursor-default";
     else if (isWrong) container += "border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-900/20 cursor-default";
     else container += "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 opacity-45 cursor-default";

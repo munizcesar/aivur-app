@@ -5,7 +5,7 @@ import { useQuizStore } from "@/store/useQuizStore";
 import { AlertTriangle, RefreshCw, ChevronLeft, ChevronRight, CheckCircle, XCircle, X, Brain, RotateCcw, BookOpen } from "lucide-react";
 import styles from "./Wizard.module.css";
 
-const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || 'https://studymaster-worker.cesarmuniz0816.workers.dev';
+const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || 'https://aivur-worker.cesarmuniz0816.workers.dev';
 
 export default function WizardStep3() {
   const mode = useQuizStore((state) => state.mode);

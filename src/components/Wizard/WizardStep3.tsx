@@ -103,10 +103,22 @@ export default function WizardStep3() {
         signal: abortControllerRef.current.signal
       });
 
-      const data = await res.json() as { success?: boolean; userMessage?: string; questions?: unknown[] };
+      let rawText = '';
+      try {
+        rawText = await res.text();
+      } catch (e) {
+        throw new Error("Falha ao ler resposta da rede.");
+      }
       
-      if (!res.ok) throw new Error(data.userMessage || `Erro HTTP ${res.status}`);
-      if (data.success === false) throw new Error(data.userMessage || 'Falha ao processar requisição.');
+      let data;
+      try {
+        data = JSON.parse(rawText) as { success?: boolean; userMessage?: string; questions?: unknown[], error?: string };
+      } catch (e) {
+        throw new Error(`[JSON_PARSE_ERROR]: ${rawText.substring(0, 150)}`);
+      }
+      
+      if (!res.ok) throw new Error(data.error || data.userMessage || `Erro HTTP ${res.status} - ${rawText.substring(0, 100)}`);
+      if (data.success === false) throw new Error(data.error || data.userMessage || 'Falha ao processar requisição.');
       if (!data.questions || !Array.isArray(data.questions) || data.questions.length === 0) {
         console.error("ERRO NA API DE QUESTÕES: O payload retornado não contém um Array válido de questões.", data);
         throw new Error(data.userMessage || 'O formato da resposta não é válido ou nenhuma questão foi retornada.');
@@ -119,11 +131,9 @@ export default function WizardStep3() {
       setLoading(false);
     } catch (err: any) {
       console.error("ERRO NA API DE QUESTÕES:", err);
-      if (err.name === 'AbortError') {
-        setError('Tempo esgotado (timeout). O servidor demorou muito para responder.');
-      } else {
-        setError(err.message || 'Erro desconhecido. Tente novamente em instantes.');
-      }
+      let erroBruto = err.message || String(err);
+      if (err.name === 'AbortError') erroBruto = 'Tempo esgotado (timeout).';
+      setError(`[DEBUG DA API]: ${erroBruto}`);
       setLoading(false);
     }
   };
@@ -181,7 +191,7 @@ export default function WizardStep3() {
             <AlertTriangle width={48} height={48} />
           </div>
           <h3 style={{ marginBottom: "var(--space-2)", color: "var(--elite-cream)" }}>Ops! Geração Interrompida</h3>
-          <p style={{ color: "var(--elite-grayblue)", fontSize: "1.05rem", marginBottom: "24px" }}>{error}</p>
+          <pre style={{ color: "#ff4d4d", fontSize: "0.95rem", marginBottom: "24px", padding: "16px", background: "#1a1a1a", borderRadius: "8px", border: "1px solid #ff4d4d", textAlign: "left", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{error}</pre>
           
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button 

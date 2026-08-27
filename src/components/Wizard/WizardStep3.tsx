@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { createPortal } from "react-dom";
+// import { createPortal } from "react-dom";
 import { useQuizStore } from "@/store/useQuizStore";
 import {
   AlertTriangle, RefreshCw, ChevronLeft, ChevronRight,
@@ -313,10 +313,6 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
     }));
   }
 
-  return (
-    <div className={[
-      "bg-white dark:bg-gray-800",
-      "rounded-2xl border border-gray-200 dark:border-gray-700",
   return (
     <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 my-8 relative z-10 ${showMobile ? "block" : "hidden md:block"}`}>
 

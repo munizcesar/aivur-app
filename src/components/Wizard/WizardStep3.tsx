@@ -184,12 +184,6 @@ export default function WizardStep3() {
   /* RENDER PRINCIPAL */
   const playerUI = (
     <div className="fixed inset-0 w-full h-full z-[99999] bg-gray-100 overflow-y-auto">
-      
-      {/* INJEÇÃO DO RAIO-X VISUAL */}
-      <div className="bg-red-900 text-white p-4 font-mono text-xs overflow-auto max-h-64 z-[999999] relative">
-        <p className="font-bold text-lg mb-2">RAIO-X DE DADOS (DEBUG):</p>
-        <pre>{JSON.stringify(generatedQuestions, null, 2)}</pre>
-      </div>
 
       {/* Mobile top bar */}
       <div className="md:hidden sticky top-0 z-[100] w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 flex items-center justify-between px-4 py-3 shadow-sm">
@@ -209,7 +203,7 @@ export default function WizardStep3() {
         <span className="font-semibold text-gray-700">
           {mode === "concurso" ? filters.materia || "Questões" : "Questões"}
         </span>
-        <button onClick={handleBackToStep2} className="flex items-center gap-2 text-sm text-[#f68b33] hover:bg-orange-50 px-3 py-1.5 rounded-lg transition-colors font-medium">
+        <button onClick={handleBackToStep2} className="flex items-center gap-2 text-sm text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors font-medium">
           <Filter size={16} /> Alterar Filtros
         </button>
       </div>
@@ -289,10 +283,12 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
   const [showExplanation, setShowExplanation] = useState(false);
   useEffect(() => { if (isAnswered) setShowExplanation(true); }, [isAnswered]);
 
-  // Robust parsing of AI payload which may use different keys
-  const qText = question.text || question.title || question.question || question.enunciado || "Enunciado não disponível na resposta da IA.";
+  // Sincronização robusta com as chaves exatas da IA
+  const qText = question.statement || question.text || question.title || question.question || question.enunciado || "Enunciado não disponível";
   const qAnswer = question.answer || question.resposta || question.resposta_correta || question.correctAnswer || question.correct_option || question.gabarito || "";
-  const qFeedback = question.feedback || question.explicacao || question.justificativa || question.comentario || "Nenhuma explicação fornecida pela IA.";
+  const qFeedback = question.explanation || question.feedback || question.explicacao || question.justificativa || question.comentario || "Nenhuma explicação geral fornecida.";
+  const qFonte = question.fonte || question.source || null;
+  const qOptionExplanations = question.optionExplanations || {};
 
   let qOptions: any[] = [];
   const rawOptions = question.options || question.alternativas || question.choices || [];
@@ -339,7 +335,7 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
         )}
       </div>
 
-      {/* Enunciado (CRÍTICO: RESTAURADO COM ROBUSTEZ) */}
+      {/* Enunciado (CRÍTICO: Sincronizado com 'statement') */}
       <p className="text-lg text-gray-800 dark:text-gray-100 font-medium my-6 leading-relaxed whitespace-pre-wrap">
         {qText}
       </p>
@@ -393,16 +389,46 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
             </button>
           </div>
 
-          {/* Explicação expansível */}
+          {/* Explicação expansível - Mentor AIVUR */}
           <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? "max-h-[3000px] opacity-100 mt-4" : "max-h-0 opacity-0"}`}>
             <div className="relative p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33]" />
               <h4 className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200 text-sm mb-3 pl-2">
-                <Brain size={16} className="text-[#f68b33]" /> Resolução da IA
+                <Brain size={16} className="text-[#f68b33]" /> Mentor AIVUR
               </h4>
-              <div className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap pl-2">
+              
+              <div className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap pl-2 mb-4">
                 {qFeedback}
               </div>
+
+              {/* Explicações individuais por opção (se houver) */}
+              {Object.keys(qOptionExplanations).length > 0 && (
+                <div className="mt-4 pl-2 space-y-3">
+                  <h5 className="font-semibold text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2">Análise das Alternativas</h5>
+                  {Object.entries(qOptionExplanations).map(([key, exp]) => {
+                    const isRight = String(key).toLowerCase() === String(qAnswer).toLowerCase();
+                    return (
+                      <div key={key} className={`p-3 rounded-lg text-sm border ${isRight ? "bg-green-50/50 border-green-100 dark:bg-green-900/10 dark:border-green-800/30" : "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700"}`}>
+                        <span className={`font-bold mr-2 ${isRight ? "text-green-600" : "text-gray-700 dark:text-gray-300"}`}>
+                          {key})
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {String(exp)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Fonte */}
+              {qFonte && (
+                <div className="mt-6 pl-2">
+                  <span className="inline-block px-3 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-xs text-gray-500 font-medium">
+                    Fonte: {qFonte}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -413,7 +439,6 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
 
 /* OptionButton */
 function OptionButton({ opt, isSelected, isAnswered, isCorrect, correctAnswer, onSelect }: any) {
-  // Corrigindo case-sensitivity para garantir match correto
   const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
   const isWrong = isSelected && !isRight;
 
@@ -423,6 +448,7 @@ function OptionButton({ opt, isSelected, isAnswered, isCorrect, correctAnswer, o
       ? "border-[#f68b33] bg-orange-50 cursor-pointer"
       : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer";
   } else {
+    // Regra estrita: se respondeu, a correta fica verde. Se errou, a que ele clicou fica vermelha. As demais opacas.
     if (isRight) container += "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 cursor-default";
     else if (isWrong) container += "border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-900/20 cursor-default";
     else container += "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 opacity-45 cursor-default";

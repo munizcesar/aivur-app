@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -21,10 +21,8 @@ export default function QuestoesPage() {
   useEffect(() => {
     setMounted(true);
     setMode("concurso");
-    if (step < 2) {
-      setStep(2);
-    }
-  }, [setMode, setStep, step]);
+    setStep(2);
+  }, [setMode, setStep]);
 
   if (!mounted) return null;
 
@@ -58,4 +56,3 @@ export default function QuestoesPage() {
     </>
   );
 }
-

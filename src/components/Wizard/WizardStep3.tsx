@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useRef } from "react";
 // import { createPortal } from "react-dom";
@@ -178,7 +178,7 @@ export default function WizardStep3() {
   }
 
   if (!generatedQuestions || generatedQuestions.length === 0) {
-    return <h2 className="text-white text-2xl text-center p-10">ERRO: Nenhuma questão chegou neste componente. O Array está vazio.</h2>;
+    return <h2 className="text-white text-2xl text-center p-10">ERRO: Nenhuma questÃ£o chegou neste componente. O Array estÃ¡ vazio.</h2>;
   }
 
   const playerUI = (
@@ -189,7 +189,7 @@ export default function WizardStep3() {
           <ChevronLeft size={24} />
         </button>
         <span className="font-semibold text-base truncate max-w-[180px]">
-          {mode === "concurso" ? filters.materia || "Questões" : "Questões"}
+          {mode === "concurso" ? filters.materia || "QuestÃµes" : "QuestÃµes"}
         </span>
         <button onClick={handleBackToStep2} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
           <Filter size={20} />
@@ -199,7 +199,7 @@ export default function WizardStep3() {
       {/* Desktop top bar */}
       <div className="hidden md:flex sticky top-0 z-[100] w-full bg-white border-b border-gray-200 items-center justify-between px-8 py-3 shadow-sm">
         <span className="font-semibold text-gray-700">
-          {mode === "concurso" ? filters.materia || "Questões" : "Questões"}
+          {mode === "concurso" ? filters.materia || "QuestÃµes" : "QuestÃµes"}
         </span>
         <button onClick={handleBackToStep2} className="flex items-center gap-2 text-sm text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors font-medium">
           <Filter size={16} /> Alterar Filtros
@@ -245,7 +245,7 @@ export default function WizardStep3() {
           onClick={() => setCurrentIdx(Math.min(generatedQuestions.length - 1, currentIdx + 1))}
           className="flex items-center gap-1.5 font-semibold text-gray-600 hover:text-[#f68b33] disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
         >
-          Próximo <ChevronRight size={20} />
+          PrÃ³ximo <ChevronRight size={20} />
         </button>
       </div>
 
@@ -255,14 +255,14 @@ export default function WizardStep3() {
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-2">Sair do Modo Foco?</h3>
             <p className="text-gray-500 mb-6 text-sm leading-relaxed">
-              Seu progresso nesta sessão será perdido. Deseja sair?
+              Seu progresso nesta sessÃ£o serÃ¡ perdido. Deseja sair?
             </p>
             <div className="flex flex-col gap-3">
               <button onClick={() => setShowExitModal(false)} className="w-full py-3 px-4 bg-[#f68b33] hover:bg-[#e07722] text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
                 <BookOpen size={18} /> Continuar estudando
               </button>
               <button onClick={() => { setShowExitModal(false); handleBackToStep2(); }} className="w-full py-3 px-4 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
-                <RotateCcw size={18} /> Sair e começar novo quiz
+                <RotateCcw size={18} /> Sair e comeÃ§ar novo quiz
               </button>
             </div>
           </div>
@@ -280,10 +280,10 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
   const [showExplanation, setShowExplanation] = useState(false);
   useEffect(() => { if (isAnswered) setShowExplanation(true); }, [isAnswered]);
 
-  // Sincronização robusta com as chaves exatas da IA
-  const qText = question.statement || question.text || question.title || question.question || question.enunciado || "Enunciado não disponível";
+  // SincronizaÃ§Ã£o robusta com as chaves exatas da IA
+  const qText = question.statement || question.text || question.title || question.question || question.enunciado || "Enunciado nÃ£o disponÃ­vel";
   const qAnswer = question.answer || question.resposta || question.resposta_correta || question.correctAnswer || question.correct_option || question.gabarito || "";
-  const qFeedback = question.explanation || question.feedback || question.explicacao || question.justificativa || question.comentario || "Nenhuma explicação geral fornecida.";
+  const qFeedback = question.explanation || question.feedback || question.explicacao || question.justificativa || question.comentario || "Nenhuma explicaÃ§Ã£o geral fornecida.";
   const qFonte = question.fonte || question.source || null;
   const qOptionExplanations = question.optionExplanations || {};
 
@@ -311,13 +311,13 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
   }
 
   return (
-    <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 my-8 flex flex-col gap-4 relative z-10 ${showMobile ? "flex" : "hidden md:flex"}`}>
+    <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 md:p-8 my-8 relative z-10 ${showMobile ? "block" : "hidden md:block"}`}>
 
-      {/* CABEÇALHO (Metadados) */}
+      {/* CABEÃ‡ALHO (Metadados) */}
       <div className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
         <span>Q{idx + 1}</span>
         <span className="w-1 h-1 bg-slate-300 rounded-full" />
-        <span>Inédita (IA)</span>
+        <span>InÃ©dita (IA)</span>
         {filters.materia && filters.materia !== "Todas" && (
           <>
             <span className="w-1 h-1 bg-slate-300 rounded-full" />
@@ -332,7 +332,7 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
       </p>
 
       {/* ALTERNATIVAS */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 mt-6">
         {qOptions.map((opt: any) => (
           <OptionButton
             key={opt.key}
@@ -345,7 +345,7 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
         ))}
       </div>
 
-      {/* Botão Responder */}
+      {/* BotÃ£o Responder */}
       {!isAnswered && (
         <div className="pt-6 mt-4">
           <button
@@ -368,18 +368,18 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
             >
               <GraduationCap size={16} /> Mentor AIVUR
             </button>
-            <button onClick={() => alert("Estatísticas: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <BarChart2 size={16} /> Estatísticas
+            <button onClick={() => alert("EstatÃ­sticas: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <BarChart2 size={16} /> EstatÃ­sticas
             </button>
-            <button onClick={() => alert("Criar Anotações: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Edit3 size={16} /> Criar Anotações
+            <button onClick={() => alert("Criar AnotaÃ§Ãµes: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <Edit3 size={16} /> Criar AnotaÃ§Ãµes
             </button>
             <button onClick={() => alert("Notificar Erro: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
               <Flag size={16} /> Notificar Erro
             </button>
           </div>
 
-          {/* Explicação expansível - Mentor AIVUR */}
+          {/* ExplicaÃ§Ã£o expansÃ­vel - Mentor AIVUR */}
           <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? "max-h-[3000px] opacity-100 mt-4" : "max-h-0 opacity-0"}`}>
             <div className="relative p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33]" />
@@ -391,10 +391,10 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
                 {qFeedback}
               </div>
 
-              {/* Explicações individuais por opção (se houver) */}
+              {/* ExplicaÃ§Ãµes individuais por opÃ§Ã£o (se houver) */}
               {Object.keys(qOptionExplanations).length > 0 && (
                 <div className="mt-4 pl-2 space-y-3">
-                  <h5 className="font-semibold text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2">Análise das Alternativas</h5>
+                  <h5 className="font-semibold text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2">AnÃ¡lise das Alternativas</h5>
                   {Object.entries(qOptionExplanations).map(([key, exp]) => {
                     const isRight = String(key).toLowerCase() === String(qAnswer).toLowerCase();
                     return (
@@ -432,11 +432,11 @@ function OptionButton({ opt, isSelected, isAnswered, isCorrect, correctAnswer, o
   const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
   const isWrong = isSelected && !isRight;
 
-  let container = "w-full text-left p-4 rounded-xl border flex items-start gap-4 transition-all duration-200 ";
+  let container = "w-full text-left p-4 rounded-xl border flex items-start gap-4 transition-colors ";
   if (!isAnswered) {
     container += isSelected
       ? "border-[#f68b33] bg-orange-50 cursor-pointer"
-      : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer";
+      : "border-slate-300 dark:border-slate-600 hover:bg-slate-50 cursor-pointer";
   } else {
     // Regra estrita: se respondeu, a correta fica verde. Se errou, a que ele clicou fica vermelha. As demais opacas.
     if (isRight) container += "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 cursor-default";
@@ -464,3 +464,4 @@ function OptionButton({ opt, isSelected, isAnswered, isCorrect, correctAnswer, o
     </button>
   );
 }
+

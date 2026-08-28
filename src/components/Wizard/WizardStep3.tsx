@@ -311,7 +311,7 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
   }
 
   return (
-    <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 my-8 relative z-10 ${showMobile ? "block" : "hidden md:block"}`}>
+    <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 my-8 flex flex-col gap-4 relative z-10 ${showMobile ? "flex" : "hidden md:flex"}`}>
 
       {/* CABEÇALHO (Metadados) */}
       <div className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
@@ -360,49 +360,49 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
 
       {/* Action bar */}
       {isAnswered && (
-        <div className="border-t border-slate-100 dark:border-slate-700 pt-6 mt-6">
-          <div className="flex flex-wrap gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+        <div className="border-t border-gray-100 pt-4 mt-2">
+          <div className="flex flex-wrap gap-2 text-sm font-medium text-gray-500">
             <button
               onClick={() => setShowExplanation((v) => !v)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors ${showExplanation ? "text-blue-600 bg-blue-50 dark:bg-slate-700 dark:text-blue-400" : "hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"}`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${showExplanation ? "text-[#f68b33] bg-orange-50" : "hover:bg-gray-100 text-gray-600"}`}
             >
-              <GraduationCap size={18} /> Mentor AIVUR
+              <GraduationCap size={16} /> Mentor AIVUR
             </button>
-            <button onClick={() => alert("Estatísticas: Em breve")} className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-              <BarChart2 size={18} /> Estatísticas
+            <button onClick={() => alert("Estatísticas: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <BarChart2 size={16} /> Estatísticas
             </button>
-            <button onClick={() => alert("Criar Anotações: Em breve")} className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-              <Edit3 size={18} /> Criar Anotações
+            <button onClick={() => alert("Criar Anotações: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <Edit3 size={16} /> Criar Anotações
             </button>
-            <button onClick={() => alert("Notificar Erro: Em breve")} className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-              <Flag size={18} /> Notificar Erro
+            <button onClick={() => alert("Notificar Erro: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <Flag size={16} /> Notificar Erro
             </button>
           </div>
 
           {/* Explicação expansível - Mentor AIVUR */}
-          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? "max-h-[3000px] opacity-100 mt-6" : "max-h-0 opacity-0"}`}>
-            <div className="relative p-6 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500" />
-              <h4 className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-base mb-4 pl-2">
-                <Brain size={18} className="text-blue-500" /> Mentor AIVUR
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? "max-h-[3000px] opacity-100 mt-4" : "max-h-0 opacity-0"}`}>
+            <div className="relative p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33]" />
+              <h4 className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200 text-sm mb-3 pl-2">
+                <Brain size={16} className="text-[#f68b33]" /> Mentor AIVUR
               </h4>
               
-              <div className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap pl-2 mb-6">
+              <div className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap pl-2 mb-4">
                 {qFeedback}
               </div>
 
               {/* Explicações individuais por opção (se houver) */}
               {Object.keys(qOptionExplanations).length > 0 && (
                 <div className="mt-4 pl-2 space-y-3">
-                  <h5 className="font-semibold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-3">Análise das Alternativas</h5>
+                  <h5 className="font-semibold text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2">Análise das Alternativas</h5>
                   {Object.entries(qOptionExplanations).map(([key, exp]) => {
                     const isRight = String(key).toLowerCase() === String(qAnswer).toLowerCase();
                     return (
-                      <div key={key} className={`p-4 rounded-xl text-sm border ${isRight ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/40" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"}`}>
-                        <span className={`font-bold mr-2 ${isRight ? "text-green-600 dark:text-green-400" : "text-slate-700 dark:text-slate-300"}`}>
-                          {key}
+                      <div key={key} className={`p-3 rounded-lg text-sm border ${isRight ? "bg-green-50/50 border-green-100 dark:bg-green-900/10 dark:border-green-800/30" : "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700"}`}>
+                        <span className={`font-bold mr-2 ${isRight ? "text-green-600" : "text-gray-700 dark:text-gray-300"}`}>
+                          {key})
                         </span>
-                        <span className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                        <span className="text-gray-600 dark:text-gray-400">
                           {String(exp)}
                         </span>
                       </div>
@@ -414,7 +414,7 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
               {/* Fonte */}
               {qFonte && (
                 <div className="mt-6 pl-2">
-                  <span className="inline-block px-3 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-500 font-medium shadow-sm">
+                  <span className="inline-block px-3 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-xs text-gray-500 font-medium">
                     Fonte: {qFonte}
                   </span>
                 </div>
@@ -428,40 +428,39 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
 }
 
 /* OptionButton */
-function OptionButton({ opt, isSelected, isAnswered, correctAnswer, onSelect }: any) {
+function OptionButton({ opt, isSelected, isAnswered, isCorrect, correctAnswer, onSelect }: any) {
   const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
   const isWrong = isSelected && !isRight;
 
-  let container = "w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all flex items-start gap-4 ";
+  let container = "w-full text-left p-4 rounded-xl border flex items-start gap-4 transition-all duration-200 ";
   if (!isAnswered) {
     container += isSelected
-      ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-slate-700 cursor-pointer"
-      : "border-slate-200 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer";
+      ? "border-[#f68b33] bg-orange-50 cursor-pointer"
+      : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer";
   } else {
-    if (isRight) container += "border-green-500 bg-green-50 dark:border-green-500 dark:bg-green-900/20 cursor-default shadow-sm";
-    else if (isWrong) container += "border-red-500 bg-red-50 dark:border-red-500 dark:bg-red-900/20 cursor-default shadow-sm";
-    else container += "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 opacity-50 cursor-default";
+    // Regra estrita: se respondeu, a correta fica verde. Se errou, a que ele clicou fica vermelha. As demais opacas.
+    if (isRight) container += "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 cursor-default";
+    else if (isWrong) container += "border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-900/20 cursor-default";
+    else container += "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 opacity-45 cursor-default";
   }
 
-  let circle = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border text-sm font-bold transition-colors ";
+  let circle = "flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm mt-0.5 transition-all duration-200 ";
   if (!isAnswered) {
-    circle += isSelected 
-      ? "border-blue-500 bg-blue-500 text-white dark:border-blue-400 dark:bg-blue-400" 
-      : "border-slate-300 dark:border-slate-500 text-slate-700 dark:text-slate-200";
+    circle += isSelected ? "bg-[#f68b33] border-[#f68b33] text-white" : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500";
   } else {
-    if (isRight) circle += "border-green-500 bg-green-500 text-white dark:border-green-500 dark:bg-green-500";
-    else if (isWrong) circle += "border-red-500 bg-red-500 text-white dark:border-red-500 dark:bg-red-500";
-    else circle += "border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500";
+    if (isRight) circle += "bg-green-500 border-green-500 text-white";
+    else if (isWrong) circle += "bg-red-500 border-red-500 text-white";
+    else circle += "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400";
   }
 
   return (
     <button className={container} onClick={() => !isAnswered && onSelect()} disabled={isAnswered}>
       <span className={circle}>{opt.key.toUpperCase()}</span>
-      <span className={`flex-1 text-base leading-snug pt-1 ${isAnswered && (isRight || isWrong) ? "font-semibold text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>
+      <span className={`flex-1 text-base leading-snug ${isAnswered && (isRight || isWrong) ? "font-semibold text-gray-900 dark:text-gray-100" : "text-gray-700 dark:text-gray-300"}`}>
         {opt.text}
       </span>
-      {isAnswered && isRight && <CheckCircle size={24} className="shrink-0 text-green-500 dark:text-green-400 mt-0.5" />}
-      {isAnswered && isWrong && <XCircle size={24} className="shrink-0 text-red-500 dark:text-red-400 mt-0.5" />}
+      {isAnswered && isRight && <CheckCircle size={22} className="flex-shrink-0 text-green-500 mt-0.5" />}
+      {isAnswered && isWrong && <XCircle size={22} className="flex-shrink-0 text-red-500 mt-0.5" />}
     </button>
   );
 }

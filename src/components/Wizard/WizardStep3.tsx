@@ -181,10 +181,8 @@ export default function WizardStep3() {
     return <h2 className="text-white text-2xl text-center p-10">ERRO: Nenhuma questão chegou neste componente. O Array está vazio.</h2>;
   }
 
-  /* RENDER PRINCIPAL */
   const playerUI = (
-    <div className="fixed inset-0 w-full h-full z-[99999] bg-gray-100 overflow-y-auto">
-
+    <div className="relative w-full max-w-4xl mx-auto pb-32 pt-6 px-4">
       {/* Mobile top bar */}
       <div className="md:hidden sticky top-0 z-[100] w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 flex items-center justify-between px-4 py-3 shadow-sm">
         <button onClick={() => setShowExitModal(true)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -208,29 +206,27 @@ export default function WizardStep3() {
         </button>
       </div>
 
-      {/* Container mestre */}
-      <div className="relative w-full max-w-4xl mx-auto px-4 pb-32 pt-6">
-        {generatedQuestions.map((question: any, idx: number) => {
-          const showMobile = idx === currentIdx;
-          const isAnswered = results[idx] !== null;
-          const isCorrect = results[idx] as boolean | null;
-          const selectedOption = selectedOptions[idx];
-          return (
-            <QuestionCard
-              key={idx}
-              question={question}
-              idx={idx}
-              filters={filters}
-              showMobile={showMobile}
-              isAnswered={isAnswered}
-              isCorrect={isCorrect}
-              selectedOption={selectedOption}
-              onSelect={(key: string) => handleSelectOption(idx, key)}
-              onAnswer={() => handleConfirmAnswer(idx)}
-            />
-          );
-        })}
-      </div>
+      {/* Questions list */}
+      {generatedQuestions.map((question: any, idx: number) => {
+        const showMobile = idx === currentIdx;
+        const isAnswered = results[idx] !== null;
+        const isCorrect = results[idx] as boolean | null;
+        const selectedOption = selectedOptions[idx];
+        return (
+          <QuestionCard
+            key={idx}
+            question={question}
+            idx={idx}
+            filters={filters}
+            showMobile={showMobile}
+            isAnswered={isAnswered}
+            isCorrect={isCorrect}
+            selectedOption={selectedOption}
+            onSelect={(key: string) => handleSelectOption(idx, key)}
+            onAnswer={() => handleConfirmAnswer(idx)}
+          />
+        );
+      })}
 
       {/* Mobile bottom bar */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 z-[99999] flex justify-between items-center shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] md:hidden">
@@ -277,6 +273,7 @@ export default function WizardStep3() {
 
   return playerUI;
 }
+
 
 /* QuestionCard */
 function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrect, selectedOption, onSelect, onAnswer }: any) {
@@ -403,7 +400,7 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
                     return (
                       <div key={key} className={`p-4 rounded-xl text-sm border ${isRight ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/40" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"}`}>
                         <span className={`font-bold mr-2 ${isRight ? "text-green-600 dark:text-green-400" : "text-slate-700 dark:text-slate-300"}`}>
-                          {key})
+                          {key}
                         </span>
                         <span className="text-slate-600 dark:text-slate-400 leading-relaxed">
                           {String(exp)}

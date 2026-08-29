@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, GraduationCap } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
@@ -32,9 +32,10 @@ export default function Dashboard() {
           <div className={styles.pillarsCol}>
             
             {/* CARD 1 - Destaque */}
-            <Link href="/mentor" className={`${styles.pillarCard} ${styles.pillarCardFeatured} border-l-4 border-red-700`}>
-              <div className={`${styles.pillarIcon} bg-red-700 text-white`}>
-                <GraduationCap width={28} height={28} />
+            <Link href="/mentor/gerar" className={`${styles.pillarCard} ${styles.pillarCardFeatured}`}>
+              <div className={styles.pillarThumb}>
+                {/*eslint-disable-next-line @next/next/no-img-element*/}
+                <img src="/images/aivur/icon-trilhas.png" alt="Trilhas de Estudo" />
               </div>
               <div className={styles.pillarContent}>
                 <h3 className={styles.pillarTitle}>Trilhas de Estudo</h3>

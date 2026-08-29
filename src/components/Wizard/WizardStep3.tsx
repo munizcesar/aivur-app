@@ -241,7 +241,6 @@ export default function WizardStep3() {
                 <span className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Q{index + 1} <span className="font-normal mx-2 text-slate-300">|</span> Inédita (IA) <span className="font-normal mx-2 text-slate-300">|</span> {filters.materia || "Disciplina"}
                 </span>
-                <span className="bg-red-600 text-white px-2 py-1 font-bold text-xs">VERSÃO 999 - TESTE DE DOMÍNIO ATIVO</span>
               </div>
 
               <div className="p-6 md:p-8">
@@ -257,8 +256,8 @@ export default function WizardStep3() {
                     const isCorrect = question.correctAnswer === opt.key;
                     
                     // Lógica visual com Paleta AIVUR (#f68b33) e flex-none blindado
-                    let btnClass = "group flex flex-row items-start w-full text-left p-3 md:p-4 rounded-lg border transition-colors ";
-                    let circleClass = "flex-none flex items-center justify-center w-8 h-8 rounded-full border text-sm font-bold mr-4 mt-0.5 ";
+                    let btnClass = "group flex flex-row w-full text-left p-3 md:p-4 rounded-lg border transition-colors ";
+                    let circleClass = "flex-none flex items-center justify-center rounded-full border text-sm font-bold mr-4 mt-0.5 ";
                     
                     if (!isAnswered) {
                       btnClass += isSelected ? "border-[#f68b33] bg-orange-50 dark:bg-[#f68b33]/10" : "border-transparent hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50";
@@ -277,8 +276,8 @@ export default function WizardStep3() {
                     }
 
                     return (
-                      <button key={opt.key} onClick={() => handleOptionSelect(question.id, opt.key)} disabled={isAnswered} className={btnClass}>
-                        <div className={circleClass}>{opt.key}</div>
+                      <button key={opt.key} onClick={() => handleOptionSelect(question.id, opt.key)} disabled={isAnswered} className={btnClass} style={{ alignItems: 'flex-start' }}>
+                        <div className={circleClass} style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', flexShrink: 0, flexGrow: 0 }}>{opt.key}</div>
                         <div className="text-slate-700 dark:text-slate-200 text-sm md:text-base leading-relaxed">{opt.text}</div>
                       </button>
                     );

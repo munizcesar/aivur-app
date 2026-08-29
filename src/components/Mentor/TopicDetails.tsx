@@ -175,6 +175,25 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
     );
   };
 
+  if (showMobileFullscreen && state.questoes && state.questoes[mobileQuestionIndex]) {
+    return (
+      <FullscreenQuestion
+        question={state.questoes[mobileQuestionIndex]}
+        index={mobileQuestionIndex + 1}
+        total={state.questoes.length}
+        subject={subject}
+        userResponse={state.userResponses[state.questoes[mobileQuestionIndex].id]}
+        onBack={() => setShowMobileFullscreen(false)}
+        onPrev={() => setMobileQuestionIndex(prev => Math.max(0, prev - 1))}
+        onNext={() => {
+          if (mobileQuestionIndex + 1 < state.questoes!.length) setMobileQuestionIndex(prev => prev + 1);
+          else setShowMobileFullscreen(false);
+        }}
+        onAnswer={(alt) => handleAnswerQuestao(state.questoes![mobileQuestionIndex], alt)}
+      />
+    );
+  }
+
   return (
     <div className={styles.topicDetails}>
       <div className={styles.topicTabs}>
@@ -339,23 +358,6 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
                   Resolver Questões (Modo Foco)
                 </button>
               </div>
-
-              {showMobileFullscreen && state.questoes[mobileQuestionIndex] && (
-                <FullscreenQuestion
-                  question={state.questoes[mobileQuestionIndex]}
-                  index={mobileQuestionIndex + 1}
-                  total={state.questoes.length}
-                  subject={subject}
-                  userResponse={state.userResponses[state.questoes[mobileQuestionIndex].id]}
-                  onBack={() => setShowMobileFullscreen(false)}
-                  onPrev={() => setMobileQuestionIndex(prev => Math.max(0, prev - 1))}
-                  onNext={() => {
-                    if (mobileQuestionIndex + 1 < state.questoes!.length) setMobileQuestionIndex(prev => prev + 1);
-                    else setShowMobileFullscreen(false);
-                  }}
-                  onAnswer={(alt) => handleAnswerQuestao(state.questoes![mobileQuestionIndex], alt)}
-                />
-              )}
             </div>
           )}
         </div>

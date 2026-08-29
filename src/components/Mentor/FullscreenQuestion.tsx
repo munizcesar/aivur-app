@@ -94,7 +94,7 @@ export function FullscreenQuestion({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col md:hidden"
+      className="fixed top-0 left-0 w-[100vw] h-[100vh] z-[9999] flex flex-col bg-white dark:bg-slate-900 m-0 p-0 overflow-hidden md:hidden"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
       <header

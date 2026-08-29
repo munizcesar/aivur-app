@@ -18,6 +18,7 @@ import {
   Brain,
   Filter,
 } from "lucide-react";
+import { FullscreenQuestion } from "@/components/UI/FullscreenQuestion";
 import styles from "./Wizard.module.css";
 
 const WORKER_URL =
@@ -346,8 +347,21 @@ export default function WizardStep3() {
   const activeQuestionIndex = Math.max(0, Math.min(currentQuestionIndex, generatedQuestions.length - 1));
   const activeQuestion = generatedQuestions[activeQuestionIndex];
 
+  const normalized = normalizeQuestion(activeQuestion);
+  const universalQuestion = {
+    id: activeQuestion.id || String(activeQuestionIndex),
+    enunciado: normalized.qText,
+    alternativas: normalized.qOptions.reduce((acc, opt) => {
+      acc[opt.key] = opt.text;
+      return acc;
+    }, {} as Record<string, string>),
+    correta: normalized.qAnswer,
+    justificativa: normalized.qFeedback + (Object.keys(normalized.qOptionExplanations).length > 0 ? "\n\nAnálise das alternativas:\n" + Object.entries(normalized.qOptionExplanations).map(([k, v]) => `${k}) ${v}`).join("\n") : "")
+  };
+
   return (
-    <div className="relative w-full max-w-6xl mx-auto px-4 md:px-6 py-5 md:py-8 pb-40 md:pb-12">
+    <>
+      <div className="relative w-full max-w-6xl mx-auto px-4 md:px-6 py-5 md:py-8 pb-40 md:pb-12 hidden md:block">
       <div className="mb-6 md:mb-8 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
@@ -471,7 +485,39 @@ export default function WizardStep3() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+
+      <FullscreenQuestion
+        question={universalQuestion}
+        index={activeQuestionIndex + 1}
+        total={generatedQuestions.length}
+        subject={mode === "concurso" ? filters.materia || "Questões" : "Questões"}
+        userResponse={selectedOptions[activeQuestionIndex] || undefined}
+        onBack={handleBackToStep2}
+        onPrev={() => handleQuestionNav(-1)}
+        onNext={() => {
+          if (activeQuestionIndex + 1 < generatedQuestions.length) handleQuestionNav(1);
+        }}
+        onAnswer={(optionId) => {
+          setSelectedOptions((current) => {
+            const next = [...current];
+            next[activeQuestionIndex] = optionId;
+            return next;
+          });
+          const isCorrect = optionId === normalized.qAnswer;
+          setResults((current) => {
+            const next = [...current];
+            next[activeQuestionIndex] = isCorrect;
+            return next;
+          });
+          setExpandedResolutions((current) => {
+            const next = [...current];
+            next[activeQuestionIndex] = true;
+            return next;
+          });
+        }}
+      />
+    </>
   );
 }
 

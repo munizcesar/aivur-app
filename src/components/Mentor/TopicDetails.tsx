@@ -5,7 +5,7 @@ import { useCourseProgress } from "@/hooks/useCourseProgress";
 import { useCourseContext } from "@/context/CourseContext";
 import { useLocalCourses } from "@/hooks/useLocalCourses";
 import ReactMarkdown from 'react-markdown';
-import { FullscreenQuestion } from "./FullscreenQuestion";
+import { FullscreenQuestion } from "@/components/UI/FullscreenQuestion";
 
 export function getDisclaimerAivur(subject: string) {
   const materia = subject?.toLowerCase() || "";

@@ -3,10 +3,17 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
-import { Questao } from "@/hooks/useTopicContent";
+
+export interface UniversalQuestion {
+  id: string;
+  enunciado: string;
+  alternativas: Record<string, string>;
+  correta: string;
+  justificativa: string;
+}
 
 interface FullscreenQuestionProps {
-  question: Questao;
+  question: UniversalQuestion;
   index: number;
   total: number;
   subject: string;

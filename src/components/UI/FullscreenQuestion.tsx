@@ -69,51 +69,12 @@ export function FullscreenQuestion({
     return "disabled";
   }
 
-  function optionStyle(state: string) {
-    switch (state) {
-      case "selected":
-        return {
-          borderColor: "var(--color-primary)",
-          backgroundColor: "rgba(196, 18, 48, 0.05)",
-          color: "var(--color-text)",
-        };
-      case "correct":
-        return {
-          borderColor: "var(--color-success)",
-          backgroundColor: "rgba(42, 90, 67, 0.1)",
-          color: "var(--color-text)",
-        };
-      case "incorrect":
-        return {
-          borderColor: "var(--color-error)",
-          backgroundColor: "rgba(196, 18, 48, 0.1)",
-          color: "var(--color-text)",
-        };
-      case "disabled":
-        return {
-          borderColor: "var(--color-border)",
-          backgroundColor: "transparent",
-          color: "var(--color-text-muted)",
-          opacity: 0.6,
-        };
-      default:
-        return {
-          borderColor: "var(--color-border)",
-          backgroundColor: "var(--color-surface)",
-          color: "var(--color-text)",
-        };
-    }
-  }
-
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] w-screen h-screen flex flex-col bg-slate-900 overflow-y-auto m-0 p-0">
-      <header
-        className="flex items-center gap-3 px-4 py-4 shrink-0 shadow-sm"
-        style={{ backgroundColor: "var(--color-primary)", color: "#FFFFFF" }}
-      >
-        <button onClick={onBack} aria-label="Voltar" className="p-1 rounded-full active:opacity-70">
+    <div className="fixed inset-0 z-[99999] w-screen h-screen flex flex-col bg-slate-950 overflow-y-auto m-0 p-0">
+      <header className="flex items-center gap-3 px-4 py-3 shrink-0 bg-slate-900 border-b border-slate-800 text-slate-100">
+        <button onClick={onBack} aria-label="Voltar" className="p-1 rounded-full active:opacity-70 hover:bg-slate-800">
           <ArrowLeft size={22} />
         </button>
         <div className="flex-1 min-w-0">
@@ -121,17 +82,14 @@ export function FullscreenQuestion({
         </div>
       </header>
 
-      <div
-        className="px-4 py-3 flex items-center justify-between text-xs shrink-0"
-        style={{ borderBottom: "1px solid var(--color-border)", color: "var(--color-text-muted)", backgroundColor: "var(--color-surface)" }}
-      >
-        <span className="font-bold text-base" style={{ color: "var(--color-text)" }}>
-          {index} <span className="font-normal text-xs">de {total}</span>
+      <div className="px-4 py-3 flex items-center justify-between text-xs shrink-0 border-b border-slate-800 text-slate-400 bg-slate-900">
+        <span className="font-bold text-base text-slate-100">
+          {index} <span className="font-normal text-xs text-slate-400">de {total}</span>
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-5" style={{ backgroundColor: "var(--color-bg)" }}>
-        <p className="text-base leading-relaxed mb-6 font-medium" style={{ color: "var(--color-text)" }}>
+      <div className="flex-1 overflow-y-auto px-4 py-5 bg-slate-950">
+        <p className="text-base leading-relaxed mb-6 font-medium text-slate-100">
           {question.enunciado}
         </p>
 
@@ -139,46 +97,40 @@ export function FullscreenQuestion({
           {Object.entries(question.alternativas).map(([letra, texto]) => {
             const state = getOptionState(letra);
             
-            let labelBg = "var(--color-surface-offset)";
-            let labelColor = "var(--color-text-muted)";
-            
-            if (state === "selected") {
-              labelBg = "var(--color-primary)";
-              labelColor = "#FFFFFF";
-            } else if (state === "correct") {
-              labelBg = "var(--color-success)";
-              labelColor = "#FFFFFF";
-            } else if (state === "incorrect") {
-              labelBg = "var(--color-error)";
-              labelColor = "#FFFFFF";
-            }
-
             return (
               <button
                 key={letra}
                 onClick={() => handleSelect(letra)}
                 disabled={answered}
-                className="flex items-start gap-3 text-left rounded-xl p-4 transition-colors border"
-                style={optionStyle(state)}
+                className={`w-full flex items-start gap-4 p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                  state === 'selected' ? 'border-blue-500 bg-blue-500/10' :
+                  state === 'correct' ? 'border-green-500 bg-green-500/10' :
+                  state === 'incorrect' ? 'border-red-500 bg-red-500/10' :
+                  'border-slate-800 bg-slate-800 hover:bg-slate-700'
+                }`}
               >
-                <span
-                  className="flex items-center justify-center shrink-0 w-8 h-8 rounded-full text-sm font-bold mt-0.5"
-                  style={{ backgroundColor: labelBg, color: labelColor }}
-                >
+                <span className={`flex-none w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold border-2 ${
+                  state === 'selected' ? 'bg-blue-500 border-blue-500 text-white' :
+                  state === 'correct' ? 'bg-green-500 border-green-500 text-white' :
+                  state === 'incorrect' ? 'bg-red-500 border-red-500 text-white' :
+                  'bg-slate-900 border-slate-600 text-slate-300'
+                }`}>
                   {letra}
                 </span>
-                <span className="text-sm mt-1 flex-1 leading-relaxed">{texto}</span>
+                <span className="text-sm leading-relaxed text-slate-200 mt-0.5">
+                  {texto}
+                </span>
               </button>
             );
           })}
         </div>
         
         {answered && (
-          <div className="mt-6 p-4 rounded-xl shadow-sm" style={{ backgroundColor: "var(--color-surface)", borderLeft: selected === question.correta ? "4px solid var(--color-success)" : "4px solid var(--color-error)" }}>
-            <p className="font-bold mb-2 text-sm" style={{ color: selected === question.correta ? "var(--color-success)" : "var(--color-error)" }}>
-              {selected === question.correta ? "✅ Você acertou!" : "❌ Você errou!"}
+          <div className={`mt-6 p-4 rounded-xl shadow-sm bg-slate-800 border-l-4 ${selected === question.correta ? 'border-green-500' : 'border-red-500'}`}>
+            <p className={`font-bold mb-2 text-sm ${selected === question.correta ? 'text-green-500' : 'text-red-500'}`}>
+              {selected === question.correta ? 'Correto. Você acertou!' : 'Incorreto. Você errou!'}
             </p>
-            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+            <p className="text-sm text-slate-300 whitespace-pre-wrap">
               {question.justificativa}
             </p>
           </div>
@@ -188,15 +140,11 @@ export function FullscreenQuestion({
         <div className="h-24"></div>
       </div>
 
-      <div
-        className="px-4 py-4 shrink-0 shadow-lg flex items-center justify-between"
-        style={{ borderTop: "1px solid var(--color-border)", backgroundColor: "var(--color-surface)" }}
-      >
+      <div className="px-4 py-4 shrink-0 shadow-lg flex items-center justify-between bg-slate-900 border-t border-slate-800">
         <button
           onClick={onPrev}
           disabled={index === 1}
-          className="p-2 rounded-full disabled:opacity-30"
-          style={{ color: "var(--color-text)" }}
+          className="p-2 rounded-full disabled:opacity-30 text-slate-300 hover:bg-slate-800 transition-colors"
         >
           <ChevronLeft size={28} />
         </button>
@@ -205,11 +153,9 @@ export function FullscreenQuestion({
           <button
             onClick={handleSubmit}
             disabled={!selected}
-            className="px-8 py-3 rounded-full font-bold shadow-md transition-all disabled:opacity-50"
-            style={{
-              backgroundColor: selected ? "var(--color-primary)" : "var(--color-surface-offset)",
-              color: selected ? "#FFFFFF" : "var(--color-text-muted)",
-            }}
+            className={`px-8 py-3 rounded-full font-bold shadow-md transition-all disabled:opacity-50 ${
+              selected ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-800 text-slate-400'
+            }`}
           >
             CONFIRMAR
           </button>
@@ -217,21 +163,18 @@ export function FullscreenQuestion({
           <button
             onClick={onNext}
             disabled={index === total}
-            className="px-8 py-3 rounded-full font-bold shadow-md transition-all disabled:opacity-50"
-            style={{
-              backgroundColor: index < total ? "var(--color-primary)" : "var(--color-surface-offset)",
-              color: index < total ? "#FFFFFF" : "var(--color-text-muted)",
-            }}
+            className={`px-8 py-3 rounded-full font-bold shadow-md transition-all disabled:opacity-50 ${
+              index < total ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-800 text-slate-400'
+            }`}
           >
-            {index < total ? "PRÓXIMA" : "FINALIZAR"}
+            {index < total ? 'PRÓXIMA' : 'FINALIZAR'}
           </button>
         )}
 
         <button
           onClick={onNext}
           disabled={index === total}
-          className="p-2 rounded-full disabled:opacity-30"
-          style={{ color: "var(--color-text)" }}
+          className="p-2 rounded-full disabled:opacity-30 text-slate-300 hover:bg-slate-800 transition-colors"
         >
           <ChevronRight size={28} />
         </button>

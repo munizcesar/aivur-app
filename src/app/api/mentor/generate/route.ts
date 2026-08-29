@@ -47,7 +47,6 @@ export async function POST(req: Request) {
   try {
     const env = resolveEnv();
     const groqApiKey = env?.GROQ_API_KEY;
-    console.log("🔎 GROQ_API_KEY detectada:", groqApiKey ? groqApiKey.substring(0, 7) + "..." : "NENHUMA CHAVE ENCONTRADA");
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     if (!checkRateLimit(ip)) {
@@ -220,9 +219,11 @@ Schema esperado do JSON:
     return NextResponse.json(finalCourse);
   } catch (error: any) {
     console.error("Erro na rota de Geração:", error);
-    return NextResponse.json(
-      { error: "Falha interna ao gerar o curso. " + error.message },
-      { status: 500 }
-    );
+    
+    const env = resolveEnv();
+    return NextResponse.json({ 
+      error: "Falha interna ao gerar o curso. " + error.message,
+      env_keys: Object.keys(env || {}) 
+    }, { status: 500 });
   }
 }

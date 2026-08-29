@@ -102,9 +102,9 @@ export function FullscreenQuestion({
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] w-screen h-screen flex flex-col bg-slate-950 overflow-y-auto m-0 p-0">
-      <header className="flex items-center gap-3 px-4 py-3 shrink-0 bg-slate-900 border-b border-slate-800 text-slate-100">
-        <button onClick={onBack} aria-label="Voltar" className="p-1 rounded-full active:opacity-70 hover:bg-slate-800">
+    <div className="fixed inset-0 z-[99999] w-screen h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-y-auto m-0 p-0">
+      <header className="flex items-center gap-3 px-4 py-3 shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100">
+        <button onClick={onBack} aria-label="Voltar" className="p-1 rounded-full active:opacity-70 hover:bg-slate-100 dark:hover:bg-slate-800">
           <ArrowLeft size={22} />
         </button>
         <div className="flex-1 min-w-0">
@@ -112,14 +112,14 @@ export function FullscreenQuestion({
         </div>
       </header>
 
-      <div className="px-4 py-3 flex items-center justify-between text-xs shrink-0 border-b border-slate-800 text-slate-400 bg-slate-900">
-        <span className="font-bold text-base text-slate-100">
-          {index} <span className="font-normal text-xs text-slate-400">de {total}</span>
+      <div className="px-4 py-3 flex items-center justify-between text-xs shrink-0 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900">
+        <span className="font-bold text-base text-slate-800 dark:text-slate-100">
+          {index} <span className="font-normal text-xs text-slate-500 dark:text-slate-400">de {total}</span>
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-5 bg-slate-950">
-        <p className="text-base leading-relaxed mb-6 font-medium text-slate-100">
+      <div className="flex-1 overflow-y-auto px-4 py-5 bg-slate-50 dark:bg-slate-950">
+        <p className="text-base leading-relaxed mb-6 font-medium text-slate-800 dark:text-slate-100">
           {question.enunciado}
         </p>
 
@@ -186,9 +186,7 @@ export function FullscreenQuestion({
             <button
               onClick={handleSubmit}
               disabled={!selected}
-              className={`w-full px-8 py-4 mt-2 rounded-xl font-bold shadow-md transition-all disabled:opacity-50 ${
-                selected ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-800 text-slate-400'
-              }`}
+              className="w-full mt-6 py-4 rounded-xl font-bold text-base transition-all duration-200 bg-[#f68b33] hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20 disabled:opacity-50"
             >
               CONFIRMAR
             </button>
@@ -199,16 +197,14 @@ export function FullscreenQuestion({
               <div className="flex items-center gap-2 text-[#f68b33] font-bold mb-3">
                 🎓 Mentor AIVUR
               </div>
-              <div className="p-4 bg-orange-50 dark:bg-[#f68b33]/10 border border-[#f68b33]/30 rounded-xl text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
+              <div className="p-4 bg-orange-50 dark:bg-[#f68b33]/10 border border-orange-200 dark:border-[#f68b33]/30 rounded-xl text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
                 {question.justificativa || (selected === question.correta ? "Resposta correta!" : `Resposta incorreta. Gabarito: ${question.correta}.`)}
               </div>
               
               <button
                 onClick={onNext}
                 disabled={index === total}
-                className={`w-full mt-6 px-8 py-4 rounded-xl font-bold shadow-md transition-all disabled:opacity-50 ${
-                  index < total ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-800 text-slate-400'
-                }`}
+                className="w-full mt-6 py-4 rounded-xl font-bold text-base transition-all duration-200 bg-[#f68b33] hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20 disabled:opacity-50"
               >
                 {index < total ? 'PRÓXIMA' : 'FINALIZAR'}
               </button>
@@ -220,21 +216,21 @@ export function FullscreenQuestion({
         <div className="h-24"></div>
       </div>
 
-      <div className="px-4 py-4 shrink-0 shadow-lg flex items-center justify-between bg-slate-900 border-t border-slate-800">
+      <div className="px-4 py-4 shrink-0 shadow-lg flex items-center justify-between bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
         <button
           onClick={onPrev}
           disabled={index === 1}
-          className="p-2 rounded-full disabled:opacity-30 text-slate-300 hover:bg-slate-800 transition-colors flex items-center gap-2"
+          className="p-2 rounded-full disabled:opacity-30 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
         >
           <ChevronLeft size={28} />
         </button>
 
-        <span className="text-sm font-semibold text-slate-400">Navegação</span>
+        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Navegação</span>
 
         <button
           onClick={onNext}
           disabled={index === total}
-          className="p-2 rounded-full disabled:opacity-30 text-slate-300 hover:bg-slate-800 transition-colors flex items-center gap-2"
+          className="p-2 rounded-full disabled:opacity-30 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
         >
           <ChevronRight size={28} />
         </button>

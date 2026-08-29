@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -36,7 +36,7 @@ export default function QuestoesPage() {
               <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--elite-cream, #FBEBD0)', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
                 Caderno de Questões
               </h1>
-              <p style={{ color: 'rgba(251,235,208,0.7)', fontSize: '1.1rem' }}>
+              <p className="text-slate-500 dark:text-slate-400 text-lg">
                 Configure sua bateria de questões focada na sua banca e maximize sua retenção.
               </p>
             </div>

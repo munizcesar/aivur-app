@@ -61,7 +61,7 @@ export default function WizardStep2() {
             <div className={styles.cafField} style={{ gridColumn: "1 / -1" }}>
               <label className={styles.cafLabel}>Disciplina *</label>
               <select 
-                className={styles.cafSelect} 
+                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none" 
                 value={filters.materia === 'Todas' ? '' : filters.materia}
                 onChange={(e) => {
                   handleSelectChange('materia', e.target.value || 'Todas');
@@ -75,7 +75,7 @@ export default function WizardStep2() {
             <div className={styles.cafField}>
               <label className={styles.cafLabel}>Tópico</label>
               <select 
-                className={styles.cafSelect} 
+                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none" 
                 value={filters.assunto === 'Todos' ? '' : filters.assunto}
                 onChange={(e) => handleSelectChange('assunto', e.target.value || 'Todos')}
                 disabled={filters.materia === 'Todas'}
@@ -95,7 +95,7 @@ export default function WizardStep2() {
             <div className={styles.cafField}>
               <label className={styles.cafLabel}>Banca Examinadora</label>
               <select 
-                className={styles.cafSelect}
+                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none"
                 value={filters.banca === 'Todas' ? '' : filters.banca}
                 onChange={(e) => handleSelectChange('banca', e.target.value || 'Todas')}
               >
@@ -106,7 +106,7 @@ export default function WizardStep2() {
             <div className={styles.cafField}>
               <label className={styles.cafLabel}>Órgão / Instituição</label>
               <select 
-                className={styles.cafSelect}
+                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none"
                 value={filters.orgao === 'Todos' ? '' : filters.orgao}
                 onChange={(e) => handleSelectChange('orgao', e.target.value || 'Todos')}
               >
@@ -118,7 +118,7 @@ export default function WizardStep2() {
               <label className={styles.cafLabel}>Cargo</label>
               <input 
                 type="text" 
-                className={styles.cafInput} 
+                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none" 
                 placeholder="Ex: Analista Judiciário..." 
                 value={filters.cargo === 'Todos' ? '' : filters.cargo}
                 onChange={(e) => handleSelectChange('cargo', e.target.value || 'Todos')}
@@ -127,7 +127,7 @@ export default function WizardStep2() {
             <div className={styles.cafField}>
               <label className={styles.cafLabel}>Nível de Escolaridade</label>
               <select 
-                className={styles.cafSelect}
+                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none"
                 value={filters.nivel === 'Todos' ? '' : filters.nivel}
                 onChange={(e) => handleSelectChange('nivel', e.target.value || 'Todos')}
               >
@@ -147,7 +147,7 @@ export default function WizardStep2() {
               <label className={styles.cafLabel}>Ano</label>
               <input 
                 type="text" 
-                className={styles.cafInput} 
+                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none" 
                 placeholder="Ex: 2024" 
                 value={filters.ano === 'Todos' ? '' : filters.ano}
                 onChange={(e) => handleSelectChange('ano', e.target.value || 'Todos')}
@@ -264,7 +264,7 @@ export default function WizardStep2() {
         <textarea 
           placeholder="Cole o texto, transcrição ou conteúdo do PDF aqui..." 
           rows={6} 
-          style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg)", color: "var(--color-text)" }}
+          className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none"
           value={freeStudy?.text || ""}
           onChange={(e) => handleFreeStudyChange(e.target.value)}
         />
@@ -280,7 +280,7 @@ export default function WizardStep2() {
         <div style={{ marginBottom: "var(--space-6)" }}>
           <label style={{ display: "block", fontWeight: 700, fontSize: "var(--text-sm)", marginBottom: "var(--space-2)" }}>Banca Examinadora</label>
           <select 
-            className={styles.cafSelect}
+            className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none"
             value={filters.banca === 'Todas' ? 'ENEM' : filters.banca}
             onChange={(e) => handleSelectChange('banca', e.target.value)}
           >
@@ -300,7 +300,7 @@ export default function WizardStep2() {
           <textarea 
             placeholder="Cole o texto da sua redação aqui..." 
             rows={10} 
-            style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg)", color: "var(--color-text)", resize: "vertical" }}
+            className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none"
             value={essayText}
             onChange={(e) => setEssayText(e.target.value)}
           />
@@ -338,7 +338,7 @@ export default function WizardStep2() {
             <textarea 
               placeholder="Cole aqui os tópicos do seu edital ou descreva o concurso..." 
               rows={4} 
-              style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg)", color: "var(--color-text)", resize: "vertical" }}
+              className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none"
               value={editalText || ""}
               onChange={(e) => setEditalText(e.target.value)}
             />
@@ -347,7 +347,7 @@ export default function WizardStep2() {
           <div className={styles.configGroup}>
             <label style={{ display: "block", fontSize: "var(--text-sm)", fontWeight: 600, marginBottom: "8px" }}>Nível Inicial</label>
             <select 
-              className={styles.cafSelect}
+              className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none"
               onChange={(e) => handleSelectChange('nivel', e.target.value)}
               value={filters.nivel === 'Todos' ? 'iniciante' : filters.nivel}
             >
@@ -365,7 +365,7 @@ export default function WizardStep2() {
               placeholder="Ex: 4"
               value={aivosHours} 
               onChange={(e) => setAivosHours(Number(e.target.value))}
-              style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg)", color: "var(--color-text)", marginBottom: "8px" }}
+              className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none"
             />
           </div>
           
@@ -375,7 +375,7 @@ export default function WizardStep2() {
               type="date" 
               value={aivosDate} 
               onChange={(e) => setAivosDate(e.target.value)}
-              style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg)", color: "var(--color-text)" }}
+              className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-[#f68b33] dark:focus:border-[#f68b33] outline-none"
             />
           </div>
         </div>

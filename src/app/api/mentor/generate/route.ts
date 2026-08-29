@@ -2,6 +2,18 @@ export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
 import { extractCleanJson } from '@/lib/ai-protocols';
+import { getRequestContext } from '@cloudflare/next-on-pages';
+
+// Função auxiliar para resolver bindings e env no Edge
+function resolveEnv(): any {
+  try {
+    const ctx = getRequestContext();
+    if (ctx?.env) return ctx.env;
+  } catch (_) {}
+  const g = globalThis as any;
+  if (g.GROQ_API_KEY) return g;
+  return process.env;
+}
 
 // Basic in-memory rate limiting
 const ipMap = new Map<string, { count: number; resetTime: number }>();
@@ -33,6 +45,9 @@ function checkRateLimit(ip: string): boolean {
 
 export async function POST(req: Request) {
   try {
+    const env = resolveEnv();
+    const groqApiKey = env?.GROQ_API_KEY;
+
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
@@ -159,6 +174,7 @@ Schema esperado do JSON:
       temperature: 0.2,
       max_tokens: 8000,
       response_format: { type: "json_object" },
+      apiKey: groqApiKey
     });
 
     // 4. Extração de JSON centralizada via ai-protocols (extractCleanJson)

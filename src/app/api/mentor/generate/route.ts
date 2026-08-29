@@ -3,17 +3,7 @@ import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
 import { extractCleanJson } from '@/lib/ai-protocols';
 import { getRequestContext } from '@cloudflare/next-on-pages';
-
-// Função auxiliar para resolver bindings e env no Edge
-function resolveEnv(): any {
-  try {
-    const ctx = getRequestContext();
-    if (ctx?.env) return ctx.env;
-  } catch (_) {}
-  const g = globalThis as any;
-  if (g.GROQ_API_KEY) return g;
-  return process.env;
-}
+import { Groq } from 'groq-sdk';
 
 // Basic in-memory rate limiting
 const ipMap = new Map<string, { count: number; resetTime: number }>();
@@ -45,8 +35,8 @@ function checkRateLimit(ip: string): boolean {
 
 export async function POST(req: Request) {
   try {
-    const env = resolveEnv();
-    const groqApiKey = env?.GROQ_API_KEY;
+    const ctx = getRequestContext();
+    const groqApiKey = ctx?.env?.GROQ_API_KEY || process.env.GROQ_API_KEY;
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     if (!checkRateLimit(ip)) {
@@ -169,13 +159,15 @@ Schema esperado do JSON:
       { role: "user", content: prompt }
     ];
 
-    const messageContent = await callGroqWithFallback(messages, {
+    const groq = new Groq({ apiKey: groqApiKey });
+    const response = await groq.chat.completions.create({
+      messages: messages as any,
       model: "llama-3.3-70b-versatile",
       temperature: 0.2,
       max_tokens: 8000,
-      response_format: { type: "json_object" },
-      apiKey: groqApiKey
+      response_format: { type: "json_object" }
     });
+    const messageContent = response.choices[0]?.message?.content;
 
     // 4. Extração de JSON centralizada via ai-protocols (extractCleanJson)
     const jsonString = extractCleanJson(messageContent || "");
@@ -220,10 +212,11 @@ Schema esperado do JSON:
   } catch (error: any) {
     console.error("Erro na rota de Geração:", error);
     
-    const env = resolveEnv();
+    const ctx = getRequestContext();
+    const envKeys = Object.keys(ctx?.env || process.env || {});
     return NextResponse.json({ 
       error: "Falha interna ao gerar o curso. " + error.message,
-      env_keys: Object.keys(env || {}) 
+      env_keys: envKeys
     }, { status: 500 });
   }
 }

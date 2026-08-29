@@ -162,7 +162,7 @@ export function FullscreenQuestion({
         </div>
         
         {answered && (
-          <div className="mt-6 p-4 rounded-xl shadow-sm" style={{ backgroundColor: "var(--color-surface)", borderLeft: \4px solid \\ }}>
+          <div className="mt-6 p-4 rounded-xl shadow-sm" style={{ backgroundColor: "var(--color-surface)", borderLeft: selected === question.correta ? "4px solid var(--color-success)" : "4px solid var(--color-error)" }}>
             <p className="font-bold mb-2 text-sm" style={{ color: selected === question.correta ? "var(--color-success)" : "var(--color-error)" }}>
               {selected === question.correta ? "✅ Você acertou!" : "❌ Você errou!"}
             </p>

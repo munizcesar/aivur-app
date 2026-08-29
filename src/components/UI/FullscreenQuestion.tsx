@@ -102,7 +102,7 @@ export function FullscreenQuestion({
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] w-screen h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-y-auto m-0 p-0">
+    <div className="fixed inset-0 z-[99999] w-screen h-screen flex flex-col bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 overflow-y-auto m-0 p-0">
       <header className="flex items-center gap-3 px-4 py-3 shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100">
         <button onClick={onBack} aria-label="Voltar" className="p-1 rounded-full active:opacity-70 hover:bg-slate-100 dark:hover:bg-slate-800">
           <ArrowLeft size={22} />
@@ -118,7 +118,7 @@ export function FullscreenQuestion({
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-5 bg-slate-50 dark:bg-slate-950">
+      <div className="flex-1 overflow-y-auto px-4 py-5 bg-white dark:bg-slate-900">
         <p className="text-base leading-relaxed mb-6 font-medium text-slate-800 dark:text-slate-100">
           {question.enunciado}
         </p>
@@ -127,33 +127,33 @@ export function FullscreenQuestion({
           {Object.entries(question.alternativas).map(([letra, texto]) => {
             const opt = { id: letra, text: texto };
             const state = getOptionState(opt.id);
-            
-            let btnClasses = "w-full flex items-start gap-4 p-4 rounded-xl border-2 transition-all duration-200 text-left relative overflow-hidden ";
-            let circleClasses = "flex-none flex items-center justify-center rounded-full text-sm font-bold border-2 ";
-            let textClasses = "text-sm leading-relaxed mt-0.5 ";
-            
+            const isEliminated = eliminated.includes(opt.id);
+
+            // Estilização base do card individual da alternativa (Padrão QConcursos)
+            let cardClasses = "w-full flex items-start gap-4 p-4 rounded-xl border transition-all duration-200 text-left relative ";
+            let badgeClasses = "flex-none w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold border transition-colors ";
+            let textClasses = "text-sm md:text-base leading-relaxed mt-1 flex-1 ";
+
             if (state === 'selected') {
-              btnClasses += "border-blue-500 bg-blue-50 dark:bg-blue-900/20";
-              circleClasses += "bg-blue-500 border-blue-500 text-white";
-              textClasses += "text-blue-900 dark:text-blue-100";
+              cardClasses += "border-[#f68b33] bg-orange-50 dark:bg-[#f68b33]/10 shadow-sm";
+              badgeClasses += "bg-[#f68b33] border-[#f68b33] text-white";
+              textClasses += "text-slate-900 dark:text-slate-100 font-medium";
             } else if (state === 'correct') {
-              btnClasses += "border-green-500 bg-green-50 dark:bg-green-900/10";
-              circleClasses += "bg-green-500 border-green-500 text-white";
-              textClasses += "text-green-900 dark:text-green-100";
+              cardClasses += "border-green-500 bg-green-50 dark:bg-green-900/20 shadow-sm";
+              badgeClasses += "bg-green-500 border-green-500 text-white";
+              textClasses += "text-slate-900 dark:text-slate-100 font-medium";
             } else if (state === 'incorrect') {
-              btnClasses += "border-red-500 bg-red-50 dark:bg-red-900/10";
-              circleClasses += "bg-red-500 border-red-500 text-white";
-              textClasses += "text-red-900 dark:text-red-100";
+              cardClasses += "border-red-500 bg-red-50 dark:bg-red-900/20 shadow-sm";
+              badgeClasses += "bg-red-500 border-red-500 text-white";
+              textClasses += "text-slate-900 dark:text-slate-100 font-medium";
             } else {
-              btnClasses += "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50";
-              circleClasses += "bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400";
-              textClasses += "text-slate-700 dark:text-slate-200";
+              cardClasses += "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800";
+              badgeClasses += "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300";
+              textClasses += "text-slate-800 dark:text-slate-200";
             }
 
-            // Lógica do Swipe (Tesourinha)
-            const isEliminated = eliminated.includes(opt.id);
             if (isEliminated) {
-              btnClasses += " opacity-60 grayscale";
+              cardClasses += " opacity-50 grayscale";
               textClasses += " line-through text-slate-400 dark:text-slate-500";
             }
 
@@ -164,15 +164,16 @@ export function FullscreenQuestion({
                 onTouchStart={handleTouchStart}
                 onTouchEnd={(e) => handleTouchEnd(e, opt.id)}
                 disabled={answered}
-                className={btnClasses}
+                className={cardClasses}
               >
-                {/* A TRAVA DE TITÂNIO - Força Bruta Inline */}
+                {/* Badge da Letra (A, B, C...) com tamanho estrito */}
                 <span 
-                  className={circleClasses} 
-                  style={{ minWidth: '32px', minHeight: '32px', width: '32px', height: '32px', flexShrink: 0 }}
+                  className={badgeClasses} 
+                  style={{ minWidth: '36px', minHeight: '36px', width: '36px', height: '36px', flexShrink: 0 }}
                 >
                   {opt.id}
                 </span>
+                {/* Texto da alternativa */}
                 <span className={textClasses}>
                   {opt.text}
                 </span>

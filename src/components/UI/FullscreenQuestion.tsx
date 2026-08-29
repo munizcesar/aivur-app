@@ -157,56 +157,60 @@ export function FullscreenQuestion({
           })}
         </div>
         
-        {answered && (
-          <div className="mt-6 w-full animate-in fade-in duration-300 pb-8">
-            <div className="flex items-center gap-2 text-[#f68b33] font-bold mb-3">
-              🎓 Mentor AIVUR
+        <div ref={actionAreaRef} className="mt-4 pb-4">
+          {!answered && (
+            <button
+              onClick={handleSubmit}
+              disabled={!selected}
+              className={`w-full px-8 py-4 mt-2 rounded-xl font-bold shadow-md transition-all disabled:opacity-50 ${
+                selected ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-800 text-slate-400'
+              }`}
+            >
+              CONFIRMAR
+            </button>
+          )}
+
+          {answered && (
+            <div className="mt-2 w-full animate-in fade-in duration-300 pb-4">
+              <div className="flex items-center gap-2 text-[#f68b33] font-bold mb-3">
+                🎓 Mentor AIVUR
+              </div>
+              <div className="p-4 bg-orange-50 dark:bg-[#f68b33]/10 border border-[#f68b33]/30 rounded-xl text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
+                {question.justificativa || (selected === question.correta ? "Resposta correta!" : `Resposta incorreta. Gabarito: ${question.correta}.`)}
+              </div>
+              
+              <button
+                onClick={onNext}
+                disabled={index === total}
+                className={`w-full mt-6 px-8 py-4 rounded-xl font-bold shadow-md transition-all disabled:opacity-50 ${
+                  index < total ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-800 text-slate-400'
+                }`}
+              >
+                {index < total ? 'PRÓXIMA' : 'FINALIZAR'}
+              </button>
             </div>
-            <div className="p-4 bg-orange-50 dark:bg-[#f68b33]/10 border border-[#f68b33]/30 rounded-xl text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
-              {question.justificativa || (selected === question.correta ? "Resposta correta!" : `Resposta incorreta. Gabarito: ${question.correta}.`)}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
         
         {/* Spacer for bottom bar */}
-        <div className="h-24" ref={actionAreaRef}></div>
+        <div className="h-24"></div>
       </div>
 
       <div className="px-4 py-4 shrink-0 shadow-lg flex items-center justify-between bg-slate-900 border-t border-slate-800">
         <button
           onClick={onPrev}
           disabled={index === 1}
-          className="p-2 rounded-full disabled:opacity-30 text-slate-300 hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-full disabled:opacity-30 text-slate-300 hover:bg-slate-800 transition-colors flex items-center gap-2"
         >
           <ChevronLeft size={28} />
         </button>
 
-        {!answered ? (
-          <button
-            onClick={handleSubmit}
-            disabled={!selected}
-            className={`px-8 py-3 rounded-full font-bold shadow-md transition-all disabled:opacity-50 ${
-              selected ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-800 text-slate-400'
-            }`}
-          >
-            CONFIRMAR
-          </button>
-        ) : (
-          <button
-            onClick={onNext}
-            disabled={index === total}
-            className={`px-8 py-3 rounded-full font-bold shadow-md transition-all disabled:opacity-50 ${
-              index < total ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-800 text-slate-400'
-            }`}
-          >
-            {index < total ? 'PRÓXIMA' : 'FINALIZAR'}
-          </button>
-        )}
+        <span className="text-sm font-semibold text-slate-400">Navegação</span>
 
         <button
           onClick={onNext}
           disabled={index === total}
-          className="p-2 rounded-full disabled:opacity-30 text-slate-300 hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-full disabled:opacity-30 text-slate-300 hover:bg-slate-800 transition-colors flex items-center gap-2"
         >
           <ChevronRight size={28} />
         </button>

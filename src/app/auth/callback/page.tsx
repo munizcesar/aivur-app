@@ -25,6 +25,7 @@ function CallbackContent() {
         
         const data = await res.json() as { error?: string };
         if (res.ok) {
+          localStorage.setItem("aivur_logged_in", "true");
           setStatus("Autenticado com sucesso! Redirecionando...");
           setTimeout(() => {
             router.push("/");

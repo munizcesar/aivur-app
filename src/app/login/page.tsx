@@ -19,6 +19,7 @@ export default function LoginPage() {
         method: "POST"
       });
       if (res.ok) {
+        localStorage.setItem("aivur_logged_in", "true");
         window.location.href = "/";
       } else {
         const data = await res.json() as { error?: string };

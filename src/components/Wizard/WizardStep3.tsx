@@ -1,11 +1,10 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState, useRef } from "react";
 import { useQuizStore } from "@/store/useQuizStore";
 import {
   AlertTriangle, RefreshCw, ChevronLeft, ChevronRight,
-  CheckCircle, XCircle, RotateCcw, BookOpen,
-  Filter, BarChart2, Edit3, Flag, GraduationCap,
+  BookOpen, Filter, RotateCcw
 } from "lucide-react";
 import styles from "./Wizard.module.css";
 
@@ -116,17 +115,23 @@ export default function WizardStep3() {
   };
 
   const handleBackToStep2 = () => { setGeneratedQuestions([]); setStep(2); };
-  const handleSelectOption = (idx: number, key: string) => {
-    if (results[idx] !== null) return;
+  
+  const handleOptionSelect = (id: number, key: string) => {
+    if (results[id] !== null) return;
     const next = [...selectedOptions];
-    next[idx] = key;
+    next[id] = key;
     setSelectedOptions(next);
   };
-  const handleConfirmAnswer = (idx: number) => {
-    const selected = selectedOptions[idx];
+  
+  const handleAnswerSubmit = (id: number) => {
+    const selected = selectedOptions[id];
     if (!selected) return;
     const next = [...results];
-    next[idx] = selected === generatedQuestions[idx].answer;
+    
+    const rawQ = generatedQuestions[id];
+    const answer = rawQ.answer || rawQ.resposta || rawQ.correctAnswer || rawQ.gabarito || "";
+    
+    next[id] = String(selected).toLowerCase() === String(answer).toLowerCase();
     setResults(next);
   };
 
@@ -196,22 +201,108 @@ export default function WizardStep3() {
       </div>
 
       {/* Questions list */}
-      {generatedQuestions.map((question: any, idx: number) => {
-        const showMobile = idx === currentIdx;
-        const isAnswered = results[idx] !== null;
-        const selectedOption = selectedOptions[idx];
+      {generatedQuestions.map((rawQ: any, index: number) => {
+        const showMobile = index === currentIdx;
+        const isAnswered = results[index] !== null;
+
+        let qOptions: any[] = [];
+        const ro = rawQ.options || rawQ.alternativas || rawQ.choices || [];
+        if (Array.isArray(ro)) {
+          if (ro.length > 0 && typeof ro[0] === "string") {
+            const letters = ["A", "B", "C", "D", "E"];
+            qOptions = ro.map((text: string, i: number) => ({ key: letters[i] || String(i), text }));
+          } else {
+            qOptions = ro.map((opt: any, i: number) => ({
+              key: opt.key || opt.id || opt.letra || ["A", "B", "C", "D", "E"][i] || String(i),
+              text: opt.text || opt.value || opt.texto || opt.descricao || "",
+            }));
+          }
+        } else if (typeof ro === "object" && ro !== null) {
+          qOptions = Object.entries(ro).map(([k, v]) => ({ key: k, text: String(v) }));
+        }
+
+        const question = {
+          id: index,
+          statement: rawQ.statement || rawQ.text || rawQ.title || rawQ.question || rawQ.enunciado || "Enunciado nao disponivel",
+          correctAnswer: rawQ.answer || rawQ.resposta || rawQ.correctAnswer || rawQ.gabarito || "",
+          explanation: rawQ.explanation || rawQ.feedback || rawQ.explicacao || rawQ.justificativa || "Nenhuma explicacao geral fornecida.",
+          options: qOptions
+        };
+
+        const selectedAnswers: any = { [index]: selectedOptions[index] };
+
         return (
-          <QuestionCard
-            key={idx}
-            question={question}
-            idx={idx}
-            filters={filters}
-            showMobile={showMobile}
-            isAnswered={isAnswered}
-            selectedOption={selectedOption}
-            onSelect={(key: string) => handleSelectOption(idx, key)}
-            onAnswer={() => handleConfirmAnswer(idx)}
-          />
+          <div key={question.id || index} style={{ display: showMobile ? undefined : 'none' }} className="md:!block">
+            {/* INICIO DO BLOCO EXACTO DO USUARIO */}
+            <div key={question.id || index} className="w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8 mb-8 border border-slate-200 dark:border-slate-700 relative z-10">
+              
+              {/* Cabeçalho */}
+              <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
+                <span>Q{index + 1} • INÉDITA (IA) • {filters.materia || "Disciplina"}</span>
+              </div>
+
+              {/* Enunciado */}
+              <p className="text-lg md:text-xl text-slate-900 dark:text-white font-semibold leading-relaxed mb-8">
+                {question.statement}
+              </p>
+
+              {/* Alternativas */}
+              <div className="flex flex-col gap-4">
+                {question.options.map((opt: any) => {
+                  const isSelected = selectedAnswers[question.id] === opt.key;
+                  const isCorrect = question.correctAnswer === opt.key;
+                  
+                  let btnClasses = "w-full text-left p-4 md:p-5 rounded-xl border-2 flex items-start gap-4 transition-all duration-200 ";
+                  let circleClasses = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border text-sm font-bold ";
+                  
+                  if (!isAnswered) {
+                    btnClasses += isSelected ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700";
+                    circleClasses += isSelected ? "border-blue-500 text-blue-700 dark:text-blue-400" : "border-slate-300 dark:border-slate-500 text-slate-700 dark:text-slate-300";
+                  } else {
+                    if (isCorrect) {
+                      btnClasses += "border-green-500 bg-green-50 dark:bg-green-900/20";
+                      circleClasses += "border-green-500 bg-green-500 text-white";
+                    } else if (isSelected && !isCorrect) {
+                      btnClasses += "border-red-500 bg-red-50 dark:bg-red-900/20";
+                      circleClasses += "border-red-500 bg-red-500 text-white";
+                    } else {
+                      btnClasses += "border-slate-200 dark:border-slate-700 opacity-50";
+                      circleClasses += "border-slate-300 dark:border-slate-600 text-slate-500";
+                    }
+                  }
+
+                  return (
+                    <button key={opt.key} onClick={() => handleOptionSelect(question.id, opt.key)} disabled={isAnswered} className={btnClasses}>
+                      <span className={circleClasses}>{opt.key}</span>
+                      <span className="mt-0.5 text-slate-700 dark:text-slate-200 text-base font-medium">{opt.text}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Botão Responder (Oculto após responder) */}
+              {!isAnswered && (
+                <div className="mt-8 flex justify-end">
+                  <button onClick={() => handleAnswerSubmit(question.id)} disabled={!selectedAnswers[question.id]} className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white font-bold rounded-xl transition-colors">
+                    Responder
+                  </button>
+                </div>
+              )}
+
+              {/* Mentor AIVUR (Revelado após responder) */}
+              {isAnswered && (
+                <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-lg mb-4">
+                    <span>🎓 Mentor AIVUR</span>
+                  </div>
+                  <div className="p-5 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl text-slate-800 dark:text-slate-200 leading-relaxed">
+                    {question.explanation}
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* FIM DO BLOCO EXACTO DO USUARIO */}
+          </div>
         );
       })}
 
@@ -256,170 +347,5 @@ export default function WizardStep3() {
         </div>
       )}
     </div>
-  );
-}
-
-/* QuestionCard */
-function QuestionCard({ question, idx, filters, showMobile, isAnswered, selectedOption, onSelect, onAnswer }: any) {
-  const [showExplanation, setShowExplanation] = useState(false);
-  useEffect(() => { if (isAnswered) setShowExplanation(true); }, [isAnswered]);
-
-  const qText     = question.statement || question.text || question.title || question.question || question.enunciado || "Enunciado nao disponivel";
-  const qAnswer   = question.answer || question.resposta || question.resposta_correta || question.correctAnswer || question.correct_option || question.gabarito || "";
-  const qFeedback = question.explanation || question.feedback || question.explicacao || question.justificativa || question.comentario || "Nenhuma explicacao geral fornecida.";
-  const qFonte    = question.fonte || question.source || null;
-  const qOptionExplanations = question.optionExplanations || {};
-
-  let qOptions: any[] = [];
-  const rawOptions = question.options || question.alternativas || question.choices || [];
-
-  if (Array.isArray(rawOptions)) {
-    if (rawOptions.length > 0 && typeof rawOptions[0] === "string") {
-      const letters = ["A", "B", "C", "D", "E"];
-      qOptions = rawOptions.map((text: string, i: number) => ({ key: letters[i] || String(i), text }));
-    } else {
-      qOptions = rawOptions.map((opt: any, i: number) => ({
-        key: opt.key || opt.id || opt.letra || ["A", "B", "C", "D", "E"][i] || String(i),
-        text: opt.text || opt.value || opt.texto || opt.descricao || "",
-      }));
-    }
-  } else if (typeof rawOptions === "object" && rawOptions !== null) {
-    qOptions = Object.entries(rawOptions).map(([k, v]) => ({ key: k, text: String(v) }));
-  }
-
-  return (
-    <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 mb-8 relative z-10 ${showMobile ? "block" : "hidden md:block"}`}>
-
-      {/* CABECALHO */}
-      <div className="text-xs font-bold text-slate-500 uppercase mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
-        Q{idx + 1} &middot; Inedita (IA){filters.materia && filters.materia !== "Todas" ? ` - ${filters.materia}` : ""}
-      </div>
-
-      {/* ENUNCIADO */}
-      <p className="text-lg text-slate-900 dark:text-white font-semibold leading-relaxed mb-8 mt-2">
-        {qText}
-      </p>
-
-      {/* ALTERNATIVAS */}
-      <div className="flex flex-col gap-4">
-        {qOptions.map((opt: any) => (
-          <OptionButton
-            key={opt.key}
-            opt={opt}
-            isSelected={selectedOption === opt.key}
-            isAnswered={isAnswered}
-            correctAnswer={qAnswer}
-            onSelect={() => onSelect(opt.key)}
-          />
-        ))}
-      </div>
-
-      {/* Botao Responder */}
-      {!isAnswered && (
-        <div className="pt-6 mt-4">
-          <button
-            disabled={!selectedOption}
-            onClick={onAnswer}
-            className="w-full md:w-auto px-10 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-slate-700 dark:disabled:text-slate-500 text-white font-bold rounded-xl transition-colors shadow-sm"
-          >
-            Responder
-          </button>
-        </div>
-      )}
-
-      {/* Action bar */}
-      {isAnswered && (
-        <div className="border-t border-slate-100 dark:border-slate-700 pt-4 mt-6">
-          <div className="flex flex-wrap gap-2 text-sm font-medium">
-            <button
-              onClick={() => setShowExplanation((v) => !v)}
-              className={`flex items-center px-3 py-2 rounded-lg transition-colors ${showExplanation ? "text-[#f68b33] bg-orange-50 dark:bg-orange-950/30" : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"}`}
-            >
-              <GraduationCap className="w-5 h-5 mr-2" /> Mentor AIVUR
-            </button>
-            <button onClick={() => alert("Estatisticas: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400">
-              <BarChart2 size={16} /> Estatisticas
-            </button>
-            <button onClick={() => alert("Criar Anotacoes: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400">
-              <Edit3 size={16} /> Criar Anotacoes
-            </button>
-            <button onClick={() => alert("Notificar Erro: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400">
-              <Flag size={16} /> Notificar Erro
-            </button>
-          </div>
-
-          {/* Explicacao expansivel - Mentor AIVUR */}
-          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? "max-h-[3000px] opacity-100 mt-4" : "max-h-0 opacity-0"}`}>
-            <div className="relative p-5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33]" />
-              <h4 className="flex items-center font-bold text-slate-800 dark:text-slate-200 text-sm mb-3 pl-3">
-                <GraduationCap className="w-5 h-5 mr-2 text-[#f68b33]" /> Mentor AIVUR
-              </h4>
-              <div className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap pl-3 mb-4">
-                {qFeedback}
-              </div>
-
-              {Object.keys(qOptionExplanations).length > 0 && (
-                <div className="mt-4 pl-3 space-y-3">
-                  <h5 className="font-semibold text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider mb-2">Analise das Alternativas</h5>
-                  {Object.entries(qOptionExplanations).map(([key, exp]) => {
-                    const isRight = String(key).toLowerCase() === String(qAnswer).toLowerCase();
-                    return (
-                      <div key={key} className={`p-3 rounded-lg text-sm border ${isRight ? "bg-green-50/50 border-green-100 dark:bg-green-900/10 dark:border-green-800/30" : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700"}`}>
-                        <span className={`font-bold mr-2 ${isRight ? "text-green-600" : "text-slate-700 dark:text-slate-300"}`}>{key})</span>
-                        <span className="text-slate-600 dark:text-slate-400">{String(exp)}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {qFonte && (
-                <div className="mt-6 pl-3">
-                  <span className="inline-block px-3 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-500 font-medium">
-                    Fonte: {qFonte}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* OptionButton */
-function OptionButton({ opt, isSelected, isAnswered, correctAnswer, onSelect }: any) {
-  const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
-  const isWrong = isSelected && !isRight;
-
-  let containerClass = "w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-600 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer";
-  if (isAnswered) {
-    if (isRight)      containerClass = "w-full text-left p-4 rounded-xl border-2 border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 flex items-start gap-4 transition-colors cursor-default";
-    else if (isWrong) containerClass = "w-full text-left p-4 rounded-xl border-2 border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-900/20 flex items-start gap-4 transition-colors cursor-default";
-    else              containerClass = "w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 opacity-40 flex items-start gap-4 transition-colors cursor-default";
-  } else if (isSelected) {
-    containerClass = "w-full text-left p-4 rounded-xl border-2 border-[#f68b33] bg-orange-50 dark:bg-orange-950/20 flex items-start gap-4 transition-colors cursor-pointer";
-  }
-
-  let circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 dark:border-slate-500 text-sm font-bold text-slate-700 dark:text-slate-200 transition-all duration-200";
-  if (!isAnswered && isSelected) {
-    circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-[#f68b33] bg-[#f68b33] text-white text-sm font-bold transition-all duration-200";
-  } else if (isAnswered) {
-    if (isRight)      circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-green-500 bg-green-500 text-white text-sm font-bold transition-all duration-200";
-    else if (isWrong) circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-red-500 bg-red-500 text-white text-sm font-bold transition-all duration-200";
-    else              circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 dark:border-slate-500 text-slate-400 text-sm font-bold transition-all duration-200";
-  }
-
-  return (
-    <button className={containerClass} onClick={() => !isAnswered && onSelect()} disabled={isAnswered}>
-      <span className={circleClass}>{opt.key.toUpperCase()}</span>
-      <span className="mt-0.5 text-slate-700 dark:text-slate-200 text-base flex-1">
-        {opt.text}
-      </span>
-      {isAnswered && isRight && <CheckCircle size={22} className="flex-shrink-0 text-green-500 mt-0.5 ml-auto" />}
-      {isAnswered && isWrong && <XCircle size={22} className="flex-shrink-0 text-red-500 mt-0.5 ml-auto" />}
-    </button>
   );
 }

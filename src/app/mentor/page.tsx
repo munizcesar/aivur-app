@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { BookOpen } from "lucide-react";
 import { ALL_COURSES } from "@/data/courses";
 import { useLocalCourses } from "@/hooks/useLocalCourses";
 import styles from "@/components/Mentor/Mentor.module.css";
@@ -23,16 +24,16 @@ export default function MentorPage() {
     return (
       <div 
         key={course.id} 
-        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 flex flex-col relative transition-all hover:shadow-lg group"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex flex-col gap-3 transition-colors hover:border-red-700/50 group"
       >
-        <div className="flex justify-between items-start mb-4">
-          <div className="bg-primary/10 p-3 rounded-lg text-primary text-xl">
-            📚
+        <div className="flex justify-between items-start mb-1">
+          <div className="bg-red-700/10 p-3 rounded-lg flex items-center justify-center">
+            <BookOpen className="w-6 h-6 text-red-700" />
           </div>
           {isLocal && (
             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
-                className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                className="p-2 text-slate-400 hover:text-red-700 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -43,7 +44,7 @@ export default function MentorPage() {
                 ✏️
               </button>
               <button
-                className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -61,13 +62,13 @@ export default function MentorPage() {
           {course.title}
         </h3>
         
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-grow">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-2 flex-grow">
           {subjectCount} matéria{subjectCount !== 1 ? "s" : ""} • {totalItems} tópicos
         </p>
         
         <Link
           href={`/mentor/${course.id}`}
-          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-medium transition-colors text-sm"
+          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-slate-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-red-700 rounded-lg font-bold transition-colors text-sm"
         >
           ▶ Continuar Estudos
         </Link>
@@ -85,7 +86,7 @@ export default function MentorPage() {
         
         <Link 
           href="/mentor/gerar" 
-          className="inline-flex items-center justify-center gap-2 bg-[var(--color-primary)] text-white px-5 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-sm"
+          className="bg-red-700 hover:bg-red-800 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-red-700/20 transition-all flex items-center justify-center gap-2"
         >
           <span className="text-lg leading-none">+</span> Criar Nova Trilha
         </Link>
@@ -110,7 +111,7 @@ export default function MentorPage() {
                 </p>
                 <Link 
                   href="/mentor/gerar" 
-                  className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                  className="bg-red-700 hover:bg-red-800 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-red-700/20 transition-all flex items-center gap-2"
                 >
                   <span className="text-xl leading-none">+</span>
                   Gerar Minha Primeira Trilha

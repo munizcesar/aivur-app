@@ -32,8 +32,8 @@ export default function Dashboard() {
           <div className={styles.pillarsCol}>
             
             {/* CARD 1 - Destaque */}
-            <Link href="/mentor" className={`${styles.pillarCard} ${styles.pillarCardFeatured}`}>
-              <div className={styles.pillarIcon} style={{ background: 'var(--color-primary)', color: 'white' }}>
+            <Link href="/mentor" className={`${styles.pillarCard} ${styles.pillarCardFeatured} border-l-4 border-red-700`}>
+              <div className={`${styles.pillarIcon} bg-red-700 text-white`}>
                 <GraduationCap width={28} height={28} />
               </div>
               <div className={styles.pillarContent}>

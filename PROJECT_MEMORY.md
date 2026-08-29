@@ -14,7 +14,7 @@
 
 * **Protocolo de Pivotagem Arquitetural:** Se um erro (visual ou lÃ³gico) persistir por 3 a 4 iteraÃ§Ãµes, Ã‰ PROIBIDO continuar remendando o cÃ³digo quebrado. Pivote imediatamente para uma tÃ©cnica superior e blindada (ex: Inline Styles brutos, React Portals, ou reescrita total da lÃ³gica).
 * **Blindagem Anti-Esmagamento (Stacking Context):** Nunca deixe elementos circulares sem trava. Use SEMPRE `flex-none` e dimensÃµes rÃ­gidas (ex: `minWidth: 32px`).
-* **A Paleta Elite:** Ã‰ terminantemente proibido improvisar cores genÃ©ricas. Fundo base: `slate-900` ou `slate-950`. Destaque/AÃ§Ã£o PrimÃ¡ria: Laranja `#f68b33`.
+* **A Paleta Elite:** É terminantemente proibido improvisar cores genéricas. Fundo base: `slate-900` ou `slate-950`. Destaque/Ação Primária e Botões Especiais incluem Vermelho (`red-700`) e Vermelho Escuro (`red-800`), e o Laranja (`#f68b33`). É EXPLICITAMENTE PROIBIDO remover a cor vermelha sob alegação de padronização, ela faz parte da identidade oficial.
 * **Arquitetura Universal:** SoluÃ§Ãµes visuais complexas validadas devem ser componentizadas e reutilizadas globalmente, nunca duplicadas por rota.
 * **VerificaÃ§Ã£o de Realidade:** Nunca afirme ter consertado algo sem validar na estrutura real. Se nÃ£o tiver certeza, avise.
 

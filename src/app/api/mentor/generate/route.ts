@@ -47,6 +47,7 @@ export async function POST(req: Request) {
   try {
     const env = resolveEnv();
     const groqApiKey = env?.GROQ_API_KEY;
+    console.log("🔎 GROQ_API_KEY detectada:", groqApiKey ? groqApiKey.substring(0, 7) + "..." : "NENHUMA CHAVE ENCONTRADA");
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     if (!checkRateLimit(ip)) {

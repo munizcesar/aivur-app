@@ -36,7 +36,8 @@ function checkRateLimit(ip: string): boolean {
 export async function POST(req: Request) {
   try {
     const ctx = getRequestContext();
-    const groqApiKey = ctx?.env?.GROQ_API_KEY || process.env.GROQ_API_KEY;
+    const env = ctx?.env as any;
+    const groqApiKey = env?.GROQ_API_KEY || process.env.GROQ_API_KEY;
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     if (!checkRateLimit(ip)) {
@@ -213,7 +214,8 @@ Schema esperado do JSON:
     console.error("Erro na rota de Geração:", error);
     
     const ctx = getRequestContext();
-    const envKeys = Object.keys(ctx?.env || process.env || {});
+    const env = ctx?.env as any;
+    const envKeys = Object.keys(env || process.env || {});
     return NextResponse.json({ 
       error: "Falha interna ao gerar o curso. " + error.message,
       env_keys: envKeys

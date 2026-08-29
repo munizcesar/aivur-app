@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
@@ -164,7 +164,7 @@ export function FullscreenQuestion({
         {answered && (
           <div className="mt-6 p-4 rounded-xl shadow-sm" style={{ backgroundColor: "var(--color-surface)", borderLeft: \4px solid \\ }}>
             <p className="font-bold mb-2 text-sm" style={{ color: selected === question.correta ? "var(--color-success)" : "var(--color-error)" }}>
-              {selected === question.correta ? "? Voc� acertou!" : "? Voc� errou!"}
+              {selected === question.correta ? "✅ Você acertou!" : "❌ Você errou!"}
             </p>
             <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
               {question.justificativa}
@@ -211,7 +211,7 @@ export function FullscreenQuestion({
               color: index < total ? "#FFFFFF" : "var(--color-text-muted)",
             }}
           >
-            {index < total ? "PR�XIMA" : "FINALIZAR"}
+            {index < total ? "PRÓXIMA" : "FINALIZAR"}
           </button>
         )}
 

@@ -143,10 +143,7 @@ export default function WizardStep3() {
   useEffect(() => {
     if (generatedQuestions.length === 0 && !error) {
       fetchQuestions();
-      return () => abortRef.current?.abort();
-    }
-
-    if (generatedQuestions.length > 0) {
+    } else if (generatedQuestions.length > 0) {
       setSelectedOptions((current) =>
         current.length === generatedQuestions.length
           ? current
@@ -234,6 +231,7 @@ export default function WizardStep3() {
       setCurrentQuestionIndex(0);
       setLoading(false);
     } catch (err: any) {
+      if (err.name === "AbortError") return;
       setError(
         err.name === "AbortError"
           ? "Tempo esgotado. O servidor demorou muito para responder."

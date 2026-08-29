@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { Questao } from "@/hooks/useTopicContent";
 
@@ -29,6 +30,11 @@ export function FullscreenQuestion({
 }: FullscreenQuestionProps) {
   const [selected, setSelected] = useState<string | null>(userResponse || null);
   const [answered, setAnswered] = useState(!!userResponse);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setSelected(userResponse || null);
@@ -92,11 +98,10 @@ export function FullscreenQuestion({
     }
   }
 
-  return (
-    <div
-      className="fixed top-0 left-0 w-[100vw] h-[100vh] z-[9999] flex flex-col bg-white dark:bg-slate-900 m-0 p-0 overflow-hidden md:hidden"
-      style={{ backgroundColor: "var(--color-bg)" }}
-    >
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] w-screen h-screen flex flex-col bg-slate-900 overflow-y-auto m-0 p-0">
       <header
         className="flex items-center gap-3 px-4 py-4 shrink-0 shadow-sm"
         style={{ backgroundColor: "var(--color-primary)", color: "#FFFFFF" }}
@@ -224,6 +229,7 @@ export function FullscreenQuestion({
           <ChevronRight size={28} />
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

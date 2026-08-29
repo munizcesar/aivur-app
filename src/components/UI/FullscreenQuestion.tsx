@@ -149,21 +149,12 @@ export function FullscreenQuestion({
         </div>
         
         {answered && (
-          <div className="mt-6 flex flex-col gap-4">
-            <div className={`p-4 rounded-xl shadow-sm bg-slate-800 border-l-4 ${selected === question.correta ? 'border-green-500' : 'border-red-500'}`}>
-              <p className={`font-bold text-sm ${selected === question.correta ? 'text-green-500' : 'text-red-500'}`}>
-                {selected === question.correta ? 'Correto. Você acertou!' : 'Incorreto. Você errou!'}
-              </p>
+          <div className="mt-6 w-full animate-in fade-in duration-300 pb-8">
+            <div className="flex items-center gap-2 text-[#f68b33] font-bold mb-3">
+              🎓 Mentor AIVUR
             </div>
-            
-            <div className="p-5 rounded-xl bg-slate-800/80 border border-slate-700">
-              <h3 className="text-sm font-bold text-blue-400 mb-3 flex items-center gap-2">
-                <span className="bg-blue-500/20 p-1.5 rounded-lg">👨‍🏫</span> 
-                Explicação do Mentor
-              </h3>
-              <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
-                {question.justificativa}
-              </p>
+            <div className="p-4 bg-orange-50 dark:bg-[#f68b33]/10 border border-[#f68b33]/30 rounded-xl text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
+              {question.justificativa || (selected === question.correta ? "Resposta correta!" : `Resposta incorreta. Gabarito: ${question.correta}.`)}
             </div>
           </div>
         )}

@@ -170,13 +170,16 @@ Schema esperado do JSON:
     ];
 
     console.log("🕵️ [Generate Route] Chave presente:", !!groqApiKey, " | Tamanho:", groqApiKey?.length);
-    const messageContent = await callGroqWithFallback(messages, {
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.2,
-      max_tokens: 8000,
-      response_format: { type: "json_object" },
-      apiKey: groqApiKey
-    });
+    const messageContent = await callGroqWithFallback(
+      messages, 
+      {
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.2,
+        max_tokens: 8000,
+        response_format: { type: "json_object" }
+      },
+      groqApiKey
+    );
 
     // 4. Extração de JSON centralizada via ai-protocols (extractCleanJson)
     const jsonString = extractCleanJson(messageContent || "");

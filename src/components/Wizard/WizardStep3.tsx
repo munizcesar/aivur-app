@@ -241,6 +241,7 @@ export default function WizardStep3() {
                 <span className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Q{index + 1} <span className="font-normal mx-2 text-slate-300">|</span> Inédita (IA) <span className="font-normal mx-2 text-slate-300">|</span> {filters.materia || "Disciplina"}
                 </span>
+                <span className="bg-red-600 text-white px-2 py-1 font-bold text-xs">VERSÃO 999 - TESTE DE DOMÍNIO ATIVO</span>
               </div>
 
               <div className="p-6 md:p-8">

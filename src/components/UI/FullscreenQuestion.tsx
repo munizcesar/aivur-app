@@ -125,32 +125,56 @@ export function FullscreenQuestion({
 
         <div className="flex flex-col gap-3">
           {Object.entries(question.alternativas).map(([letra, texto]) => {
-            const state = getOptionState(letra);
+            const opt = { id: letra, text: texto };
+            const state = getOptionState(opt.id);
             
+            let btnClasses = "w-full flex items-start gap-4 p-4 rounded-xl border-2 transition-all duration-200 text-left relative overflow-hidden ";
+            let circleClasses = "flex-none flex items-center justify-center rounded-full text-sm font-bold border-2 ";
+            let textClasses = "text-sm leading-relaxed mt-0.5 ";
+            
+            if (state === 'selected') {
+              btnClasses += "border-blue-500 bg-blue-50 dark:bg-blue-900/20";
+              circleClasses += "bg-blue-500 border-blue-500 text-white";
+              textClasses += "text-blue-900 dark:text-blue-100";
+            } else if (state === 'correct') {
+              btnClasses += "border-green-500 bg-green-50 dark:bg-green-900/10";
+              circleClasses += "bg-green-500 border-green-500 text-white";
+              textClasses += "text-green-900 dark:text-green-100";
+            } else if (state === 'incorrect') {
+              btnClasses += "border-red-500 bg-red-50 dark:bg-red-900/10";
+              circleClasses += "bg-red-500 border-red-500 text-white";
+              textClasses += "text-red-900 dark:text-red-100";
+            } else {
+              btnClasses += "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50";
+              circleClasses += "bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400";
+              textClasses += "text-slate-700 dark:text-slate-200";
+            }
+
+            // Lógica do Swipe (Tesourinha)
+            const isEliminated = eliminated.includes(opt.id);
+            if (isEliminated) {
+              btnClasses += " opacity-60 grayscale";
+              textClasses += " line-through text-slate-400 dark:text-slate-500";
+            }
+
             return (
               <button
-                key={letra}
-                onClick={() => handleSelect(letra)}
+                key={opt.id}
+                onClick={() => { if (!justSwiped) handleSelect(opt.id); }}
                 onTouchStart={handleTouchStart}
-                onTouchEnd={(e) => handleTouchEnd(e, letra)}
+                onTouchEnd={(e) => handleTouchEnd(e, opt.id)}
                 disabled={answered}
-                className={`w-full flex items-start gap-4 p-4 rounded-xl border-2 transition-all duration-200 text-left ${
-                  state === 'selected' ? 'border-blue-500 bg-blue-500/10' :
-                  state === 'correct' ? 'border-green-500 bg-green-500/10' :
-                  state === 'incorrect' ? 'border-red-500 bg-red-500/10' :
-                  'border-slate-800 bg-slate-800 hover:bg-slate-700'
-                } ${eliminated.includes(letra) && state === 'default' ? 'opacity-40' : ''}`}
+                className={btnClasses}
               >
-                <span className={`flex-none w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold border-2 ${
-                  state === 'selected' ? 'bg-blue-500 border-blue-500 text-white' :
-                  state === 'correct' ? 'bg-green-500 border-green-500 text-white' :
-                  state === 'incorrect' ? 'bg-red-500 border-red-500 text-white' :
-                  'bg-slate-900 border-slate-600 text-slate-300'
-                }`}>
-                  {letra}
+                {/* A TRAVA DE TITÂNIO - Força Bruta Inline */}
+                <span 
+                  className={circleClasses} 
+                  style={{ minWidth: '32px', minHeight: '32px', width: '32px', height: '32px', flexShrink: 0 }}
+                >
+                  {opt.id}
                 </span>
-                <span className={`text-sm leading-relaxed mt-0.5 ${eliminated.includes(letra) && state === 'default' ? 'line-through text-slate-500' : 'text-slate-200'}`}>
-                  {texto}
+                <span className={textClasses}>
+                  {opt.text}
                 </span>
               </button>
             );

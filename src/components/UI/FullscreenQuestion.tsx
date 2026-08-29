@@ -38,6 +38,9 @@ export function FullscreenQuestion({
   const [selected, setSelected] = useState<string | null>(userResponse || null);
   const [answered, setAnswered] = useState(!!userResponse);
   const [mounted, setMounted] = useState(false);
+  const [eliminated, setEliminated] = useState<string[]>([]);
+  const [touchStart, setTouchStart] = useState<{x: number, y: number} | null>(null);
+  const [justSwiped, setJustSwiped] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -46,12 +49,30 @@ export function FullscreenQuestion({
   useEffect(() => {
     setSelected(userResponse || null);
     setAnswered(!!userResponse);
+    setEliminated([]);
   }, [question.id, userResponse]);
 
   function handleSelect(optionId: string) {
-    if (answered) return;
+    if (answered || justSwiped) return;
     setSelected(optionId);
   }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent, optId: string) => {
+    if (!touchStart) return;
+    const deltaX = e.changedTouches[0].clientX - touchStart.x;
+    const deltaY = Math.abs(e.changedTouches[0].clientY - touchStart.y);
+
+    if (Math.abs(deltaX) > 40 && deltaY < 30) {
+      setEliminated(prev => prev.includes(optId) ? prev.filter(id => id !== optId) : [...prev, optId]);
+      setJustSwiped(true);
+      setTimeout(() => setJustSwiped(false), 200);
+    }
+    setTouchStart(null);
+  };
 
   function handleSubmit() {
     if (!selected || answered) return;
@@ -101,13 +122,15 @@ export function FullscreenQuestion({
               <button
                 key={letra}
                 onClick={() => handleSelect(letra)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={(e) => handleTouchEnd(e, letra)}
                 disabled={answered}
                 className={`w-full flex items-start gap-4 p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                   state === 'selected' ? 'border-blue-500 bg-blue-500/10' :
                   state === 'correct' ? 'border-green-500 bg-green-500/10' :
                   state === 'incorrect' ? 'border-red-500 bg-red-500/10' :
                   'border-slate-800 bg-slate-800 hover:bg-slate-700'
-                }`}
+                } ${eliminated.includes(letra) && state === 'default' ? 'opacity-40' : ''}`}
               >
                 <span className={`flex-none w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold border-2 ${
                   state === 'selected' ? 'bg-blue-500 border-blue-500 text-white' :
@@ -117,7 +140,7 @@ export function FullscreenQuestion({
                 }`}>
                   {letra}
                 </span>
-                <span className="text-sm leading-relaxed text-slate-200 mt-0.5">
+                <span className={`text-sm leading-relaxed mt-0.5 ${eliminated.includes(letra) && state === 'default' ? 'line-through text-slate-500' : 'text-slate-200'}`}>
                   {texto}
                 </span>
               </button>
@@ -126,13 +149,22 @@ export function FullscreenQuestion({
         </div>
         
         {answered && (
-          <div className={`mt-6 p-4 rounded-xl shadow-sm bg-slate-800 border-l-4 ${selected === question.correta ? 'border-green-500' : 'border-red-500'}`}>
-            <p className={`font-bold mb-2 text-sm ${selected === question.correta ? 'text-green-500' : 'text-red-500'}`}>
-              {selected === question.correta ? 'Correto. Você acertou!' : 'Incorreto. Você errou!'}
-            </p>
-            <p className="text-sm text-slate-300 whitespace-pre-wrap">
-              {question.justificativa}
-            </p>
+          <div className="mt-6 flex flex-col gap-4">
+            <div className={`p-4 rounded-xl shadow-sm bg-slate-800 border-l-4 ${selected === question.correta ? 'border-green-500' : 'border-red-500'}`}>
+              <p className={`font-bold text-sm ${selected === question.correta ? 'text-green-500' : 'text-red-500'}`}>
+                {selected === question.correta ? 'Correto. Você acertou!' : 'Incorreto. Você errou!'}
+              </p>
+            </div>
+            
+            <div className="p-5 rounded-xl bg-slate-800/80 border border-slate-700">
+              <h3 className="text-sm font-bold text-blue-400 mb-3 flex items-center gap-2">
+                <span className="bg-blue-500/20 p-1.5 rounded-lg">👨‍🏫</span> 
+                Explicação do Mentor
+              </h3>
+              <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
+                {question.justificativa}
+              </p>
+            </div>
           </div>
         )}
         

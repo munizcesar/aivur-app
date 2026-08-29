@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState, useRef } from "react";
 // import { createPortal } from "react-dom";
@@ -311,7 +311,7 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
   }
 
   return (
-    <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 md:p-8 my-8 relative z-10 ${showMobile ? "block" : "hidden md:block"}`}>
+    <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 mb-8 relative z-10 ${showMobile ? "block" : "hidden md:block"}`}>
 
       {/* CABEÃ‡ALHO (Metadados) */}
       <div className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
@@ -332,7 +332,7 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
       </p>
 
       {/* ALTERNATIVAS */}
-      <div className="flex flex-col gap-3 mt-6">
+      <div className="flex flex-col gap-4 mt-6">
         {qOptions.map((opt: any) => (
           <OptionButton
             key={opt.key}
@@ -383,8 +383,8 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
           <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? "max-h-[3000px] opacity-100 mt-4" : "max-h-0 opacity-0"}`}>
             <div className="relative p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33]" />
-              <h4 className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200 text-sm mb-3 pl-2">
-                <Brain size={16} className="text-[#f68b33]" /> Mentor AIVUR
+              <h4 className="flex items-center font-bold text-gray-800 dark:text-gray-200 text-sm mb-3 pl-2">
+                <GraduationCap className="w-5 h-5 mr-2" /> Mentor AIVUR
               </h4>
               
               <div className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap pl-2 mb-4">
@@ -432,25 +432,25 @@ function OptionButton({ opt, isSelected, isAnswered, isCorrect, correctAnswer, o
   const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
   const isWrong = isSelected && !isRight;
 
-  let container = "w-full text-left p-4 rounded-xl border flex items-start gap-4 transition-colors ";
+  let container = "w-full text-left p-4 rounded-xl border-2 flex items-start gap-4 transition-colors ";
   if (!isAnswered) {
     container += isSelected
       ? "border-[#f68b33] bg-orange-50 cursor-pointer"
-      : "border-slate-300 dark:border-slate-600 hover:bg-slate-50 cursor-pointer";
+      : "border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer";
   } else {
     // Regra estrita: se respondeu, a correta fica verde. Se errou, a que ele clicou fica vermelha. As demais opacas.
     if (isRight) container += "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 cursor-default";
     else if (isWrong) container += "border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-900/20 cursor-default";
-    else container += "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 opacity-45 cursor-default";
+    else container += "border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 opacity-45 cursor-default";
   }
 
-  let circle = "flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm mt-0.5 transition-all duration-200 ";
+  let circle = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border text-sm font-bold transition-all duration-200 ";
   if (!isAnswered) {
-    circle += isSelected ? "bg-[#f68b33] border-[#f68b33] text-white" : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500";
+    circle += isSelected ? "bg-[#f68b33] border-[#f68b33] text-white" : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-500 text-slate-500";
   } else {
     if (isRight) circle += "bg-green-500 border-green-500 text-white";
     else if (isWrong) circle += "bg-red-500 border-red-500 text-white";
-    else circle += "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400";
+    else circle += "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-500 text-slate-400";
   }
 
   return (

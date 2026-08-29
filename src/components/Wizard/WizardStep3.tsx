@@ -1,11 +1,10 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useRef } from "react";
-// import { createPortal } from "react-dom";
 import { useQuizStore } from "@/store/useQuizStore";
 import {
   AlertTriangle, RefreshCw, ChevronLeft, ChevronRight,
-  CheckCircle, XCircle, Brain, RotateCcw, BookOpen,
+  CheckCircle, XCircle, RotateCcw, BookOpen,
   Filter, BarChart2, Edit3, Flag, GraduationCap,
 } from "lucide-react";
 import styles from "./Wizard.module.css";
@@ -28,14 +27,9 @@ export default function WizardStep3() {
   const [selectedOptions, setSelectedOptions] = useState<(string | null)[]>([]);
   const [results, setResults] = useState<(boolean | null)[]>([]);
   const [showExitModal, setShowExitModal] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
 
-  // Garante que o Portal so monta no client
-  useEffect(() => { setMounted(true); }, []);
-
-  /* History back-button interception */
   useEffect(() => {
     if (!loading && !error && generatedQuestions.length > 0) {
       window.history.pushState({ quizActive: true }, "");
@@ -49,7 +43,6 @@ export default function WizardStep3() {
     }
   }, [loading, error, generatedQuestions]);
 
-  /* Boot */
   useEffect(() => {
     if (generatedQuestions.length === 0 && !error) {
       fetchQuestions();
@@ -60,7 +53,6 @@ export default function WizardStep3() {
     return () => abortRef.current?.abort();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* API call */
   const fetchQuestions = async () => {
     setLoading(true);
     setError(null);
@@ -123,7 +115,6 @@ export default function WizardStep3() {
     }
   };
 
-  /* Helpers */
   const handleBackToStep2 = () => { setGeneratedQuestions([]); setStep(2); };
   const handleSelectOption = (idx: number, key: string) => {
     if (results[idx] !== null) return;
@@ -139,7 +130,6 @@ export default function WizardStep3() {
     setResults(next);
   };
 
-  /* Loading */
   if (loading) {
     return (
       <div className={styles.wizardStep}>
@@ -154,7 +144,6 @@ export default function WizardStep3() {
     );
   }
 
-  /* Error */
   if (error) {
     return (
       <div className={styles.wizardStep}>
@@ -178,10 +167,10 @@ export default function WizardStep3() {
   }
 
   if (!generatedQuestions || generatedQuestions.length === 0) {
-    return <h2 className="text-white text-2xl text-center p-10">ERRO: Nenhuma questÃ£o chegou neste componente. O Array estÃ¡ vazio.</h2>;
+    return <h2 className="text-white text-2xl text-center p-10">ERRO: Nenhuma questao chegou neste componente.</h2>;
   }
 
-  const playerUI = (
+  return (
     <div className="relative w-full max-w-4xl mx-auto pb-32 pt-6 px-4">
       {/* Mobile top bar */}
       <div className="md:hidden sticky top-0 z-[100] w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 flex items-center justify-between px-4 py-3 shadow-sm">
@@ -189,7 +178,7 @@ export default function WizardStep3() {
           <ChevronLeft size={24} />
         </button>
         <span className="font-semibold text-base truncate max-w-[180px]">
-          {mode === "concurso" ? filters.materia || "QuestÃµes" : "QuestÃµes"}
+          {mode === "concurso" ? filters.materia || "Questoes" : "Questoes"}
         </span>
         <button onClick={handleBackToStep2} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
           <Filter size={20} />
@@ -197,11 +186,11 @@ export default function WizardStep3() {
       </div>
 
       {/* Desktop top bar */}
-      <div className="hidden md:flex sticky top-0 z-[100] w-full bg-white border-b border-gray-200 items-center justify-between px-8 py-3 shadow-sm">
-        <span className="font-semibold text-gray-700">
-          {mode === "concurso" ? filters.materia || "QuestÃµes" : "QuestÃµes"}
+      <div className="hidden md:flex sticky top-0 z-[100] w-full bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 items-center justify-between px-8 py-3 shadow-sm">
+        <span className="font-semibold text-gray-700 dark:text-slate-200">
+          {mode === "concurso" ? filters.materia || "Questoes" : "Questoes"}
         </span>
-        <button onClick={handleBackToStep2} className="flex items-center gap-2 text-sm text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors font-medium">
+        <button onClick={handleBackToStep2} className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-colors font-medium">
           <Filter size={16} /> Alterar Filtros
         </button>
       </div>
@@ -210,7 +199,6 @@ export default function WizardStep3() {
       {generatedQuestions.map((question: any, idx: number) => {
         const showMobile = idx === currentIdx;
         const isAnswered = results[idx] !== null;
-        const isCorrect = results[idx] as boolean | null;
         const selectedOption = selectedOptions[idx];
         return (
           <QuestionCard
@@ -220,7 +208,6 @@ export default function WizardStep3() {
             filters={filters}
             showMobile={showMobile}
             isAnswered={isAnswered}
-            isCorrect={isCorrect}
             selectedOption={selectedOption}
             onSelect={(key: string) => handleSelectOption(idx, key)}
             onAnswer={() => handleConfirmAnswer(idx)}
@@ -245,7 +232,7 @@ export default function WizardStep3() {
           onClick={() => setCurrentIdx(Math.min(generatedQuestions.length - 1, currentIdx + 1))}
           className="flex items-center gap-1.5 font-semibold text-gray-600 hover:text-[#f68b33] disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
         >
-          PrÃ³ximo <ChevronRight size={20} />
+          Proximo <ChevronRight size={20} />
         </button>
       </div>
 
@@ -255,14 +242,14 @@ export default function WizardStep3() {
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-2">Sair do Modo Foco?</h3>
             <p className="text-gray-500 mb-6 text-sm leading-relaxed">
-              Seu progresso nesta sessÃ£o serÃ¡ perdido. Deseja sair?
+              Seu progresso nesta sessao sera perdido. Deseja sair?
             </p>
             <div className="flex flex-col gap-3">
               <button onClick={() => setShowExitModal(false)} className="w-full py-3 px-4 bg-[#f68b33] hover:bg-[#e07722] text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
                 <BookOpen size={18} /> Continuar estudando
               </button>
               <button onClick={() => { setShowExitModal(false); handleBackToStep2(); }} className="w-full py-3 px-4 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
-                <RotateCcw size={18} /> Sair e comeÃ§ar novo quiz
+                <RotateCcw size={18} /> Sair e comecar novo quiz
               </button>
             </div>
           </div>
@@ -270,63 +257,46 @@ export default function WizardStep3() {
       )}
     </div>
   );
-
-  return playerUI;
 }
 
 /* QuestionCard */
-function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrect, selectedOption, onSelect, onAnswer }: any) {
+function QuestionCard({ question, idx, filters, showMobile, isAnswered, selectedOption, onSelect, onAnswer }: any) {
   const [showExplanation, setShowExplanation] = useState(false);
   useEffect(() => { if (isAnswered) setShowExplanation(true); }, [isAnswered]);
 
-  // Sincronização robusta com as chaves exatas da IA
-  const qText = question.statement || question.text || question.title || question.question || question.enunciado || "Enunciado não disponível";
-  const qAnswer = question.answer || question.resposta || question.resposta_correta || question.correctAnswer || question.correct_option || question.gabarito || "";
-  const qFeedback = question.explanation || question.feedback || question.explicacao || question.justificativa || question.comentario || "Nenhuma explicação geral fornecida.";
-  const qFonte = question.fonte || question.source || null;
+  const qText     = question.statement || question.text || question.title || question.question || question.enunciado || "Enunciado nao disponivel";
+  const qAnswer   = question.answer || question.resposta || question.resposta_correta || question.correctAnswer || question.correct_option || question.gabarito || "";
+  const qFeedback = question.explanation || question.feedback || question.explicacao || question.justificativa || question.comentario || "Nenhuma explicacao geral fornecida.";
+  const qFonte    = question.fonte || question.source || null;
   const qOptionExplanations = question.optionExplanations || {};
 
   let qOptions: any[] = [];
   const rawOptions = question.options || question.alternativas || question.choices || [];
-  
+
   if (Array.isArray(rawOptions)) {
-    if (rawOptions.length > 0 && typeof rawOptions[0] === 'string') {
+    if (rawOptions.length > 0 && typeof rawOptions[0] === "string") {
       const letters = ["A", "B", "C", "D", "E"];
-      qOptions = rawOptions.map((text: string, i: number) => ({
-        key: letters[i] || String(i),
-        text: text
-      }));
+      qOptions = rawOptions.map((text: string, i: number) => ({ key: letters[i] || String(i), text }));
     } else {
       qOptions = rawOptions.map((opt: any, i: number) => ({
-        key: opt.key || opt.id || opt.letra || ["A","B","C","D","E"][i] || String(i),
-        text: opt.text || opt.value || opt.texto || opt.descricao || ""
+        key: opt.key || opt.id || opt.letra || ["A", "B", "C", "D", "E"][i] || String(i),
+        text: opt.text || opt.value || opt.texto || opt.descricao || "",
       }));
     }
-  } else if (typeof rawOptions === 'object' && rawOptions !== null) {
-    qOptions = Object.entries(rawOptions).map(([k, v]) => ({
-      key: k,
-      text: String(v)
-    }));
+  } else if (typeof rawOptions === "object" && rawOptions !== null) {
+    qOptions = Object.entries(rawOptions).map(([k, v]) => ({ key: k, text: String(v) }));
   }
 
   return (
-    <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 my-8 relative z-10 ${showMobile ? "block" : "hidden md:block"}`}>
+    <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 mb-8 relative z-10 ${showMobile ? "block" : "hidden md:block"}`}>
 
-      {/* CABEÇALHO (Metadados) */}
-      <div className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
-        <span>Q{idx + 1}</span>
-        <span className="w-1 h-1 bg-slate-300 rounded-full" />
-        <span>Inédita (IA)</span>
-        {filters.materia && filters.materia !== "Todas" && (
-          <>
-            <span className="w-1 h-1 bg-slate-300 rounded-full" />
-            <span>{filters.materia}</span>
-          </>
-        )}
+      {/* CABECALHO */}
+      <div className="text-xs font-bold text-slate-500 uppercase mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
+        Q{idx + 1} &middot; Inedita (IA){filters.materia && filters.materia !== "Todas" ? ` - ${filters.materia}` : ""}
       </div>
 
       {/* ENUNCIADO */}
-      <p className="text-lg md:text-xl text-slate-900 dark:text-white font-semibold leading-relaxed mb-6 mt-4">
+      <p className="text-lg text-slate-900 dark:text-white font-semibold leading-relaxed mb-8 mt-2">
         {qText}
       </p>
 
@@ -344,7 +314,7 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
         ))}
       </div>
 
-      {/* Botão Responder */}
+      {/* Botao Responder */}
       {!isAnswered && (
         <div className="pt-6 mt-4">
           <button
@@ -360,57 +330,50 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
       {/* Action bar */}
       {isAnswered && (
         <div className="border-t border-slate-100 dark:border-slate-700 pt-4 mt-6">
-          <div className="flex flex-wrap gap-2 text-sm font-medium text-slate-500">
+          <div className="flex flex-wrap gap-2 text-sm font-medium">
             <button
               onClick={() => setShowExplanation((v) => !v)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${showExplanation ? "text-[#f68b33] bg-orange-50 dark:bg-orange-950/30" : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"}`}
+              className={`flex items-center px-3 py-2 rounded-lg transition-colors ${showExplanation ? "text-[#f68b33] bg-orange-50 dark:bg-orange-950/30" : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"}`}
             >
-              <GraduationCap size={16} /> Mentor AIVUR
+              <GraduationCap className="w-5 h-5 mr-2" /> Mentor AIVUR
             </button>
-            <button onClick={() => alert("Estatísticas: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400">
-              <BarChart2 size={16} /> Estatísticas
+            <button onClick={() => alert("Estatisticas: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400">
+              <BarChart2 size={16} /> Estatisticas
             </button>
-            <button onClick={() => alert("Criar Anotações: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400">
-              <Edit3 size={16} /> Criar Anotações
+            <button onClick={() => alert("Criar Anotacoes: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400">
+              <Edit3 size={16} /> Criar Anotacoes
             </button>
             <button onClick={() => alert("Notificar Erro: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400">
               <Flag size={16} /> Notificar Erro
             </button>
           </div>
 
-          {/* Explicação expansível - Mentor AIVUR */}
+          {/* Explicacao expansivel - Mentor AIVUR */}
           <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? "max-h-[3000px] opacity-100 mt-4" : "max-h-0 opacity-0"}`}>
             <div className="relative p-5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33]" />
               <h4 className="flex items-center font-bold text-slate-800 dark:text-slate-200 text-sm mb-3 pl-3">
                 <GraduationCap className="w-5 h-5 mr-2 text-[#f68b33]" /> Mentor AIVUR
               </h4>
-
               <div className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap pl-3 mb-4">
                 {qFeedback}
               </div>
 
-              {/* Explicações individuais por opção (se houver) */}
               {Object.keys(qOptionExplanations).length > 0 && (
                 <div className="mt-4 pl-3 space-y-3">
-                  <h5 className="font-semibold text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider mb-2">Análise das Alternativas</h5>
+                  <h5 className="font-semibold text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider mb-2">Analise das Alternativas</h5>
                   {Object.entries(qOptionExplanations).map(([key, exp]) => {
                     const isRight = String(key).toLowerCase() === String(qAnswer).toLowerCase();
                     return (
                       <div key={key} className={`p-3 rounded-lg text-sm border ${isRight ? "bg-green-50/50 border-green-100 dark:bg-green-900/10 dark:border-green-800/30" : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700"}`}>
-                        <span className={`font-bold mr-2 ${isRight ? "text-green-600" : "text-slate-700 dark:text-slate-300"}`}>
-                          {key})
-                        </span>
-                        <span className="text-slate-600 dark:text-slate-400">
-                          {String(exp)}
-                        </span>
+                        <span className={`font-bold mr-2 ${isRight ? "text-green-600" : "text-slate-700 dark:text-slate-300"}`}>{key})</span>
+                        <span className="text-slate-600 dark:text-slate-400">{String(exp)}</span>
                       </div>
                     );
                   })}
                 </div>
               )}
 
-              {/* Fonte */}
               {qFonte && (
                 <div className="mt-6 pl-3">
                   <span className="inline-block px-3 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-500 font-medium">
@@ -431,32 +394,28 @@ function OptionButton({ opt, isSelected, isAnswered, correctAnswer, onSelect }: 
   const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
   const isWrong = isSelected && !isRight;
 
-  let containerClass = "w-full text-left p-4 md:p-5 rounded-xl border-2 flex items-start gap-4 transition-all ";
-  if (!isAnswered) {
-    containerClass += isSelected
-      ? "border-[#f68b33] bg-orange-50 dark:bg-orange-950/20 cursor-pointer"
-      : "border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer";
-  } else {
-    if (isRight) containerClass += "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 cursor-default";
-    else if (isWrong) containerClass += "border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-900/20 cursor-default";
-    else containerClass += "border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 opacity-40 cursor-default";
+  let containerClass = "w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-600 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer";
+  if (isAnswered) {
+    if (isRight)      containerClass = "w-full text-left p-4 rounded-xl border-2 border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 flex items-start gap-4 transition-colors cursor-default";
+    else if (isWrong) containerClass = "w-full text-left p-4 rounded-xl border-2 border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-900/20 flex items-start gap-4 transition-colors cursor-default";
+    else              containerClass = "w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 opacity-40 flex items-start gap-4 transition-colors cursor-default";
+  } else if (isSelected) {
+    containerClass = "w-full text-left p-4 rounded-xl border-2 border-[#f68b33] bg-orange-50 dark:bg-orange-950/20 flex items-start gap-4 transition-colors cursor-pointer";
   }
 
-  let circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border text-sm font-bold transition-all duration-200 ";
-  if (!isAnswered) {
-    circleClass += isSelected
-      ? "bg-[#f68b33] border-[#f68b33] text-white"
-      : "border-slate-300 dark:border-slate-500 text-slate-700 dark:text-slate-200";
-  } else {
-    if (isRight) circleClass += "bg-green-500 border-green-500 text-white";
-    else if (isWrong) circleClass += "bg-red-500 border-red-500 text-white";
-    else circleClass += "border-slate-300 dark:border-slate-500 text-slate-400";
+  let circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 dark:border-slate-500 text-sm font-bold text-slate-700 dark:text-slate-200 transition-all duration-200";
+  if (!isAnswered && isSelected) {
+    circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-[#f68b33] bg-[#f68b33] text-white text-sm font-bold transition-all duration-200";
+  } else if (isAnswered) {
+    if (isRight)      circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-green-500 bg-green-500 text-white text-sm font-bold transition-all duration-200";
+    else if (isWrong) circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-red-500 bg-red-500 text-white text-sm font-bold transition-all duration-200";
+    else              circleClass = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 dark:border-slate-500 text-slate-400 text-sm font-bold transition-all duration-200";
   }
 
   return (
     <button className={containerClass} onClick={() => !isAnswered && onSelect()} disabled={isAnswered}>
       <span className={circleClass}>{opt.key.toUpperCase()}</span>
-      <span className="mt-0.5 text-slate-700 dark:text-slate-200 text-base">
+      <span className="mt-0.5 text-slate-700 dark:text-slate-200 text-base flex-1">
         {opt.text}
       </span>
       {isAnswered && isRight && <CheckCircle size={22} className="flex-shrink-0 text-green-500 mt-0.5 ml-auto" />}

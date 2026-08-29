@@ -29,8 +29,8 @@
   max-width: 100%;
 }
 
-/* Accent-line elite-red no topo — linha rígida editorial */
-.wizardCard::before {
+/* Accent-line removida — era a fonte da borda vermelha fantasma */
+/* .wizardCard::before {
   content: '';
   position: absolute;
   top: 0;
@@ -39,7 +39,7 @@
   height: 3px;
   background: var(--elite-red, #C41230);
   border-radius: 0;
-}
+} */
 
 /* Sem blob radial — removido ::after de gradiente */
 

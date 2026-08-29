@@ -103,3 +103,6 @@ A funda√ß√£o do Backend de Intelig√™ncia Artificial usa o padr√£o RAG (Retrieval
 ---
 *√öltima atualiza√ß√£o: 23/08/2026. Regras de Design System (Curadoria Institucional Elite) consolidadas ap√≥s ampla refatora√ß√£o de UI/UX em Landing Page, Wizard, Gerador e Laborat√≥rio de Materiais. Mascote reativo SVG integrado.*
 - **RefatoraÁ„o SeÁ„o de Trilhas** ñ ? CONCLUÕDO. A raiz /mentor foi transformada em um Dashboard organizado e isolado do fluxo de criaÁ„o, corrigindo a UX que enviava o usu·rio direto para /mentor/gerar ao clicar na aba Trilhas. O novo Dashboard usa a Paleta Elite, lista trilhas salvas (oficiais e locais geradas via IndexedDB), e traz um estado vazio elegante.
+
+### ?? DOUTRINA AIVUR
+- **Iconografia Premium (ProibiÁ„o Absoluta de Emojis):** … terminantemente proibido o uso de emojis (ex: ??, ??, ???) como elementos visuais na interface. Utilize SEMPRE a biblioteca `lucide-react` ou Ìcones SVG customizados. O design deve se manter fiel ao padr„o Elite e maduro.

@@ -40,7 +40,6 @@ export default function Header() {
                 width={180} 
                 height={50} 
                 className={styles.logoIcon}
-                priority
               />
             </Link>
           </div>

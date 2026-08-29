@@ -234,7 +234,7 @@ export default function WizardStep3() {
         return (
           <div key={question.id || index} style={{ display: showMobile ? undefined : 'none' }} className="md:!block">
             {/* INICIO DO BLOCO EXACTO DO USUARIO */}
-            <div key={question.id || index} className="w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8 mb-8 border border-slate-200 dark:border-slate-700 relative z-10">
+            <div key={question.id || index} className="w-full bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 mb-6">
               
               {/* Cabeçalho */}
               <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
@@ -242,7 +242,7 @@ export default function WizardStep3() {
               </div>
 
               {/* Enunciado */}
-              <p className="text-lg md:text-xl text-slate-900 dark:text-white font-semibold leading-relaxed mb-8">
+              <p className="text-lg text-slate-900 dark:text-slate-100 font-medium leading-relaxed mb-8">
                 {question.statement}
               </p>
 
@@ -252,11 +252,11 @@ export default function WizardStep3() {
                   const isSelected = selectedAnswers[question.id] === opt.key;
                   const isCorrect = question.correctAnswer === opt.key;
                   
-                  let btnClasses = "w-full text-left p-4 md:p-5 rounded-xl border-2 flex items-start gap-4 transition-all duration-200 ";
+                  let btnClasses = "w-full text-left p-4 mb-3 rounded-lg border flex items-start gap-4 transition-colors ";
                   let circleClasses = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border text-sm font-bold ";
                   
                   if (!isAnswered) {
-                    btnClasses += isSelected ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700";
+                    btnClasses += isSelected ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700";
                     circleClasses += isSelected ? "border-blue-500 text-blue-700 dark:text-blue-400" : "border-slate-300 dark:border-slate-500 text-slate-700 dark:text-slate-300";
                   } else {
                     if (isCorrect) {
@@ -266,7 +266,7 @@ export default function WizardStep3() {
                       btnClasses += "border-red-500 bg-red-50 dark:bg-red-900/20";
                       circleClasses += "border-red-500 bg-red-500 text-white";
                     } else {
-                      btnClasses += "border-slate-200 dark:border-slate-700 opacity-50";
+                      btnClasses += "border-slate-300 dark:border-slate-700 opacity-50";
                       circleClasses += "border-slate-300 dark:border-slate-600 text-slate-500";
                     }
                   }

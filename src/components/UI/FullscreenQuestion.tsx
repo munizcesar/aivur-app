@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -41,6 +41,15 @@ export function FullscreenQuestion({
   const [eliminated, setEliminated] = useState<string[]>([]);
   const [touchStart, setTouchStart] = useState<{x: number, y: number} | null>(null);
   const [justSwiped, setJustSwiped] = useState(false);
+  const actionAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selected && actionAreaRef.current) {
+      setTimeout(() => {
+        actionAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 150);
+    }
+  }, [selected, answered]);
 
   useEffect(() => {
     setMounted(true);
@@ -160,7 +169,7 @@ export function FullscreenQuestion({
         )}
         
         {/* Spacer for bottom bar */}
-        <div className="h-24"></div>
+        <div className="h-24" ref={actionAreaRef}></div>
       </div>
 
       <div className="px-4 py-4 shrink-0 shadow-lg flex items-center justify-between bg-slate-900 border-t border-slate-800">

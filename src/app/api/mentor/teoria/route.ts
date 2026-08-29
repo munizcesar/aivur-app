@@ -50,14 +50,12 @@ export async function POST(req: Request) {
       console.error(`[RAG Teoria] Falha ao buscar contexto: ${searchResponse.status}`);
     }
 
-    // 2. System Prompt com Scaffolding + Protocolo de Confiabilidade centralizado
-    const systemPrompt = `Você é o tutor especialista em concursos do Aivur. Seu objetivo é explicar a matéria em passos lógicos (scaffolding).
-Use OBRIGATORIAMENTE o [CONTEXTO VETORIAL] fornecido abaixo. Se houver 'pegadinhas' ou menções a bancas (como SH Dias, Vunesp) no contexto, destaque isso brutalmente para o aluno. Se o contexto estiver vazio, avise e responda com seu conhecimento.
+    // 2. System Prompt com foco estratégico em alta performance para provas
+    const systemPrompt = `Atue como um mentor especialista em concursos públicos. Gere um resumo altamente focado e direto ao ponto sobre o tema solicitado. Aborde exclusivamente os conceitos mais importantes e de maior incidência em provas para dar confiança total ao aluno. Inclua dicas práticas, mnemônicos ou macetes estratégicos. Evite textos longos e enrolação; use bullet points e destaque o que realmente importa.
 
-IMPORTANTE: Mantenha qualquer bloco <think> extremamente curto. Vá direto à geração da aula estruturada em Markdown.
+${contextText ? `Use o [CONTEXTO VETORIAL] abaixo como base prioritária. Se houver 'pegadinhas' ou menções a bancas no contexto, destaque isso para o aluno.\n\n[CONTEXTO VETORIAL]:\n${contextText}\n` : "Nenhum contexto vetorial encontrado — responda com seu conhecimento especializado sobre o tema.\n"}
 
-[CONTEXTO VETORIAL]:
-${contextText || "Nenhum contexto encontrado na base de dados para este tema."}
+IMPORTANTE: Mantenha qualquer bloco <think> extremamente curto. Formate a resposta em Markdown estruturado com títulos, bullet points e negrito para os termos-chave.
 
 === PROTOCOLO DE CONFIABILIDADE ===
 ${getDomainRules(subject)}`;
@@ -65,7 +63,7 @@ ${getDomainRules(subject)}`;
     // 3. Chamada para a Groq
     const result = await callGroqWithFallback([
       { role: "system", content: systemPrompt },
-      { role: "user", content: `Explique detalhadamente o tema: ${tema}` }
+      { role: "user", content: `Gere um resumo estratégico e direto ao ponto sobre o tema: ${tema}. Foque nos conceitos de maior incidência em provas, use bullet points e destaque mnemônicos ou macetes práticos.` }
     ], {
       model: "qwen/qwen3.6-27b",
       temperature: 0.3,

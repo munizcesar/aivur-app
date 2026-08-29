@@ -6,23 +6,24 @@ import { useCourseContext } from "@/context/CourseContext";
 import { useLocalCourses } from "@/hooks/useLocalCourses";
 import ReactMarkdown from 'react-markdown';
 import { FullscreenQuestion } from "@/components/UI/FullscreenQuestion";
+import { Sparkles, ShieldCheck } from "lucide-react";
 
 export function getDisclaimerAivur(subject: string) {
   const materia = subject?.toLowerCase() || "";
 
   if (materia.includes("português") || materia.includes("portuguesa") || materia.includes("redação")) {
-    return "🛡️ SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Estruturada por IA com base em gramáticas normativas de referência (ex: Cegalla, Bechara) e regras da ABL. Excelente para retenção e revisão, mas valide sempre as minúcias com o edital oficial.";
+    return "SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Estruturada por IA com base em gramáticas normativas de referência (ex: Cegalla, Bechara) e regras da ABL. Excelente para retenção e revisão, mas valide sempre as minúcias com o edital oficial.";
   } 
   
   if (materia.includes("matemática") || materia.includes("raciocínio") || materia.includes("lógico") || materia.includes("rlm")) {
-    return "📐 SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Passo a passo lógico e analítico estruturado por IA. Focado em aplicação direta de fórmulas, teoremas consolidados e nas armadilhas clássicas das bancas.";
+    return "SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Passo a passo lógico e analítico estruturado por IA. Focado em aplicação direta de fórmulas, teoremas consolidados e nas armadilhas clássicas das bancas.";
   }
 
   if (materia.includes("informática") || materia.includes("tecnologia") || materia.includes("computação")) {
-    return "💻 SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Material fundamentado em documentações técnicas oficiais (Windows, Linux, Pacote Office) e cartilhas de Segurança da Informação (ex: CERT.br).";
+    return "SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Material fundamentado em documentações técnicas oficiais (Windows, Linux, Pacote Office) e cartilhas de Segurança da Informação (ex: CERT.br).";
   }
 
-  return "⚖️ SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Conteúdo estruturado por IA especializada com base na legislação oficial, jurisprudência e doutrinas. Utilize como acelerador de estudos, mantendo a leitura da lei seca (Vade Mecum) como validação final.";
+  return "SÍNTESE DE ALTA PERFORMANCE (AIVUR MENTOR): Conteúdo estruturado por IA especializada com base na legislação oficial, jurisprudência e doutrinas. Utilize como acelerador de estudos, mantendo a leitura da lei seca (Vade Mecum) como validação final.";
 }
 
 interface TopicDetailsProps {
@@ -200,29 +201,37 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
         <button 
           className={`${styles.tabBtn} ${activeTab === "teoria" ? styles.tabBtnActive : ""}`}
           onClick={() => setActiveTab("teoria")}
+          style={activeTab === "teoria" ? { color: "#f68b33", borderColor: "#f68b33" } : {}}
         >
-          Teoria + Dicas
+          Resumo + Dicas
         </button>
         <button 
           className={`${styles.tabBtn} ${activeTab === "flashcards" ? styles.tabBtnActive : ""}`}
           onClick={() => setActiveTab("flashcards")}
+          style={activeTab === "flashcards" ? { color: "#f68b33", borderColor: "#f68b33" } : {}}
         >
           Flashcards
         </button>
         <button 
           className={`${styles.tabBtn} ${activeTab === "questoes" ? styles.tabBtnActive : ""}`}
           onClick={() => setActiveTab("questoes")}
+          style={activeTab === "questoes" ? { color: "#f68b33", borderColor: "#f68b33" } : {}}
         >
           Questões
         </button>
       </div>
 
-      {error && <div style={{ color: "red", marginBottom: "1rem" }}>Erro: {error}</div>}
+      {error && (
+        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm mb-4">
+          {error}
+        </div>
+      )}
 
       {/* TEORIA TAB */}
       {activeTab === "teoria" && (
         <div>
-          <div className={styles.aiWarning} style={{ padding: "12px", borderRadius: "8px", backgroundColor: "var(--bg-card)", borderLeft: "4px solid var(--color-primary)" }}>
+          <div className="flex items-start gap-3 p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl text-slate-700 dark:text-slate-300 text-sm leading-relaxed mb-4">
+            <ShieldCheck className="w-5 h-5 text-[#f68b33] mt-0.5 shrink-0" />
             <span><strong>{getDisclaimerAivur(subject)}</strong></span>
           </div>
           
@@ -255,11 +264,12 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
             </div>
           ) : (
             <button 
-              className={styles.generateBtn}
+              className="bg-[#f68b33] hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-orange-500/20 flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => generateTeoria(topicLabel, subject, nicho)}
               disabled={isLoadingTeoria}
             >
-              {isLoadingTeoria ? "Gerando Teoria..." : "Gerar Teoria com IA"}
+              <Sparkles className="w-5 h-5" />
+              {isLoadingTeoria ? "Gerando Resumo..." : "Gerar Resumo + Dicas"}
             </button>
           )}
         </div>

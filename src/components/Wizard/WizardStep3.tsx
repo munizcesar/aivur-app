@@ -687,7 +687,7 @@ function OptionButton({ opt, isSelected, isAnswered, correctAnswer, onSelect }: 
 
   return (
     <button className={container} onClick={() => !isAnswered && onSelect()} disabled={isAnswered}>
-      <span className={circle}>{String(opt.key).toUpperCase()}</span>
+      <span className={circle} style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', flex: 'none' }}>{String(opt.key).toUpperCase()}</span>
       <span className={`flex-1 text-base leading-snug ${isAnswered && (isRight || isWrong) ? "font-semibold text-slate-800 dark:text-slate-100" : "text-[var(--color-text-muted)]"}`}>
         {opt.text}
       </span>

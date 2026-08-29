@@ -234,72 +234,76 @@ export default function WizardStep3() {
         return (
           <div key={question.id || index} style={{ display: showMobile ? undefined : 'none' }} className="md:!block">
             {/* INICIO DO BLOCO EXACTO DO USUARIO */}
-            <div key={question.id || index} className="w-full bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 mb-6">
+            <div key={question.id || index} className="w-full bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 mb-6 overflow-hidden">
               
-              {/* Cabeçalho */}
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
-                <span>Q{index + 1} • INÉDITA (IA) • {filters.materia || "Disciplina"}</span>
+              {/* Cabeçalho Estilo Qconcursos */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                <span className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Q{index + 1} <span className="font-normal mx-2 text-slate-300">|</span> Inédita (IA) <span className="font-normal mx-2 text-slate-300">|</span> {filters.materia || "Disciplina"}
+                </span>
               </div>
 
-              {/* Enunciado */}
-              <p className="text-lg text-slate-900 dark:text-slate-100 font-medium leading-relaxed mb-8">
-                {question.statement}
-              </p>
+              <div className="p-6 md:p-8">
+                {/* Enunciado */}
+                <p className="text-base md:text-lg text-slate-800 dark:text-slate-100 font-medium leading-relaxed mb-8">
+                  {question.statement}
+                </p>
 
-              {/* Alternativas */}
-              <div className="flex flex-col gap-4">
-                {question.options.map((opt: any) => {
-                  const isSelected = selectedAnswers[question.id] === opt.key;
-                  const isCorrect = question.correctAnswer === opt.key;
-                  
-                  let btnClasses = "w-full text-left p-4 mb-3 rounded-lg border flex items-start gap-4 transition-colors ";
-                  let circleClasses = "shrink-0 flex items-center justify-center w-8 h-8 rounded-full border text-sm font-bold ";
-                  
-                  if (!isAnswered) {
-                    btnClasses += isSelected ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700";
-                    circleClasses += isSelected ? "border-blue-500 text-blue-700 dark:text-blue-400" : "border-slate-300 dark:border-slate-500 text-slate-700 dark:text-slate-300";
-                  } else {
-                    if (isCorrect) {
-                      btnClasses += "border-green-500 bg-green-50 dark:bg-green-900/20";
-                      circleClasses += "border-green-500 bg-green-500 text-white";
-                    } else if (isSelected && !isCorrect) {
-                      btnClasses += "border-red-500 bg-red-50 dark:bg-red-900/20";
-                      circleClasses += "border-red-500 bg-red-500 text-white";
+                {/* Alternativas */}
+                <div className="flex flex-col gap-3">
+                  {question.options.map((opt: any) => {
+                    const isSelected = selectedAnswers[question.id] === opt.key;
+                    const isCorrect = question.correctAnswer === opt.key;
+                    
+                    // Lógica visual com Paleta AIVUR (#f68b33) e flex-none blindado
+                    let btnClass = "group flex flex-row items-start w-full text-left p-3 md:p-4 rounded-lg border transition-colors ";
+                    let circleClass = "flex-none flex items-center justify-center w-8 h-8 rounded-full border text-sm font-bold mr-4 mt-0.5 ";
+                    
+                    if (!isAnswered) {
+                      btnClass += isSelected ? "border-[#f68b33] bg-orange-50 dark:bg-[#f68b33]/10" : "border-transparent hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50";
+                      circleClass += isSelected ? "border-[#f68b33] text-[#f68b33] bg-white dark:bg-slate-800" : "border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 group-hover:border-slate-400";
                     } else {
-                      btnClasses += "border-slate-300 dark:border-slate-700 opacity-50";
-                      circleClasses += "border-slate-300 dark:border-slate-600 text-slate-500";
+                      if (isCorrect) {
+                        btnClass += "border-green-500 bg-green-50 dark:bg-green-900/10";
+                        circleClass += "border-green-500 bg-green-500 text-white";
+                      } else if (isSelected && !isCorrect) {
+                        btnClass += "border-red-500 bg-red-50 dark:bg-red-900/10";
+                        circleClass += "border-red-500 bg-red-500 text-white";
+                      } else {
+                        btnClass += "border-transparent opacity-60";
+                        circleClass += "border-slate-300 dark:border-slate-700 text-slate-400";
+                      }
                     }
-                  }
 
-                  return (
-                    <button key={opt.key} onClick={() => handleOptionSelect(question.id, opt.key)} disabled={isAnswered} className={btnClasses}>
-                      <span className={circleClasses}>{opt.key}</span>
-                      <span className="mt-0.5 text-slate-700 dark:text-slate-200 text-base font-medium">{opt.text}</span>
-                    </button>
-                  );
-                })}
+                    return (
+                      <button key={opt.key} onClick={() => handleOptionSelect(question.id, opt.key)} disabled={isAnswered} className={btnClass}>
+                        <div className={circleClass}>{opt.key}</div>
+                        <div className="text-slate-700 dark:text-slate-200 text-sm md:text-base leading-relaxed">{opt.text}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Action Bar / Responder / Mentor */}
+                <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-700">
+                  {!isAnswered ? (
+                    <div className="flex justify-end">
+                      <button onClick={() => handleAnswerSubmit(question.id)} disabled={!selectedAnswers[question.id]} className="px-6 py-2.5 bg-[#f68b33] hover:bg-orange-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white font-bold rounded-lg transition-colors">
+                        Responder
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-full animate-in fade-in duration-300">
+                      <div className="flex items-center gap-2 text-[#f68b33] font-bold mb-3">
+                        🎓 Mentor AIVUR
+                      </div>
+                      <div className="p-4 bg-orange-50 dark:bg-[#f68b33]/10 border border-[#f68b33]/30 rounded-lg text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed">
+                        {question.explanation}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-
-              {/* Botão Responder (Oculto após responder) */}
-              {!isAnswered && (
-                <div className="mt-8 flex justify-end">
-                  <button onClick={() => handleAnswerSubmit(question.id)} disabled={!selectedAnswers[question.id]} className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white font-bold rounded-xl transition-colors">
-                    Responder
-                  </button>
-                </div>
-              )}
-
-              {/* Mentor AIVUR (Revelado após responder) */}
-              {isAnswered && (
-                <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-4 duration-500">
-                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-lg mb-4">
-                    <span>🎓 Mentor AIVUR</span>
-                  </div>
-                  <div className="p-5 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl text-slate-800 dark:text-slate-200 leading-relaxed">
-                    {question.explanation}
-                  </div>
-                </div>
-              )}
             </div>
             {/* FIM DO BLOCO EXACTO DO USUARIO */}
           </div>

@@ -1,18 +1,104 @@
-﻿"use client";
+"use client";
 
-import React, { useEffect, useState, useRef } from "react";
-// import { createPortal } from "react-dom";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuizStore } from "@/store/useQuizStore";
 import {
-  AlertTriangle, RefreshCw, ChevronLeft, ChevronRight,
-  CheckCircle, XCircle, Brain, RotateCcw, BookOpen,
-  Filter, BarChart2, Edit3, Flag, GraduationCap,
+  AlertTriangle,
+  BarChart2,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  Edit3,
+  Flag,
+  GraduationCap,
+  RefreshCw,
+  RotateCcw,
+  XCircle,
+  Brain,
+  Filter,
 } from "lucide-react";
 import styles from "./Wizard.module.css";
 
 const WORKER_URL =
   process.env.NEXT_PUBLIC_WORKER_URL ||
   "https://aivur-worker.cesarmuniz0816.workers.dev";
+
+type QuestionOption = {
+  key: string;
+  text: string;
+};
+
+type NormalizedQuestion = {
+  qText: string;
+  qAnswer: string;
+  qFeedback: string;
+  qFonte: string | null;
+  qOptionExplanations: Record<string, string>;
+  qOptions: QuestionOption[];
+};
+
+function normalizeQuestion(question: any): NormalizedQuestion {
+  const qText =
+    question.statement ||
+    question.text ||
+    question.title ||
+    question.question ||
+    question.enunciado ||
+    "Enunciado nao disponivel";
+
+  const qAnswer =
+    question.answer ||
+    question.resposta ||
+    question.resposta_correta ||
+    question.correctAnswer ||
+    question.correct_option ||
+    question.gabarito ||
+    "";
+
+  const qFeedback =
+    question.explanation ||
+    question.feedback ||
+    question.explicacao ||
+    question.justificativa ||
+    question.comentario ||
+    "Nenhuma explicacao geral fornecida.";
+
+  const qFonte = question.fonte || question.source || null;
+  const qOptionExplanations = (question.optionExplanations || {}) as Record<string, string>;
+
+  let qOptions: QuestionOption[] = [];
+  const rawOptions = question.options || question.alternativas || question.choices || [];
+
+  if (Array.isArray(rawOptions)) {
+    if (rawOptions.length > 0 && typeof rawOptions[0] === "string") {
+      const letters = ["A", "B", "C", "D", "E"];
+      qOptions = rawOptions.map((text: string, i: number) => ({
+        key: letters[i] || String(i),
+        text,
+      }));
+    } else {
+      qOptions = rawOptions.map((opt: any, i: number) => ({
+        key: opt.key || opt.id || opt.letra || ["A", "B", "C", "D", "E"][i] || String(i),
+        text: opt.text || opt.value || opt.texto || opt.descricao || "",
+      }));
+    }
+  } else if (typeof rawOptions === "object" && rawOptions !== null) {
+    qOptions = Object.entries(rawOptions).map(([k, v]) => ({
+      key: k,
+      text: String(v),
+    }));
+  }
+
+  return {
+    qText,
+    qAnswer,
+    qFeedback,
+    qFonte,
+    qOptionExplanations,
+    qOptions,
+  };
+}
 
 export default function WizardStep3() {
   const mode = useQuizStore((s) => s.mode);
@@ -24,18 +110,23 @@ export default function WizardStep3() {
 
   const [loading, setLoading] = useState(!generatedQuestions.length);
   const [error, setError] = useState<string | null>(null);
-  const [currentIdx, setCurrentIdx] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<(string | null)[]>([]);
   const [results, setResults] = useState<(boolean | null)[]>([]);
+  const [expandedResolutions, setExpandedResolutions] = useState<boolean[]>([]);
   const [showExitModal, setShowExitModal] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
 
-  // Garante que o Portal so monta no client
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 768px)");
+    const sync = () => setIsDesktop(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
-  /* History back-button interception */
   useEffect(() => {
     if (!loading && !error && generatedQuestions.length > 0) {
       window.history.pushState({ quizActive: true }, "");
@@ -49,18 +140,37 @@ export default function WizardStep3() {
     }
   }, [loading, error, generatedQuestions]);
 
-  /* Boot */
   useEffect(() => {
     if (generatedQuestions.length === 0 && !error) {
       fetchQuestions();
-    } else if (selectedOptions.length === 0) {
-      setSelectedOptions(new Array(generatedQuestions.length).fill(null));
-      setResults(new Array(generatedQuestions.length).fill(null));
+      return () => abortRef.current?.abort();
     }
-    return () => abortRef.current?.abort();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* API call */
+    if (generatedQuestions.length > 0) {
+      setSelectedOptions((current) =>
+        current.length === generatedQuestions.length
+          ? current
+          : new Array(generatedQuestions.length).fill(null)
+      );
+      setResults((current) =>
+        current.length === generatedQuestions.length
+          ? current
+          : new Array(generatedQuestions.length).fill(null)
+      );
+      setExpandedResolutions((current) =>
+        current.length === generatedQuestions.length
+          ? current
+          : new Array(generatedQuestions.length).fill(false)
+      );
+      setCurrentQuestionIndex((current) =>
+        Math.min(current, Math.max(0, generatedQuestions.length - 1))
+      );
+    }
+
+    return () => abortRef.current?.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const fetchQuestions = async () => {
     setLoading(true);
     setError(null);
@@ -98,20 +208,30 @@ export default function WizardStep3() {
       });
 
       let rawText = "";
-      try { rawText = await res.text(); } catch { throw new Error("Falha ao ler resposta da rede."); }
+      try {
+        rawText = await res.text();
+      } catch {
+        throw new Error("Falha ao ler resposta da rede.");
+      }
 
       let data: any;
-      try { data = JSON.parse(rawText); } catch { throw new Error(`[JSON_PARSE_ERROR]: ${rawText.substring(0, 150)}`); }
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error(`[JSON_PARSE_ERROR]: ${rawText.substring(0, 150)}`);
+      }
 
       if (!res.ok) throw new Error(data?.error || data?.userMessage || `Erro HTTP ${res.status}`);
       if (data?.success === false) throw new Error(data?.error || data?.userMessage || "Falha ao processar requisicao.");
-      if (!Array.isArray(data?.questions) || data.questions.length === 0)
+      if (!Array.isArray(data?.questions) || data.questions.length === 0) {
         throw new Error(data?.userMessage || "O formato da resposta nao e valido ou nenhuma questao foi retornada.");
+      }
 
       setGeneratedQuestions(data.questions);
       setSelectedOptions(new Array(data.questions.length).fill(null));
       setResults(new Array(data.questions.length).fill(null));
-      setCurrentIdx(0);
+      setExpandedResolutions(new Array(data.questions.length).fill(false));
+      setCurrentQuestionIndex(0);
       setLoading(false);
     } catch (err: any) {
       setError(
@@ -123,23 +243,55 @@ export default function WizardStep3() {
     }
   };
 
-  /* Helpers */
-  const handleBackToStep2 = () => { setGeneratedQuestions([]); setStep(2); };
+  const handleBackToStep2 = () => {
+    setGeneratedQuestions([]);
+    setStep(2);
+  };
+
   const handleSelectOption = (idx: number, key: string) => {
     if (results[idx] !== null) return;
-    const next = [...selectedOptions];
-    next[idx] = key;
-    setSelectedOptions(next);
+    setSelectedOptions((current) => {
+      const next = [...current];
+      next[idx] = key;
+      return next;
+    });
   };
+
   const handleConfirmAnswer = (idx: number) => {
     const selected = selectedOptions[idx];
     if (!selected) return;
-    const next = [...results];
-    next[idx] = selected === generatedQuestions[idx].answer;
-    setResults(next);
+
+    const isCorrect = selected === normalizeQuestion(generatedQuestions[idx]).qAnswer;
+
+    setResults((current) => {
+      const next = [...current];
+      next[idx] = isCorrect;
+      return next;
+    });
+
+    setExpandedResolutions((current) => {
+      const next = [...current];
+      next[idx] = true;
+      return next;
+    });
   };
 
-  /* Loading */
+  const handleToggleResolution = (idx: number) => {
+    if (results[idx] === null) return;
+    setExpandedResolutions((current) => {
+      const next = [...current];
+      next[idx] = !next[idx];
+      return next;
+    });
+  };
+
+  const handleQuestionNav = (delta: number) => {
+    setCurrentQuestionIndex((current) => {
+      const next = current + delta;
+      return Math.max(0, Math.min(generatedQuestions.length - 1, next));
+    });
+  };
+
   if (loading) {
     return (
       <div className={styles.wizardStep}>
@@ -154,18 +306,30 @@ export default function WizardStep3() {
     );
   }
 
-  /* Error */
   if (error) {
     return (
       <div className={styles.wizardStep}>
-        <div style={{ padding: "var(--space-8)", background: "rgba(251,235,208,0.03)", border: "1px solid rgba(196,18,48,0.3)", borderRadius: "2px", textAlign: "center", boxShadow: "4px 4px 0 rgba(107,0,0,0.25)" }}>
+        <div
+          style={{
+            padding: "var(--space-8)",
+            background: "rgba(251,235,208,0.03)",
+            border: "1px solid rgba(196,18,48,0.3)",
+            borderRadius: "2px",
+            textAlign: "center",
+            boxShadow: "4px 4px 0 rgba(107,0,0,0.25)",
+          }}
+        >
           <div style={{ marginBottom: "var(--space-3)", color: "var(--elite-red)", display: "flex", justifyContent: "center" }}>
             <AlertTriangle width={48} height={48} />
           </div>
           <h3 style={{ marginBottom: "var(--space-2)", color: "var(--elite-cream)" }}>Ops! Geracao Interrompida</h3>
           <p style={{ color: "var(--elite-grayblue)", fontSize: "1.05rem", marginBottom: "24px" }}>{error}</p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button className="btn btn-secondary" style={{ borderRadius: "2px", border: "1px solid rgba(107,153,179,0.25)", background: "transparent", color: "var(--elite-grayblue)" }} onClick={handleBackToStep2}>
+            <button
+              className="btn btn-secondary"
+              style={{ borderRadius: "2px", border: "1px solid rgba(107,153,179,0.25)", background: "transparent", color: "var(--elite-grayblue)" }}
+              onClick={handleBackToStep2}
+            >
               Voltar aos Filtros
             </button>
             <button className={styles.qfResolverBtn} style={{ padding: "12px 24px", fontSize: "0.95rem" }} onClick={fetchQuestions}>
@@ -178,91 +342,132 @@ export default function WizardStep3() {
   }
 
   if (!generatedQuestions || generatedQuestions.length === 0) {
-    return <h2 className="text-white text-2xl text-center p-10">ERRO: Nenhuma questÃ£o chegou neste componente. O Array estÃ¡ vazio.</h2>;
+    return <h2 className="text-white text-2xl text-center p-10">ERRO: Nenhuma questao chegou neste componente. O Array esta vazio.</h2>;
   }
 
-  const playerUI = (
-    <div className="relative w-full max-w-4xl mx-auto pb-32 pt-6 px-4">
-      {/* Mobile top bar */}
-      <div className="md:hidden sticky top-0 z-[100] w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 flex items-center justify-between px-4 py-3 shadow-sm">
-        <button onClick={() => setShowExitModal(true)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-          <ChevronLeft size={24} />
-        </button>
-        <span className="font-semibold text-base truncate max-w-[180px]">
-          {mode === "concurso" ? filters.materia || "QuestÃµes" : "QuestÃµes"}
-        </span>
-        <button onClick={handleBackToStep2} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-          <Filter size={20} />
-        </button>
-      </div>
+  const activeQuestionIndex = Math.max(0, Math.min(currentQuestionIndex, generatedQuestions.length - 1));
+  const activeQuestion = generatedQuestions[activeQuestionIndex];
 
-      {/* Desktop top bar */}
-      <div className="hidden md:flex sticky top-0 z-[100] w-full bg-white border-b border-gray-200 items-center justify-between px-8 py-3 shadow-sm">
-        <span className="font-semibold text-gray-700">
-          {mode === "concurso" ? filters.materia || "QuestÃµes" : "QuestÃµes"}
-        </span>
-        <button onClick={handleBackToStep2} className="flex items-center gap-2 text-sm text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors font-medium">
-          <Filter size={16} /> Alterar Filtros
-        </button>
-      </div>
-
-      {/* Questions list */}
-      {generatedQuestions.map((question: any, idx: number) => {
-        const showMobile = idx === currentIdx;
-        const isAnswered = results[idx] !== null;
-        const isCorrect = results[idx] as boolean | null;
-        const selectedOption = selectedOptions[idx];
-        return (
-          <QuestionCard
-            key={idx}
-            question={question}
-            idx={idx}
-            filters={filters}
-            showMobile={showMobile}
-            isAnswered={isAnswered}
-            isCorrect={isCorrect}
-            selectedOption={selectedOption}
-            onSelect={(key: string) => handleSelectOption(idx, key)}
-            onAnswer={() => handleConfirmAnswer(idx)}
-          />
-        );
-      })}
-
-      {/* Mobile bottom bar */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 z-[99999] flex justify-between items-center shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] md:hidden">
-        <button
-          disabled={currentIdx === 0}
-          onClick={() => setCurrentIdx(Math.max(0, currentIdx - 1))}
-          className="flex items-center gap-1.5 font-semibold text-gray-600 hover:text-[#f68b33] disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronLeft size={20} /> Anterior
-        </button>
-        <div className="text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-200 px-4 py-1.5 rounded-full">
-          {currentIdx + 1} / {generatedQuestions.length}
+  return (
+    <div className="relative w-full max-w-6xl mx-auto px-4 md:px-6 py-5 md:py-8 pb-40 md:pb-12">
+      <div className="mb-6 md:mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[rgba(107,153,179,0.8)]">
+            Caderno de questoes
+          </p>
+          <h2 className="text-2xl md:text-4xl font-black tracking-tight text-[var(--elite-cream)]">
+            {mode === "concurso" ? filters.materia || "Questoes" : "Questoes"}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm md:text-base leading-relaxed text-[rgba(107,153,179,0.92)]">
+            Responda primeiro, confira a resolucao depois e navegue com fluidez entre desktop e mobile.
+          </p>
         </div>
+
         <button
-          disabled={currentIdx === generatedQuestions.length - 1}
-          onClick={() => setCurrentIdx(Math.min(generatedQuestions.length - 1, currentIdx + 1))}
-          className="flex items-center gap-1.5 font-semibold text-gray-600 hover:text-[#f68b33] disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+          onClick={handleBackToStep2}
+          className="inline-flex items-center gap-2 rounded-[8px] border border-[rgba(107,153,179,0.22)] bg-[rgba(251,235,208,0.03)] px-4 py-2 text-sm font-semibold text-[var(--elite-cream)] transition-colors hover:border-[rgba(196,18,48,0.45)] hover:bg-[rgba(196,18,48,0.08)]"
         >
-          PrÃ³ximo <ChevronRight size={20} />
+          <Filter size={16} />
+          Alterar filtros
         </button>
       </div>
 
-      {/* Exit modal */}
+      {!isDesktop ? (
+        <>
+          <div className="mb-4 flex items-center justify-between rounded-[8px] border border-[rgba(107,153,179,0.18)] bg-[rgba(251,235,208,0.03)] px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[rgba(107,153,179,0.85)]">
+            <span>Questao ativa</span>
+            <span>
+              {activeQuestionIndex + 1} de {generatedQuestions.length}
+            </span>
+          </div>
+
+          <QuestionCard
+            question={activeQuestion}
+            idx={activeQuestionIndex}
+            filters={filters}
+            compact
+            isAnswered={results[activeQuestionIndex] !== null}
+            isCorrect={results[activeQuestionIndex]}
+            selectedOption={selectedOptions[activeQuestionIndex]}
+            isResolutionOpen={expandedResolutions[activeQuestionIndex]}
+            onSelect={(key: string) => handleSelectOption(activeQuestionIndex, key)}
+            onAnswer={() => handleConfirmAnswer(activeQuestionIndex)}
+            onToggleResolution={() => handleToggleResolution(activeQuestionIndex)}
+          />
+
+          <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-[rgba(107,153,179,0.2)] bg-white/98 px-4 py-3 shadow-[0_-10px_28px_rgba(0,0,0,0.12)] backdrop-blur md:hidden">
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+              <button
+                disabled={activeQuestionIndex === 0}
+                onClick={() => handleQuestionNav(-1)}
+                className="inline-flex min-w-[88px] items-center justify-center gap-1.5 rounded-[8px] border border-[rgba(107,153,179,0.18)] px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-[rgba(196,18,48,0.35)] hover:text-[var(--elite-red)] disabled:cursor-not-allowed disabled:text-slate-300"
+              >
+                <ChevronLeft size={18} />
+                Anterior
+              </button>
+
+              <div className="flex flex-1 items-center justify-center">
+                <div className="rounded-[8px] border border-[rgba(107,153,179,0.18)] bg-[rgba(10,46,69,0.04)] px-4 py-2 text-sm font-semibold text-slate-700">
+                  Questao {activeQuestionIndex + 1} de {generatedQuestions.length}
+                </div>
+              </div>
+
+              <button
+                disabled={activeQuestionIndex === generatedQuestions.length - 1}
+                onClick={() => handleQuestionNav(1)}
+                className="inline-flex min-w-[88px] items-center justify-center gap-1.5 rounded-[8px] border border-[rgba(107,153,179,0.18)] px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-[rgba(196,18,48,0.35)] hover:text-[var(--elite-red)] disabled:cursor-not-allowed disabled:text-slate-300"
+              >
+                Proximo
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="space-y-6">
+          {generatedQuestions.map((question: any, idx: number) => (
+            <QuestionCard
+              key={idx}
+              question={question}
+              idx={idx}
+              filters={filters}
+              compact={false}
+              isAnswered={results[idx] !== null}
+              isCorrect={results[idx]}
+              selectedOption={selectedOptions[idx]}
+              isResolutionOpen={expandedResolutions[idx]}
+              onSelect={(key: string) => handleSelectOption(idx, key)}
+              onAnswer={() => handleConfirmAnswer(idx)}
+              onToggleResolution={() => handleToggleResolution(idx)}
+            />
+          ))}
+        </div>
+      )}
+
       {showExitModal && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Sair do Modo Foco?</h3>
-            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
-              Seu progresso nesta sessÃ£o serÃ¡ perdido. Deseja sair?
+          <div className="w-full max-w-sm rounded-[8px] bg-[var(--elite-navy)] p-6 shadow-[4px_4px_0_rgba(107,0,0,0.3)] border border-[rgba(107,153,179,0.18)]">
+            <h3 className="mb-2 text-xl font-bold text-[var(--elite-cream)]">Sair do modo foco?</h3>
+            <p className="mb-6 text-sm leading-relaxed text-[rgba(107,153,179,0.92)]">
+              Seu progresso nesta sessao sera perdido. Deseja sair?
             </p>
             <div className="flex flex-col gap-3">
-              <button onClick={() => setShowExitModal(false)} className="w-full py-3 px-4 bg-[#f68b33] hover:bg-[#e07722] text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
-                <BookOpen size={18} /> Continuar estudando
+              <button
+                onClick={() => setShowExitModal(false)}
+                className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-[var(--elite-red)] px-4 py-3 font-bold text-[var(--elite-cream)] shadow-[4px_4px_0_var(--elite-wine)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5"
+              >
+                <BookOpen size={18} />
+                Continuar estudando
               </button>
-              <button onClick={() => { setShowExitModal(false); handleBackToStep2(); }} className="w-full py-3 px-4 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
-                <RotateCcw size={18} /> Sair e comeÃ§ar novo quiz
+              <button
+                onClick={() => {
+                  setShowExitModal(false);
+                  handleBackToStep2();
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-[rgba(107,153,179,0.22)] bg-transparent px-4 py-3 font-bold text-[rgba(107,153,179,0.95)] transition-colors hover:bg-[rgba(107,153,179,0.08)] hover:text-[var(--elite-cream)]"
+              >
+                <RotateCcw size={18} />
+                Sair e comecar novo quiz
               </button>
             </div>
           </div>
@@ -270,152 +475,171 @@ export default function WizardStep3() {
       )}
     </div>
   );
-
-  return playerUI;
 }
 
+function QuestionCard({
+  question,
+  idx,
+  filters,
+  compact,
+  isAnswered,
+  isCorrect,
+  selectedOption,
+  isResolutionOpen,
+  onSelect,
+  onAnswer,
+  onToggleResolution,
+}: any) {
+  const data = normalizeQuestion(question);
 
-/* QuestionCard */
-function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrect, selectedOption, onSelect, onAnswer }: any) {
-  const [showExplanation, setShowExplanation] = useState(false);
-  useEffect(() => { if (isAnswered) setShowExplanation(true); }, [isAnswered]);
-
-  // SincronizaÃ§Ã£o robusta com as chaves exatas da IA
-  const qText = question.statement || question.text || question.title || question.question || question.enunciado || "Enunciado nÃ£o disponÃ­vel";
-  const qAnswer = question.answer || question.resposta || question.resposta_correta || question.correctAnswer || question.correct_option || question.gabarito || "";
-  const qFeedback = question.explanation || question.feedback || question.explicacao || question.justificativa || question.comentario || "Nenhuma explicaÃ§Ã£o geral fornecida.";
-  const qFonte = question.fonte || question.source || null;
-  const qOptionExplanations = question.optionExplanations || {};
-
-  let qOptions: any[] = [];
-  const rawOptions = question.options || question.alternativas || question.choices || [];
-  
-  if (Array.isArray(rawOptions)) {
-    if (rawOptions.length > 0 && typeof rawOptions[0] === 'string') {
-      const letters = ["A", "B", "C", "D", "E"];
-      qOptions = rawOptions.map((text: string, i: number) => ({
-        key: letters[i] || String(i),
-        text: text
-      }));
-    } else {
-      qOptions = rawOptions.map((opt: any, i: number) => ({
-        key: opt.key || opt.id || opt.letra || ["A","B","C","D","E"][i] || String(i),
-        text: opt.text || opt.value || opt.texto || opt.descricao || ""
-      }));
-    }
-  } else if (typeof rawOptions === 'object' && rawOptions !== null) {
-    qOptions = Object.entries(rawOptions).map(([k, v]) => ({
-      key: k,
-      text: String(v)
-    }));
-  }
+  const baseCardClasses = compact
+    ? "w-full rounded-[10px] border border-[rgba(107,153,179,0.18)] bg-[rgba(251,235,208,0.04)] px-4 py-5 shadow-[4px_4px_0_rgba(107,0,0,0.2)] md:px-6 md:py-7"
+    : "w-full rounded-[10px] border border-[rgba(107,153,179,0.18)] bg-[rgba(251,235,208,0.04)] px-5 py-6 shadow-[4px_4px_0_rgba(107,0,0,0.2)] md:px-8 md:py-8";
 
   return (
-    <div className={`w-full max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 md:p-8 my-8 relative z-10 ${showMobile ? "block" : "hidden md:block"}`}>
-
-      {/* CABEÃ‡ALHO (Metadados) */}
-      <div className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
-        <span>Q{idx + 1}</span>
-        <span className="w-1 h-1 bg-slate-300 rounded-full" />
-        <span>InÃ©dita (IA)</span>
+    <article className={baseCardClasses}>
+      <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[rgba(107,153,179,0.86)]">
+        <span className="rounded-[6px] border border-[rgba(107,153,179,0.18)] bg-[rgba(10,46,69,0.16)] px-2.5 py-1 text-[var(--elite-cream)]">
+          Q{idx + 1}
+        </span>
+        <span className="rounded-[6px] border border-[rgba(107,153,179,0.18)] px-2.5 py-1">Inedita</span>
         {filters.materia && filters.materia !== "Todas" && (
-          <>
-            <span className="w-1 h-1 bg-slate-300 rounded-full" />
-            <span>{filters.materia}</span>
-          </>
+          <span className="rounded-[6px] border border-[rgba(107,153,179,0.18)] px-2.5 py-1">{filters.materia}</span>
+        )}
+        {filters.banca && filters.banca !== "Todas" && (
+          <span className="rounded-[6px] border border-[rgba(107,153,179,0.18)] px-2.5 py-1">{filters.banca}</span>
         )}
       </div>
 
-      {/* ENUNCIADO */}
-      <p className="text-lg md:text-xl text-slate-900 dark:text-white font-semibold leading-relaxed mb-8 whitespace-pre-wrap">
-        {qText}
+      <p className="mb-6 whitespace-pre-wrap text-lg leading-relaxed text-[var(--elite-cream)] md:text-xl">
+        {data.qText}
       </p>
 
-      {/* ALTERNATIVAS */}
-      <div className="flex flex-col gap-3 mt-6">
-        {qOptions.map((opt: any) => (
+      <div className="flex flex-col gap-3">
+        {data.qOptions.map((opt) => (
           <OptionButton
             key={opt.key}
             opt={opt}
             isSelected={selectedOption === opt.key}
             isAnswered={isAnswered}
-            correctAnswer={qAnswer}
+            correctAnswer={data.qAnswer}
             onSelect={() => onSelect(opt.key)}
           />
         ))}
       </div>
 
-      {/* BotÃ£o Responder */}
-      {!isAnswered && (
-        <div className="pt-6 mt-4">
+      {!isAnswered ? (
+        <div className="mt-5">
           <button
             disabled={!selectedOption}
             onClick={onAnswer}
-            className="w-full md:w-auto px-10 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-slate-700 dark:disabled:text-slate-500 text-white font-bold rounded-xl transition-colors shadow-sm"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--elite-red)] px-6 py-3.5 font-bold text-[var(--elite-cream)] shadow-[4px_4px_0_var(--elite-wine)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           >
             Responder
           </button>
         </div>
+      ) : (
+        <div className="mt-5 rounded-[8px] border border-[rgba(107,153,179,0.18)] bg-[rgba(10,46,69,0.18)] px-4 py-3">
+          <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-[var(--elite-cream)]">
+            <span className="inline-flex items-center gap-2">
+              {isCorrect ? (
+                <>
+                  <CheckCircle size={16} className="text-emerald-400" />
+                  Resposta correta
+                </>
+              ) : (
+                <>
+                  <XCircle size={16} className="text-red-400" />
+                  Resposta registrada
+                </>
+              )}
+            </span>
+            <span className="text-[rgba(107,153,179,0.9)]">
+              {selectedOption ? `Sua escolha: ${selectedOption}` : "Sem alternativa selecionada"}
+            </span>
+          </div>
+        </div>
       )}
 
-      {/* Action bar */}
       {isAnswered && (
-        <div className="border-t border-gray-100 pt-4 mt-2">
-          <div className="flex flex-wrap gap-2 text-sm font-medium text-gray-500">
+        <div className="mt-4 border-t border-[rgba(107,153,179,0.16)] pt-4">
+          <div className={compact ? "grid grid-cols-2 gap-2 md:flex md:flex-wrap" : "flex flex-wrap gap-2"}>
             <button
-              onClick={() => setShowExplanation((v) => !v)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${showExplanation ? "text-[#f68b33] bg-orange-50" : "hover:bg-gray-100 text-gray-600"}`}
+              onClick={onToggleResolution}
+              className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-[rgba(196,18,48,0.22)] bg-[rgba(196,18,48,0.08)] px-3 py-2 text-sm font-semibold text-[var(--elite-cream)] transition-colors hover:border-[rgba(196,18,48,0.45)] hover:bg-[rgba(196,18,48,0.15)]"
             >
-              <GraduationCap size={16} /> Mentor AIVUR
+              <GraduationCap size={16} />
+              {isResolutionOpen ? "Ocultar resolucao" : "Gabarito comentado"}
             </button>
-            <button onClick={() => alert("EstatÃ­sticas: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <BarChart2 size={16} /> EstatÃ­sticas
+            <button
+              onClick={() => window.alert("Estatisticas: em breve")}
+              className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-[rgba(107,153,179,0.18)] bg-[rgba(251,235,208,0.03)] px-3 py-2 text-sm font-semibold text-[rgba(107,153,179,0.95)] transition-colors hover:border-[rgba(107,153,179,0.32)] hover:text-[var(--elite-cream)]"
+            >
+              <BarChart2 size={16} />
+              Estatisticas
             </button>
-            <button onClick={() => alert("Criar AnotaÃ§Ãµes: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Edit3 size={16} /> Criar AnotaÃ§Ãµes
+            <button
+              onClick={() => window.alert("Criar anotacoes: em breve")}
+              className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-[rgba(107,153,179,0.18)] bg-[rgba(251,235,208,0.03)] px-3 py-2 text-sm font-semibold text-[rgba(107,153,179,0.95)] transition-colors hover:border-[rgba(107,153,179,0.32)] hover:text-[var(--elite-cream)]"
+            >
+              <Edit3 size={16} />
+              Criar anotacoes
             </button>
-            <button onClick={() => alert("Notificar Erro: Em breve")} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Flag size={16} /> Notificar Erro
+            <button
+              onClick={() => window.alert("Notificar erro: em breve")}
+              className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-[rgba(107,153,179,0.18)] bg-[rgba(251,235,208,0.03)] px-3 py-2 text-sm font-semibold text-[rgba(107,153,179,0.95)] transition-colors hover:border-[rgba(107,153,179,0.32)] hover:text-[var(--elite-cream)]"
+            >
+              <Flag size={16} />
+              Notificar erro
             </button>
           </div>
 
-          {/* ExplicaÃ§Ã£o expansÃ­vel - Mentor AIVUR */}
-          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showExplanation ? "max-h-[3000px] opacity-100 mt-4" : "max-h-0 opacity-0"}`}>
-            <div className="relative p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#f68b33]" />
-              <h4 className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200 text-sm mb-3 pl-2">
-                <Brain size={16} className="text-[#f68b33]" /> Mentor AIVUR
-              </h4>
-              
-              <div className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap pl-2 mb-4">
-                {qFeedback}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-out ${
+              isResolutionOpen ? "mt-4 max-h-[4000px] opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="relative overflow-hidden rounded-[8px] border border-[rgba(107,153,179,0.18)] bg-[rgba(10,46,69,0.55)] px-4 py-4">
+              <div className="absolute left-0 top-0 h-full w-1 bg-[var(--elite-red)]" />
+              <div className="flex items-center gap-2 pl-2 text-sm font-bold text-[var(--elite-cream)]">
+                <Brain size={16} className="text-[var(--elite-red)]" />
+                Gabarito comentado / resolucao
               </div>
 
-              {/* ExplicaÃ§Ãµes individuais por opÃ§Ã£o (se houver) */}
-              {Object.keys(qOptionExplanations).length > 0 && (
-                <div className="mt-4 pl-2 space-y-3">
-                  <h5 className="font-semibold text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2">AnÃ¡lise das Alternativas</h5>
-                  {Object.entries(qOptionExplanations).map(([key, exp]) => {
-                    const isRight = String(key).toLowerCase() === String(qAnswer).toLowerCase();
+              <div className="mt-3 whitespace-pre-wrap pl-2 text-sm leading-relaxed text-[rgba(251,235,208,0.88)] md:text-[0.95rem]">
+                {data.qFeedback}
+              </div>
+
+              {Object.keys(data.qOptionExplanations).length > 0 && (
+                <div className="mt-4 space-y-3 pl-2">
+                  <h5 className="text-[11px] font-bold uppercase tracking-[0.16em] text-[rgba(107,153,179,0.88)]">
+                    Analise das alternativas
+                  </h5>
+                  {Object.entries(data.qOptionExplanations).map(([key, exp]) => {
+                    const isRight = String(key).toLowerCase() === String(data.qAnswer).toLowerCase();
                     return (
-                      <div key={key} className={`p-3 rounded-lg text-sm border ${isRight ? "bg-green-50/50 border-green-100 dark:bg-green-900/10 dark:border-green-800/30" : "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700"}`}>
-                        <span className={`font-bold mr-2 ${isRight ? "text-green-600" : "text-gray-700 dark:text-gray-300"}`}>
+                      <div
+                        key={key}
+                        className={`rounded-[8px] border px-3 py-3 text-sm ${
+                          isRight
+                            ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-100"
+                            : "border-[rgba(107,153,179,0.16)] bg-[rgba(251,235,208,0.03)] text-[rgba(251,235,208,0.88)]"
+                        }`}
+                      >
+                        <span className={`mr-2 font-bold ${isRight ? "text-emerald-300" : "text-[var(--elite-cream)]"}`}>
                           {key})
                         </span>
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {String(exp)}
-                        </span>
+                        <span>{String(exp)}</span>
                       </div>
                     );
                   })}
                 </div>
               )}
 
-              {/* Fonte */}
-              {qFonte && (
-                <div className="mt-6 pl-2">
-                  <span className="inline-block px-3 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-xs text-gray-500 font-medium">
-                    Fonte: {qFonte}
+              {data.qFonte && (
+                <div className="mt-4 pl-2">
+                  <span className="inline-flex rounded-[6px] border border-[rgba(107,153,179,0.18)] bg-[rgba(251,235,208,0.04)] px-3 py-1 text-xs font-medium text-[rgba(107,153,179,0.9)]">
+                    Fonte: {data.qFonte}
                   </span>
                 </div>
               )}
@@ -423,45 +647,52 @@ function QuestionCard({ question, idx, filters, showMobile, isAnswered, isCorrec
           </div>
         </div>
       )}
-    </div>
+    </article>
   );
 }
 
-/* OptionButton */
-function OptionButton({ opt, isSelected, isAnswered, isCorrect, correctAnswer, onSelect }: any) {
+function OptionButton({ opt, isSelected, isAnswered, correctAnswer, onSelect }: any) {
   const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
-  const isWrong = isSelected && !isRight;
+  const isWrong = isAnswered && isSelected && !isRight;
 
-  let container = "w-full text-left p-4 rounded-xl border flex items-start gap-4 transition-colors ";
+  let container =
+    "w-full text-left rounded-[8px] border px-4 py-4 flex items-start gap-3 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(196,18,48,0.45)]";
+
   if (!isAnswered) {
     container += isSelected
-      ? "border-[#f68b33] bg-orange-50 cursor-pointer"
-      : "border-slate-300 dark:border-slate-600 hover:bg-slate-50 cursor-pointer";
+      ? " border-[rgba(196,18,48,0.72)] bg-[rgba(196,18,48,0.12)] shadow-[2px_2px_0_rgba(107,0,0,0.16)] cursor-pointer"
+      : " border-[rgba(107,153,179,0.2)] bg-[rgba(251,235,208,0.03)] hover:border-[rgba(196,18,48,0.38)] hover:bg-[rgba(196,18,48,0.05)] cursor-pointer";
+  } else if (isRight) {
+    container += " border-emerald-400/40 bg-emerald-500/10 cursor-default";
+  } else if (isWrong) {
+    container += " border-red-400/40 bg-red-500/10 cursor-default";
   } else {
-    // Regra estrita: se respondeu, a correta fica verde. Se errou, a que ele clicou fica vermelha. As demais opacas.
-    if (isRight) container += "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-900/20 cursor-default";
-    else if (isWrong) container += "border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-900/20 cursor-default";
-    else container += "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 opacity-45 cursor-default";
+    container += " border-[rgba(107,153,179,0.14)] bg-[rgba(251,235,208,0.02)] opacity-55 cursor-default";
   }
 
-  let circle = "flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm mt-0.5 transition-all duration-200 ";
+  let circle =
+    "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border text-sm font-black transition-all";
+
   if (!isAnswered) {
-    circle += isSelected ? "bg-[#f68b33] border-[#f68b33] text-white" : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500";
+    circle += isSelected
+      ? " border-[var(--elite-red)] bg-[var(--elite-red)] text-[var(--elite-cream)]"
+      : " border-[rgba(107,153,179,0.28)] bg-[rgba(10,46,69,0.28)] text-[var(--elite-cream)]";
+  } else if (isRight) {
+    circle += " border-emerald-500 bg-emerald-500 text-white";
+  } else if (isWrong) {
+    circle += " border-red-500 bg-red-500 text-white";
   } else {
-    if (isRight) circle += "bg-green-500 border-green-500 text-white";
-    else if (isWrong) circle += "bg-red-500 border-red-500 text-white";
-    else circle += "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400";
+    circle += " border-[rgba(107,153,179,0.28)] bg-[rgba(10,46,69,0.28)] text-[rgba(107,153,179,0.95)]";
   }
 
   return (
     <button className={container} onClick={() => !isAnswered && onSelect()} disabled={isAnswered}>
-      <span className={circle}>{opt.key.toUpperCase()}</span>
-      <span className={`flex-1 text-base leading-snug ${isAnswered && (isRight || isWrong) ? "font-semibold text-gray-900 dark:text-gray-100" : "text-gray-700 dark:text-gray-300"}`}>
+      <span className={circle}>{String(opt.key).toUpperCase()}</span>
+      <span className={`flex-1 text-base leading-snug ${isAnswered && (isRight || isWrong) ? "font-semibold text-[var(--elite-cream)]" : "text-[rgba(251,235,208,0.9)]"}`}>
         {opt.text}
       </span>
-      {isAnswered && isRight && <CheckCircle size={22} className="flex-shrink-0 text-green-500 mt-0.5" />}
-      {isAnswered && isWrong && <XCircle size={22} className="flex-shrink-0 text-red-500 mt-0.5" />}
+      {isAnswered && isRight && <CheckCircle size={22} className="mt-0.5 flex-shrink-0 text-emerald-400" />}
+      {isAnswered && isWrong && <XCircle size={22} className="mt-0.5 flex-shrink-0 text-red-400" />}
     </button>
   );
 }
-

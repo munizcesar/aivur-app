@@ -59,6 +59,8 @@ A fundação do Backend de Inteligência Artificial usa o padrão RAG (Retrieval
 - **Refatoração UI Gerador de Trilhas (`/mentor/gerar`)** — ✅ CONCLUÍDO. Formulários (inputs e textareas) adequados ao Brutalismo (bordas retas `2px`, coloração `elite-grayblue` para inativos e texto principal em `elite-text` com outline sólido no focus). Botões principais padronizados (`elite-red`, sombra offset `elite-wine`, tipografia forte em uppercase). Telas de Input e de Revisão completamente sincronizadas. Commit `5665f46`.
 - **Integração Mascote Aivur & Cofre Editorial (`/material`)** — ✅ CONCLUÍDO. Dropzone de materiais transformado no "Cofre Editorial": borda tracejada fina (`elite-grayblue`), fundo rígido (`elite-navy`). Ao arrastar arquivo (drag active), inverte pra altíssimo contraste (fundo `elite-cream`, texto `elite-navy`). Novo mascote `<Aivur />` integrado estourando o topo do container, reagindo a eventos (repouso `calm`, drag over `curious`, upload `loading`, concluído `success`). Commit pendente de push.
 
+- **Refatoracao responsiva do Caderno de Questoes** ??? ??? CONCLUIDO. `WizardStep3` agora separa desktop e mobile de forma real: desktop mostra feed vertical de questoes com card proprio, mobile mostra apenas a questao ativa com navegacao fixa inferior. O fluxo ficou com selecao da alternativa, botao "Responder" obrigatorio antes da resolucao, feedback visual verde/vermelho no estado `answered` e toolbar condensada para mobile. A paleta elite e os cards ficaram alinhados ao restante do site. Commit e push pendentes.
+
 ## 5. Bugs Conhecidos (verificar se já corrigidos)
 
 - ✅ **Remoção de Falso Positivo (Frontend)** — Removido definitivamente o botão 'Forçar Acesso (Mock Offline)' e a função associada do WizardStep3.tsx que causava confusão visual mesmo com o backend destravado.
@@ -89,4 +91,4 @@ A fundação do Backend de Inteligência Artificial usa o padrão RAG (Retrieval
 5. **REGRA DE OURO: FUGA DO MURAL PESADO**: A navegação principal (Dashboard/Home) deve ser um menu de alta velocidade focado em escaneabilidade da esquerda para a direita (Horizontal List Cards). Elementos visuais nunca devem brigar pela atenção do usuário. O 'Minimalismo Rico' (ícones táticos, fundos limpos) dita a interface de conversão. Artes 3D imersivas e complexas devem ser reservadas EXCLUSIVAMENTE para os cabeçalhos das páginas internas, gerando imersão apenas após o clique da decisão.
 
 ---
-*Última atualização: 23/08/2026. Regras de Design System (Curadoria Institucional Elite) consolidadas após ampla refatoração de UI/UX em Landing Page, Wizard, Gerador e Laboratório de Materiais. Mascote reativo SVG integrado.*
+*Última atualização: 29/08/2026. Regras de Design System (Curadoria Institucional Elite) consolidadas após ampla refatoração de UI/UX em Landing Page, Wizard, Gerador e Laboratório de Materiais. Mascote reativo SVG integrado.*

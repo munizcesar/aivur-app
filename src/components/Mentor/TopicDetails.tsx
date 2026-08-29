@@ -5,6 +5,7 @@ import { useCourseProgress } from "@/hooks/useCourseProgress";
 import { useCourseContext } from "@/context/CourseContext";
 import { useLocalCourses } from "@/hooks/useLocalCourses";
 import ReactMarkdown from 'react-markdown';
+import { FullscreenQuestion } from "./FullscreenQuestion";
 
 export function getDisclaimerAivur(subject: string) {
   const materia = subject?.toLowerCase() || "";
@@ -40,6 +41,9 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
   const isConcurso = currentCourse?.sourceType === "edital" || !currentCourse?.sourceType;
 
   const [showFlashcardsWarning, setShowFlashcardsWarning] = useState(false);
+
+  const [mobileQuestionIndex, setMobileQuestionIndex] = useState(0);
+  const [showMobileFullscreen, setShowMobileFullscreen] = useState(false);
 
   // Removido useEffect e estado local de activeTab, pois agora vem do contexto global.
 
@@ -322,9 +326,36 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
                   Regerar
                 </button>
               </div>
-              <div>
+              <div className="hidden md:block">
                 {state.questoes.map(q => <QuestaoView key={q.id} q={q} />)}
               </div>
+              
+              <div className="md:hidden mt-4">
+                <button 
+                  className={styles.btnPrimary} 
+                  style={{ width: "100%", padding: "12px", borderRadius: "8px", fontWeight: "bold" }}
+                  onClick={() => { setMobileQuestionIndex(0); setShowMobileFullscreen(true); }}
+                >
+                  Resolver Questões (Modo Foco)
+                </button>
+              </div>
+
+              {showMobileFullscreen && state.questoes[mobileQuestionIndex] && (
+                <FullscreenQuestion
+                  question={state.questoes[mobileQuestionIndex]}
+                  index={mobileQuestionIndex + 1}
+                  total={state.questoes.length}
+                  subject={subject}
+                  userResponse={state.userResponses[state.questoes[mobileQuestionIndex].id]}
+                  onBack={() => setShowMobileFullscreen(false)}
+                  onPrev={() => setMobileQuestionIndex(prev => Math.max(0, prev - 1))}
+                  onNext={() => {
+                    if (mobileQuestionIndex + 1 < state.questoes!.length) setMobileQuestionIndex(prev => prev + 1);
+                    else setShowMobileFullscreen(false);
+                  }}
+                  onAnswer={(alt) => handleAnswerQuestao(state.questoes![mobileQuestionIndex], alt)}
+                />
+              )}
             </div>
           )}
         </div>

@@ -177,7 +177,7 @@ export default function SideDrawer() {
               <div className={styles.rsSectionTitle}><Zap width={14} height={14} /> Ações Rápidas</div>
             </div>
             <div className={styles.drawerActionsList}>
-              <Link href="/mentor/gerar" onClick={closeDrawer} className={styles.drawerActionBtn} style={{ minHeight: '60px', background: 'var(--color-surface)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              <Link href="/mentor" onClick={closeDrawer} className={styles.drawerActionBtn} style={{ minHeight: '60px', background: 'var(--color-surface)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(217, 107, 84, 0.1)', color: '#D96B54' }}>
                   <GraduationCap width={22} height={22} />
                 </span>

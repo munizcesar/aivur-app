@@ -38,8 +38,8 @@ export default function Hero() {
             Não perca semanas montando planilhas. A inteligência artificial lê seu edital, estrutura todas as matérias e gera um cronograma de estudos focado na sua aprovação em segundos.
           </p>
           <div className={styles.heroCtaGroup}>
-            <Link href="/mentor/gerar" className={`btn btn-primary btn-large`} style={{ textDecoration: 'none' }}>
-              Comece a estudar de graça
+            <Link href="/mentor" className={`btn btn-primary btn-large`} style={{ textDecoration: 'none' }}>
+              Iniciar Trilha de Estudos
             </Link>
           </div>
         </div>

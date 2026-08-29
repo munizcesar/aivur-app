@@ -21,110 +21,118 @@ export default function MentorPage() {
     const subjectCount = course.subjects.length;
 
     return (
-      <div key={course.id} style={{ position: "relative" }}>
-        <Link
-          href={`/mentor/${course.id}`}
-          className={styles.courseCard}
-          id={`course-card-${course.id}`}
-        >
-          <div className={styles.courseCardIcon} aria-hidden="true">
+      <div 
+        key={course.id} 
+        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 flex flex-col relative transition-all hover:shadow-lg group"
+      >
+        <div className="flex justify-between items-start mb-4">
+          <div className="bg-primary/10 p-3 rounded-lg text-primary text-xl">
             📚
           </div>
-          <div className={styles.courseCardTitle}>{course.title}</div>
-          <div className={styles.courseCardMeta}>
-            {subjectCount} matéria{subjectCount !== 1 ? "s" : ""} • {totalItems} tópicos
-          </div>
-          <div className={styles.courseCardArrow}>
-            Acessar trilha ➔
-          </div>
+          {isLocal && (
+            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setEditingCourse({ id: course.id, title: course.title });
+                }}
+                title="Renomear trilha"
+              >
+                ✏️
+              </button>
+              <button
+                className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDeletingCourse(course.id);
+                }}
+                title="Excluir trilha"
+              >
+                🗑️
+              </button>
+            </div>
+          )}
+        </div>
+        
+        <h3 className="font-semibold text-lg mb-1 text-slate-900 dark:text-white line-clamp-2">
+          {course.title}
+        </h3>
+        
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-grow">
+          {subjectCount} matéria{subjectCount !== 1 ? "s" : ""} • {totalItems} tópicos
+        </p>
+        
+        <Link
+          href={`/mentor/${course.id}`}
+          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-medium transition-colors text-sm"
+        >
+          ▶ Continuar Estudos
         </Link>
-        {isLocal && (
-          <div className={styles.courseCardActions}>
-            <button
-              className={styles.cardActionBtn}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setEditingCourse({ id: course.id, title: course.title });
-              }}
-              title="Renomear trilha"
-            >
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-              </svg>
-            </button>
-            <button
-              className={`${styles.cardActionBtn} ${styles.delete}`}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setDeletingCourse(course.id);
-              }}
-              title="Excluir trilha"
-            >
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-              </svg>
-            </button>
-          </div>
-        )}
       </div>
     );
   };
 
   return (
     <div className={styles.page}>
-      <div className={styles.listHeader}>
-        <p className={styles.listEyebrow}>Mentor AIVUR 360</p>
-        <h1 className={styles.listTitle}>Suas Trilhas de Curso</h1>
-        <p className={styles.listSubtitle}>
-          Acompanhe seu progresso tópico a tópico, organizados pelo edital do seu concurso.
-        </p>
-      </div>
-
-      <div style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.2rem", fontWeight: "600", marginBottom: "1rem" }}>Cursos Oficiais</h2>
-        <div className={styles.courseGrid}>
-          {ALL_COURSES.map(c => renderCourseCard(c, false))}
-        </div>
-      </div>
-
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <h2 style={{ fontSize: "1.2rem", fontWeight: "600" }}>Meus Cursos Gerados</h2>
-          <Link href="/mentor/gerar" style={{ backgroundColor: "white", color: "black", padding: "0.5rem 1rem", borderRadius: "8px", fontWeight: "600", textDecoration: "none", fontSize: "0.9rem" }}>
-            + Criar Nova Trilha
-          </Link>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 pt-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">Minhas Trilhas</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Acompanhe seu progresso e acesse seus editais estruturados.</p>
         </div>
         
+        <Link 
+          href="/mentor/gerar" 
+          className="inline-flex items-center justify-center gap-2 bg-[var(--color-primary)] text-white px-5 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-sm"
+        >
+          <span className="text-lg leading-none">+</span> Criar Nova Trilha
+        </Link>
+      </div>
+
+      <div className="space-y-10 pb-12">
         {isHydrated ? (
-          localCourses.length > 0 ? (
-            <div className={styles.courseGrid}>
-              {localCourses.map(c => renderCourseCard(c, true))}
-            </div>
-          ) : (
-            <div style={{ padding: "4rem 2rem", backgroundColor: "rgba(255,255,255,0.02)", borderRadius: "16px", border: "1px dashed rgba(255,255,255,0.1)", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ fontSize: "4rem", marginBottom: "1rem", opacity: 0.9 }}>🚀</div>
-              <h3 style={{ fontSize: "1.6rem", fontWeight: "700", marginBottom: "0.5rem", color: "white" }}>Sua jornada de aprovação começa aqui</h3>
-              <p style={{ color: "#94a3b8", marginBottom: "2rem", maxWidth: "450px", lineHeight: "1.5" }}>Cole seu edital ou matéria e deixe nossa IA estruturar o seu plano de estudos e cronograma em segundos.</p>
-              <Link href="/mentor/gerar" style={{ backgroundColor: "white", color: "black", padding: "1rem 2rem", borderRadius: "12px", fontWeight: "bold", textDecoration: "none", fontSize: "1.1rem", transition: "transform 0.2s", boxShadow: "0 4px 14px 0 rgba(255,255,255,0.1)" }}>
-                Criar Minha Primeira Trilha
-              </Link>
-            </div>
-          )
+          <>
+            {(localCourses.length > 0 || ALL_COURSES.length > 0) ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {localCourses.map(c => renderCourseCard(c, true))}
+                {ALL_COURSES.map(c => renderCourseCard(c, false))}
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-10 text-center flex flex-col items-center justify-center max-w-2xl mx-auto shadow-sm">
+                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-6 text-4xl">
+                  🚀
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Sua jornada de aprovação começa aqui</h3>
+                <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md">
+                  Cole seu edital ou matéria e deixe nossa IA estruturar o seu plano de estudos e cronograma em segundos. Nenhuma trilha foi criada ainda.
+                </p>
+                <Link 
+                  href="/mentor/gerar" 
+                  className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                >
+                  <span className="text-xl leading-none">+</span>
+                  Gerar Minha Primeira Trilha
+                </Link>
+              </div>
+            )}
+          </>
         ) : (
-          <p>Carregando seus cursos...</p>
+          <div className="flex items-center justify-center py-20">
+            <p className="text-slate-500">Carregando suas trilhas...</p>
+          </div>
         )}
       </div>
 
       {/* MODAL EDITAR NOME */}
       {editingCourse && (
         <div className={styles.modalOverlay} onClick={() => setEditingCourse(null)}>
-          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-            <h3 className={styles.modalTitle}>Renomear Trilha</h3>
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl w-full max-w-md mx-4 shadow-xl border border-slate-200 dark:border-slate-700" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Renomear Trilha</h3>
             <input 
               autoFocus
-              className={styles.modalInput}
+              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 mb-6 text-slate-900 dark:text-white outline-none transition-all"
               value={editingCourse.title}
               onChange={(e) => setEditingCourse({ ...editingCourse, title: e.target.value })}
               onKeyDown={(e) => {
@@ -134,12 +142,22 @@ export default function MentorPage() {
                 }
               }}
             />
-            <div className={styles.modalActions}>
-              <button className={`${styles.modalBtn} ${styles.modalBtnCancel}`} onClick={() => setEditingCourse(null)}>Cancelar</button>
-              <button className={`${styles.modalBtn} ${styles.modalBtnConfirm}`} onClick={() => {
-                updateCourse(editingCourse.id, { title: editingCourse.title });
-                setEditingCourse(null);
-              }}>Salvar</button>
+            <div className="flex gap-3 justify-end">
+              <button 
+                className="px-5 py-2.5 rounded-lg font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                onClick={() => setEditingCourse(null)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="px-5 py-2.5 rounded-lg font-medium bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+                onClick={() => {
+                  updateCourse(editingCourse.id, { title: editingCourse.title });
+                  setEditingCourse(null);
+                }}
+              >
+                Salvar
+              </button>
             </div>
           </div>
         </div>
@@ -148,15 +166,27 @@ export default function MentorPage() {
       {/* MODAL EXCLUIR CURSO */}
       {deletingCourse && (
         <div className={styles.modalOverlay} onClick={() => setDeletingCourse(null)}>
-          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-            <h3 className={styles.modalTitle}>Excluir Trilha</h3>
-            <p className={styles.modalText}>Tem certeza? Essa ação apaga todo o progresso e conteúdo gerado desse curso e não pode ser desfeita.</p>
-            <div className={styles.modalActions}>
-              <button className={`${styles.modalBtn} ${styles.modalBtnCancel}`} onClick={() => setDeletingCourse(null)}>Cancelar</button>
-              <button className={`${styles.modalBtn} ${styles.modalBtnDanger}`} onClick={() => {
-                deleteCourse(deletingCourse);
-                setDeletingCourse(null);
-              }}>Sim, excluir trilha</button>
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl w-full max-w-md mx-4 shadow-xl border border-slate-200 dark:border-slate-700" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Excluir Trilha</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-6">
+              Tem certeza? Essa ação apaga todo o progresso e conteúdo gerado desse curso e não pode ser desfeita.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button 
+                className="px-5 py-2.5 rounded-lg font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                onClick={() => setDeletingCourse(null)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="px-5 py-2.5 rounded-lg font-medium bg-red-500 text-white hover:bg-red-600 transition-colors"
+                onClick={() => {
+                  deleteCourse(deletingCourse);
+                  setDeletingCourse(null);
+                }}
+              >
+                Sim, excluir trilha
+              </button>
             </div>
           </div>
         </div>

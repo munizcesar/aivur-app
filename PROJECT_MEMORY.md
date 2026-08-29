@@ -10,6 +10,18 @@
 
 ---
 
+### 🧠 DOUTRINA AIVUR (Personalidade & Regras Core)
+
+* **Protocolo de Pivotagem Arquitetural:** Se um erro (visual ou lógico) persistir por 3 a 4 iterações, É PROIBIDO continuar remendando o código quebrado. Pivote imediatamente para uma técnica superior e blindada (ex: Inline Styles brutos, React Portals, ou reescrita total da lógica).
+* **Blindagem Anti-Esmagamento (Stacking Context):** Nunca deixe elementos circulares sem trava. Use SEMPRE `flex-none` e dimensões rígidas (ex: `minWidth: 32px`).
+* **A Paleta Elite:** É terminantemente proibido improvisar cores genéricas. Fundo base: `slate-900` ou `slate-950`. Destaque/Ação Primária: Laranja `#f68b33`.
+* **Arquitetura Universal:** Soluções visuais complexas validadas devem ser componentizadas e reutilizadas globalmente, nunca duplicadas por rota.
+* **Verificação de Realidade:** Nunca afirme ter consertado algo sem validar na estrutura real. Se não tiver certeza, avise.
+
+*Sempre que o usuário definir uma nova 'Regra de Ouro' ou um padrão recorrente durante o chat, você tem a OBRIGAÇÃO de abrir o project-memory automaticamente e adicionar a nova regra a este campo, garantindo que a personalidade do projeto continue evoluindo.*
+
+---
+
 ## 1. Visão Geral do Projeto
 
 Site de preparação para concursos (AIVUR), migrando de um HTML puro de 11.000+ linhas para uma arquitetura Next.js nova, construída do zero em pasta separada. O produto atende tanto alunos de concurso público quanto alunos de vestibular/ENEM/estudo livre.
@@ -90,3 +102,4 @@ A fundação do Backend de Inteligência Artificial usa o padrão RAG (Retrieval
 
 ---
 *Última atualização: 23/08/2026. Regras de Design System (Curadoria Institucional Elite) consolidadas após ampla refatoração de UI/UX em Landing Page, Wizard, Gerador e Laboratório de Materiais. Mascote reativo SVG integrado.*
+- **Refatora��o Se��o de Trilhas** � ? CONCLU�DO. A raiz /mentor foi transformada em um Dashboard organizado e isolado do fluxo de cria��o, corrigindo a UX que enviava o usu�rio direto para /mentor/gerar ao clicar na aba Trilhas. O novo Dashboard usa a Paleta Elite, lista trilhas salvas (oficiais e locais geradas via IndexedDB), e traz um estado vazio elegante.

@@ -32,10 +32,9 @@ export default function Dashboard() {
           <div className={styles.pillarsCol}>
             
             {/* CARD 1 - Destaque */}
-            <Link href="/mentor/gerar" className={`${styles.pillarCard} ${styles.pillarCardFeatured}`}>
-              <div className={styles.pillarThumb}>
-                {/*eslint-disable-next-line @next/next/no-img-element*/}
-                <img src="/images/aivur/icon-trilhas.png" alt="Trilhas de Estudo" />
+            <Link href="/mentor" className={`${styles.pillarCard} ${styles.pillarCardFeatured}`}>
+              <div className={styles.pillarIcon} style={{ background: 'var(--color-primary)', color: 'white' }}>
+                <GraduationCap width={28} height={28} />
               </div>
               <div className={styles.pillarContent}>
                 <h3 className={styles.pillarTitle}>Trilhas de Estudo</h3>

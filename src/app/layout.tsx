@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Fraunces } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AivoWrapper from "@/components/Aivo/AivoWrapper";
 import GlobalSync from "@/components/Sync/GlobalSync";
 import "./globals.css";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-fraunces",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://aivur.com.br'),
@@ -47,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning className={fraunces.variable}>
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false}>
           {children}

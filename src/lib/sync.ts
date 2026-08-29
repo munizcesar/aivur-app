@@ -31,6 +31,10 @@ export async function markPendingSync(courseId: string, dataType: "course_struct
 }
 
 export async function pushSync(courseId: string, dataType: "course_structure" | "course_progress") {
+  if (typeof window !== "undefined" && !localStorage.getItem("aivur_logged_in")) {
+    return;
+  }
+
   try {
     let snapshot;
     if (dataType === "course_structure") {
@@ -53,11 +57,12 @@ export async function pushSync(courseId: string, dataType: "course_structure" | 
         dataType,
         updatedAt,
         snapshot
-      })
+      }),
+      credentials: "include"
     });
 
     if (res.status === 401) {
-      console.log("Sync push ignorado (usuário offline ou não autenticado).");
+      // Catch silencioso, aborta a tentativa sem poluir o console
       return;
     }
 
@@ -80,6 +85,10 @@ export async function pushSync(courseId: string, dataType: "course_structure" | 
 }
 
 export async function pullSync() {
+  if (typeof window !== "undefined" && !localStorage.getItem("aivur_logged_in")) {
+    return false;
+  }
+
   try {
     // PULL - Download inicial na abertura (Risco 2 Salvaguarda)
     // 1. Verifica se há algo pending localmente
@@ -101,11 +110,16 @@ export async function pullSync() {
     const res = await fetch("/api/sync/pull", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ courses: localCourses })
+      body: JSON.stringify({ courses: localCourses }),
+      credentials: "include"
     });
 
-    if (res.status === 401) return false; // Not logged in
-    const data = await res.json();
+    if (res.status === 401) {
+      // Catch silencioso para abortar tentativa
+      return false;
+    }
+    
+    const data = await res.json() as { success?: boolean; updates?: Array<{ dataType: string; courseId: string; snapshot: unknown; timestamp: number }> };
     if (!data.success) return false;
 
     if (data.updates && data.updates.length > 0) {
@@ -118,7 +132,7 @@ export async function pullSync() {
       for (const update of data.updates) {
         if (update.dataType === "course_structure") {
           coursesArray = coursesArray.filter(c => c.id !== update.courseId);
-          coursesArray.push(update.snapshot);
+          coursesArray.push(update.snapshot as Course);
           meta[update.courseId] = { ...meta[update.courseId], localTimestamp: update.timestamp, pendingStructure: false };
         } else {
           // Backup progress
@@ -138,7 +152,7 @@ export async function pullSync() {
     
     return false;
   } catch (err) {
-    console.error("❌ [Sync] Falha no pull", err);
+    // Evitar poluir o log com 401 disfarçado
     return false;
   }
 }

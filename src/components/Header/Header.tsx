@@ -35,36 +35,14 @@ export default function Header() {
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <Link href="/" className={styles.logo} aria-label="AIVUR - Voltar ao inicio">
               <Image 
-                src="/assets/aivos-logo.png" 
+                src={mounted && theme === "dark" ? "/assets/logo-aivur-dark.png" : "/assets/logo-aivur-light.png"}
                 alt="AIVUR Logo" 
                 width={180} 
                 height={50} 
                 className={styles.logoIcon}
-                priority
               />
             </Link>
           </div>
-          <Link
-            href="/mentor"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "var(--text-sm)",
-              fontWeight: 700,
-              color: pathname?.startsWith("/mentor") ? "var(--color-primary)" : "var(--color-text-muted)",
-              textDecoration: "none",
-              padding: "6px 12px",
-              borderRadius: "var(--radius-full)",
-              background: pathname?.startsWith("/mentor") ? "var(--color-surface-offset)" : "transparent",
-              transition: "all 0.2s ease",
-            }}
-            aria-label="Trilhas de Curso"
-            id="nav-trilhas"
-          >
-            <Map width={16} height={16} aria-hidden="true" />
-            Trilhas
-          </Link>
           <div className={styles.headerActions}>
             <button 
               className={`${styles.drawerToggle} ${isDrawerOpen ? styles.open : ""}`} 

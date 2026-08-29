@@ -14,7 +14,6 @@ export interface QuizFilters {
   nivel: string;
   quantidade: number;
   tipoQuestao: string;
-  alternativas: number;
 }
 
 export interface FreeStudyState {
@@ -54,8 +53,7 @@ const defaultFilters: QuizFilters = {
   orgao: 'Todos',
   nivel: 'Todos',
   quantidade: 10,
-  tipoQuestao: 'mc',
-  alternativas: 5
+  tipoQuestao: 'mc'
 };
 
 const defaultFreeStudy: FreeStudyState = {

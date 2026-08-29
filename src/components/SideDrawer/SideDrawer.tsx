@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuizStore } from "@/store/useQuizStore";
 import { 
   GraduationCap, X, LayoutDashboard, History, Zap, Sparkles, 
@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import styles from "./SideDrawer.module.css";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SideDrawer() {
   const isDrawerOpen = useQuizStore((state) => state.isDrawerOpen);
@@ -18,6 +19,8 @@ export default function SideDrawer() {
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<"resumo" | "historico" | "atalhos" | "mentor">("resumo");
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   const closeDrawer = () => setDrawerOpen(false);
 
@@ -26,6 +29,32 @@ export default function SideDrawer() {
     setStep(2);
     closeDrawer();
     router.push('/');
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const diffX = currentX - touchStartX.current;
+    const diffY = currentY - touchStartY.current;
+    
+    // Swipe horizontal maior que 50px e superior ao movimento vertical
+    if (diffX > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+      closeDrawer();
+      touchStartX.current = null;
+      touchStartY.current = null;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStartX.current = null;
+    touchStartY.current = null;
   };
 
   return (
@@ -39,7 +68,12 @@ export default function SideDrawer() {
       ></div>
 
       {/* Drawer */}
-      <aside className={`${styles.sideDrawer} ${isDrawerOpen ? styles.open : ""}`}>
+      <aside 
+        className={`${styles.sideDrawer} ${isDrawerOpen ? styles.open : ""}`}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className={styles.drawerHeader}>
           <div className={styles.drawerHeaderLeft}>
             <span className={styles.drawerLogo}>
@@ -143,27 +177,45 @@ export default function SideDrawer() {
               <div className={styles.rsSectionTitle}><Zap width={14} height={14} /> Ações Rápidas</div>
             </div>
             <div className={styles.drawerActionsList}>
-              <button className={`${styles.drawerActionBtn} ${styles.actionConcurso}`} onClick={() => startShortcut("concurso")}>
-                <span className={styles.drawerActionIcon}><ClipboardList width={18} height={18} /></span>
+              <Link href="/mentor/gerar" onClick={closeDrawer} className={styles.drawerActionBtn} style={{ minHeight: '60px', background: 'var(--color-surface)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                <span className={styles.drawerActionIcon} style={{ background: 'rgba(217, 107, 84, 0.1)', color: '#D96B54' }}>
+                  <GraduationCap width={22} height={22} />
+                </span>
                 <span className={styles.drawerActionText}>
-                  <strong>Caderno de Questões</strong>
+                  <strong style={{ color: '#2B4C5F' }}>Trilhas de Estudo</strong>
+                  <span>Cronograma via edital</span>
+                </span>
+              </Link>
+              
+              <Link href="/questoes" onClick={closeDrawer} className={styles.drawerActionBtn} style={{ minHeight: '60px', background: 'var(--color-surface)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                <span className={styles.drawerActionIcon} style={{ background: 'rgba(122, 154, 140, 0.1)', color: '#7A9A8C' }}>
+                  <ClipboardList width={22} height={22} />
+                </span>
+                <span className={styles.drawerActionText}>
+                  <strong style={{ color: '#2B4C5F' }}>Caderno de Questões</strong>
                   <span>Filtre por banca e cargo</span>
                 </span>
-              </button>
-              <button className={`${styles.drawerActionBtn} ${styles.actionLivre}`} onClick={() => startShortcut("livre")}>
-                <span className={styles.drawerActionIcon}><FileText width={18} height={18} /></span>
-                <span className={styles.drawerActionText}>
-                  <strong>Material Livre</strong>
-                  <span>Transforme seu material em questões</span>
+              </Link>
+
+              <Link href="/material" onClick={closeDrawer} className={styles.drawerActionBtn} style={{ minHeight: '60px', background: 'var(--color-surface)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                <span className={styles.drawerActionIcon} style={{ background: 'rgba(217, 107, 84, 0.1)', color: '#D96B54' }}>
+                  <FileText width={22} height={22} />
                 </span>
-              </button>
-              <button className={`${styles.drawerActionBtn} ${styles.actionRedacao}`} onClick={() => startShortcut("redacao")}>
-                <span className={styles.drawerActionIcon}><Brain width={18} height={18} /></span>
                 <span className={styles.drawerActionText}>
-                  <strong>Redação Coach</strong>
+                  <strong style={{ color: '#2B4C5F' }}>Meu Material</strong>
+                  <span>Transforme material em questões</span>
+                </span>
+              </Link>
+
+              <Link href="/redacao" onClick={closeDrawer} className={styles.drawerActionBtn} style={{ minHeight: '60px', background: 'var(--color-surface)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                <span className={styles.drawerActionIcon} style={{ background: 'rgba(122, 154, 140, 0.1)', color: '#7A9A8C' }}>
+                  <Brain width={22} height={22} />
+                </span>
+                <span className={styles.drawerActionText}>
+                  <strong style={{ color: '#2B4C5F' }}>Redação Coach</strong>
                   <span>Correção completa C1 a C5</span>
                 </span>
-              </button>
+              </Link>
             </div>
           </div>
 

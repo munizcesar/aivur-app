@@ -1,9 +1,18 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 import styles from "./Footer.module.css";
 
 export default function Footer() {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const openAdminIngest = () => {
     // Custom event to trigger admin modal in the future
     const event = new CustomEvent("openAdminModal");
@@ -18,7 +27,7 @@ export default function Footer() {
             <div className={styles.logoRow}>
               <span className={styles.footerLogo}>
                 <Image 
-                  src="/assets/aivos-logo.png" 
+                  src={mounted && theme === 'dark' ? '/assets/logo-aivur-dark.png' : '/assets/logo-aivur-light.png'} 
                   alt="AIVUR Logo" 
                   width={100} 
                   height={28} 

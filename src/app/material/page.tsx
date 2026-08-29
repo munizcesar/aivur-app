@@ -1,24 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import styles from "./Material.module.css";
 import Header from "@/components/Header/Header";
 import { UploadCloud, Layers, ArrowLeft } from "lucide-react";
 import QuizTool from "./QuizTool";
 import FlashcardsTool from "./FlashcardsTool";
+import { Aivur } from "@/components/Aivur/Aivur";
 
 export default function MaterialPage() {
   const [isProcessed, setIsProcessed] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>(null);
 
-  const handleProcess = () => {
-    // Simulando transição do upload pro laboratório processado
-    setIsProcessed(true);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [aivurState, setAivurState] = useState("calm");
+  const dropzoneRef = useRef<HTMLDivElement>(null);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!isDragActive) {
+      setIsDragActive(true);
+      setAivurState("curious");
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    setAivurState("calm");
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    simulateProcessing();
+  };
+
+  const simulateProcessing = () => {
+    setAivurState("loading");
+    setTimeout(() => {
+      setAivurState("success");
+      setTimeout(() => {
+        setIsProcessed(true);
+      }, 1000);
+    }, 1500);
   };
 
   const handleReset = () => {
     setIsProcessed(false);
     setActiveTab(null);
+    setAivurState("calm");
   };
 
   return (
@@ -27,25 +58,39 @@ export default function MaterialPage() {
       <main className={styles.main}>
         {!isProcessed ? (
           // ESTADO 1: O UPLOAD
-          <div className={styles.uploadContainer}>
-            <div className={styles.headerClean}>
-              <h1 className={styles.title}>Transforme seu Material em Prática Ativa</h1>
-              <p className={styles.subtitle}>
-                Envie aquele PDF denso ou resumo e deixe a IA extrair o suprassumo em segundos.
-              </p>
+          <div className={styles.uploadContainer} style={{ marginTop: "4rem" }}>
+            <div className={styles.heroHeader}>
+              <div className={styles.heroTextCol}>
+                <h1 className={styles.title}>Cofre Editorial</h1>
+                <p className={styles.subtitle}>
+                  Envie aquele PDF denso ou resumo e deixe a IA extrair o suprassumo em segundos.
+                </p>
+              </div>
+              <div className={styles.heroImageCol}>
+                {/*eslint-disable-next-line @next/next/no-img-element*/}
+                <img src="/images/aivur/material.png" alt="Aivur Cofre 3D" />
+              </div>
             </div>
 
-            <div className={styles.dropzone}>
-              <div className={styles.dropzoneInner}>
+            <div 
+              ref={dropzoneRef}
+              className={`${styles.dropzone} ${isDragActive ? styles.dropzoneActive : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+
+              <div className={styles.dropzoneInner} style={{ paddingTop: "2rem" }}>
                 <UploadCloud width={48} height={48} className={styles.dropIcon} />
                 <h3>Arraste seu PDF ou cole o texto aqui</h3>
                 <p>Tamanho máximo: 10MB</p>
-                <button className={styles.browseBtn}>Procurar Arquivo</button>
+                <button className={styles.browseBtn} onClick={(e) => { e.stopPropagation(); document.getElementById('file-upload')?.click(); }}>Procurar Arquivo</button>
+                <input type="file" id="file-upload" style={{ display: 'none' }} onChange={(e) => { if(e.target.files?.length) simulateProcessing(); }} />
               </div>
             </div>
 
             <div className={styles.actionBlock}>
-              <button className={styles.primaryBtn} onClick={handleProcess}>
+              <button className={styles.primaryBtn} onClick={simulateProcessing}>
                 Destrinchar Material
               </button>
             </div>

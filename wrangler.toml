@@ -1,23 +1,19 @@
 name = "aivur-app"
-compatibility_date = "2024-02-08"
+compatibility_date = "2024-12-01"
+compatibility_flags = [ "nodejs_compat" ]
 pages_build_output_dir = ".vercel/output/static"
-
-# KV Namespace para Cache Semântico
-[[kv_namespaces]]
-binding = "RAG_CACHE"
-id = "YOUR_KV_NAMESPACE_ID_HERE"
 
 # Binding para Workers AI
 [ai]
 binding = "AI"
 
-# Binding para o Banco de Dados Relacional (Filtro Híbrido)
+# Binding para o Banco de Dados Relacional
 [[d1_databases]]
 binding = "D1_DB"
 database_name = "aivur-db"
 database_id = "0c75d334-f109-46b6-8e3b-d2e47164a157"
 
-# Binding para o Banco de Dados Vetorial (Busca Semântica)
+# Binding para o Banco de Dados Vetorial
 [[vectorize]]
 binding = "VECTORIZE"
 index_name = "aivur-vector-index"

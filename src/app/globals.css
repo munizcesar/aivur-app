@@ -1,43 +1,50 @@
 @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800&f[]=satoshi@400,500,700&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@source "../components";
+@source "../app";
 
 :root {
-  /* ── AIVUR Color Palette (Light) ── */
-  --color-bg:             #F8FAFC;
+  /* ── AIVUR Color Palette (Light) - Warm Modern EdTech ── */
+  --color-bg:             #F9F6F0;
   --color-surface:        #FFFFFF;
   --color-surface-2:      #FFFFFF;
   --color-surface-raised: #FFFFFF;
   --color-surface-offset: #F1F5F9;
   --color-divider:        #E2E8F0;
   --color-border:         #E2E8F0;
-  --color-text:           #0B1220;
+  --color-text:           #2B4C5F; /* Azul Petróleo / Lagune */
   --color-text-muted:     #64748B;
   --color-text-faint:     #94A3B8;
   
-  --color-primary:        #2563EB;
-  --color-primary-mid:    #1D4ED8;
-  --color-primary-hover:  #1E40AF;
+  --color-primary:        #D96B54; /* Terracota Suave */
+  --color-primary-mid:    #C25B46;
+  --color-primary-hover:  #B54D39;
   
   /* IA Colors */
-  --color-ai:             #7C3AED;
-  --color-ai-hover:       #6D28D9;
+  --color-ai:             #F4A261; /* Pêssego / Areia Quente */
+  --color-ai-hover:       #E09252;
 
-  --color-accent:         #f97316;
-  --color-accent-hover:   #ea580c;
-  --color-success:        #10b981;
-  --color-error:          #ef4444;
-  --color-warning:        #f59e0b;
-  --color-accent-destructive: #ef4444;
-  --color-accent-destructive-hover: #dc2626;
+  --color-accent:         #F4A261;
+  --color-accent-hover:   #E09252;
+  --color-success:        #7A9A8C; /* Menta Calma */
+  --color-error:          #D96B54;
+  --color-warning:        #F4A261;
+  --color-accent-destructive: #D96B54;
+  --color-accent-destructive-hover: #C25B46;
+
+  /* ── Paleta Institucional Elite ── */
+  --elite-navy:     #0A2E45; /* Fundo primário Dark Navy */
+  --elite-red:      #C41230; /* Ação / CTA Bright Red */
+  --elite-wine:     #6B0000; /* Ênfase / Hover Dark Wine */
+  --elite-cream:    #FBEBD0; /* Fundo claro / texto principal */
+  --elite-grayblue: #6B99B3; /* Neutro / Apoio Grayish Blue */
 
   /* ── Gradients (AIVUR) ── */
-  --grad-ai: linear-gradient(135deg, #7C3AED, #6D28D9);
-  --grad-os: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);
-  --grad-brand: linear-gradient(135deg, #4F6EF7 0%, #7C3AED 100%);
-  --grad-brand-h: linear-gradient(135deg, #5B7AF8 0%, #8B4FF5 100%);
+  --grad-ai: linear-gradient(135deg, #F4A261, #D96B54);
+  --grad-os: linear-gradient(135deg, #D96B54 0%, #F4A261 100%);
+  --grad-brand: linear-gradient(135deg, #F4A261 0%, #D96B54 100%);
+  --grad-brand-h: linear-gradient(135deg, #E09252 0%, #C25B46 100%);
   
   /* ── Layout & Aesthetics ── */
   --max-width: 1200px;
@@ -74,46 +81,98 @@
 }
 
 [data-theme="dark"] {
-  /* ── AIVUR Dark Mode ── */
-  --color-bg:             #0f1115;
-  --color-surface:        #16191f;
-  --hero-bg:              linear-gradient(135deg, rgba(22, 25, 31, 0.85), rgba(15, 17, 21, 0.95));
-  --color-surface-2:      #1c1f26;
-  --color-surface-raised: #1c1f26;
-  --color-surface-offset: #232730;
-  --color-divider:        #2a2f3a;
-  --color-border:         #2a2f3a;
-  
-  --color-text:           #F8FAFC;
-  --color-text-muted:     #94A3B8;
-  --color-text-faint:     #8094A8; /* was #64748B — increased for WCAG AA contrast */
-  
-  --color-primary:        #2563EB; /* was #3B82F6 — darker blue for 4.5:1 contrast ratio with white */
-  --color-primary-mid:    #1D4ED8;
-  --color-primary-hover:  #60A5FA;
-  
-  /* IA Colors */
-  --color-ai:             #8B5CF6;
-  --color-ai-hover:       #A78BFA;
+  /* ── AIVUR Dark Mode — Paleta Institucional Elite ── */
+  --color-bg:             #020C14; /* Tom abissal */
+  --color-surface:        #0F3A53;           /* Navy ligeiramente elevado */
+  --hero-bg:              #020C14;
+  --color-surface-2:      #0F3A53;
+  --color-surface-raised: #143F5A;
+  --color-surface-offset: #1A4A66;
+  --color-divider:        rgba(107, 153, 179, 0.15); /* GrayBlue 15% */
+  --color-border:         rgba(107, 153, 179, 0.2);
 
-  --color-accent:         #fb923c;
-  --color-accent-hover:   #f97316;
-  --color-success:        #34d399;
-  --color-error:          #f87171;
-  --color-warning:        #fbbf24;
-  --color-accent-destructive: #f87171;
-  --color-accent-destructive-hover: #ef4444;
+  --color-text:           #F8FAFC; /* Branco/Gelo como texto principal */
+  --color-heading:        #FFFFFF; /* Títulos branco puro */
+  --color-text-muted:     var(--elite-grayblue); /* GrayBlue como texto secundário */
+  --color-text-faint:     rgba(107, 153, 179, 0.6);
+
+  --color-primary:        var(--elite-red);  /* Bright Red como ação */
+  --color-primary-mid:    #A30F28;
+  --color-primary-hover:  var(--elite-wine); /* Dark Wine no hover */
+
+  /* IA Colors — mantidas para compatibilidade com Mentor/Material */
+  --color-ai:             #F4A261;
+  --color-ai-hover:       #FFB57A;
+
+  --color-accent:         var(--elite-red);
+  --color-accent-hover:   var(--elite-wine);
+  --color-success:        #7A9A8C;
+  --color-error:          var(--elite-red);
+  --color-warning:        #F4A261;
+  --color-accent-destructive: var(--elite-red);
+  --color-accent-destructive-hover: var(--elite-wine);
 
   /* ── Gradients ── */
-  --grad-ai: linear-gradient(135deg, #8B5CF6, #A78BFA);
-  --grad-os: linear-gradient(135deg, #f87171 0%, #fbbf24 100%);
-  --grad-brand: linear-gradient(135deg, #6480FA 0%, #9060F8 100%);
-  --grad-brand-h: linear-gradient(135deg, #7290FB 0%, #A070FA 100%);
+  --grad-ai: linear-gradient(135deg, #F4A261, #D96B54);
+  --grad-os: linear-gradient(135deg, #D96B54 0%, #F4A261 100%);
+  --grad-brand: linear-gradient(135deg, #F4A261 0%, #D96B54 100%);
+  --grad-brand-h: linear-gradient(135deg, #FFB57A 0%, #E87D67 100%);
 
   /* ── Shadows ── */
-  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.24);
-  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.34);
-  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.44);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] {
+  /* ── AIVUR Light Mode — Paleta Institucional Elite ── */
+  
+  /* Inversão Semântica das Cores Elite para manter a estética em componentes hardcoded */
+  --elite-navy:     #F8FAFC; /* Navy vira Off-white no light mode para não pesar a tela */
+  --elite-cream:    #0A2E45; /* Cream vira Navy no light mode */
+  --elite-grayblue: #4A6B80; /* GrayBlue mais escuro para contraste no fundo claro */
+  
+  /* Cores estruturais */
+  --color-bg:             #F8FAFC; /* Fundo primário ultra limpo */
+  --color-surface:        #FFFFFF; /* Superfície elevada limpa */
+  --hero-bg:              #F8FAFC;
+  --color-surface-2:      #FFFFFF;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-offset: #F1F5F9;
+  --color-divider:        rgba(10, 46, 69, 0.15); /* Navy 15% */
+  --color-border:         rgba(10, 46, 69, 0.2);
+
+  --color-text:           #2B4C5F; /* Azul Petróleo como texto principal */
+  --color-heading:        #0A2E45; /* Navy como títulos */
+  --color-text-muted:     var(--elite-grayblue); /* Texto secundário */
+  --color-text-faint:     rgba(10, 46, 69, 0.6);
+
+  --color-primary:        var(--elite-red);  /* Bright Red como ação */
+  --color-primary-mid:    #A30F28;
+  --color-primary-hover:  var(--elite-wine); /* Dark Wine no hover */
+
+  /* IA Colors */
+  --color-ai:             #C41230;
+  --color-ai-hover:       #6B0000;
+
+  --color-accent:         var(--elite-red);
+  --color-accent-hover:   var(--elite-wine);
+  --color-success:        #2A5A43;
+  --color-error:          var(--elite-red);
+  --color-warning:        #E28020;
+  --color-accent-destructive: var(--elite-red);
+  --color-accent-destructive-hover: var(--elite-wine);
+
+  /* ── Gradients ── */
+  --grad-ai: linear-gradient(135deg, #C41230, #6B0000);
+  --grad-os: linear-gradient(135deg, #6B0000 0%, #C41230 100%);
+  --grad-brand: linear-gradient(135deg, #C41230 0%, #6B0000 100%);
+  --grad-brand-h: linear-gradient(135deg, #A30F28 0%, #6B0000 100%);
+
+  /* ── Shadows (Mais leves para light mode) ── */
+  --shadow-sm: 0 1px 2px rgba(10, 46, 69, 0.1);
+  --shadow-md: 0 4px 12px rgba(10, 46, 69, 0.12);
+  --shadow-lg: 0 12px 32px rgba(10, 46, 69, 0.15);
 }
 
 /* ── Base Styles ── */

@@ -1,79 +1,94 @@
 export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
-import { fetchRagContext } from "@/lib/ragClient";
-import { getRequestContext } from "@cloudflare/next-on-pages";
-import { RAGEngine } from "@/lib/rag/engine";
-import { RAGOptimizer } from "@/lib/rag/optimizer";
+import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getDomainRules, extractCleanMarkdown } from '@/lib/ai-protocols';
+
+// Função auxiliar para resolver bindings e env no Edge
+function resolveEnv(): any {
+  try {
+    const ctx = getRequestContext();
+    if (ctx?.env) return ctx.env;
+  } catch (_) {}
+  const g = globalThis as any;
+  if (g.GROQ_API_KEY) return g;
+  return process.env;
+}
 
 export async function POST(req: Request) {
   try {
-    const { label, subject, nicho } = await req.json();
+    const env = resolveEnv();
+    const groqApiKey = env?.GROQ_API_KEY;
 
-    if (!label || !subject) {
-      return NextResponse.json({ error: "Parâmetros obrigatórios ausentes." }, { status: 400 });
+    const body = await req.json() as { tema?: string; label?: string; subject?: string };
+    
+    // Compatibilidade com a chamada antiga (label/subject) e a nova (tema)
+    const tema = body.tema || body.label;
+    const subject = body.subject || "";
+
+    if (!tema) {
+      return NextResponse.json({ error: "Parâmetro 'tema' ou 'label' é obrigatório." }, { status: 400 });
     }
 
-    let engine: RAGEngine | null = null;
-    try {
-      const env = (process.env.NODE_ENV === 'development' ? process.env : getRequestContext()?.env) as any;
-      if (env?.RAG_CACHE) {
-        engine = new RAGEngine(env);
+    // 1. Busca o contexto vetorial na nossa própria rota de busca
+    const reqUrl = new URL(req.url);
+    const searchUrl = `${reqUrl.origin}/api/rag/search?q=${encodeURIComponent(tema)}`;
+    
+    console.log(`[RAG Teoria] Buscando contexto em: ${searchUrl}`);
+    const searchResponse = await fetch(searchUrl);
+    
+    let contextText = "";
+    if (searchResponse.ok) {
+      const searchData = await searchResponse.json() as { results?: Array<{ text: string }> };
+      if (searchData.results && searchData.results.length > 0) {
+        // Limita a 2500 chars por chunk para não explodir o LLM
+        contextText = searchData.results
+          .map((r, i) => `[Trecho ${i + 1}]:\n${r.text.substring(0, 2500)}`)
+          .join('\n\n');
       }
-    } catch (e) {
-      // Fallback
+    } else {
+      console.error(`[RAG Teoria] Falha ao buscar contexto: ${searchResponse.status}`);
     }
 
-    if (engine) {
-      const cacheKey = `teoria:${subject}:${label}:${nicho||""}`;
-      const cached = await engine.getCachedResponse(cacheKey);
-      if (cached) {
-        console.log(`[RAG_CACHE] Hit para teoria: ${label}`);
-        return NextResponse.json({ teoria: cached });
-      }
-    }
+    // 2. System Prompt com Scaffolding + Protocolo de Confiabilidade centralizado
+    const systemPrompt = `Você é o tutor especialista em concursos do Aivur. Seu objetivo é explicar a matéria em passos lógicos (scaffolding).
+Use OBRIGATORIAMENTE o [CONTEXTO VETORIAL] fornecido abaixo. Se houver 'pegadinhas' ou menções a bancas (como SH Dias, Vunesp) no contexto, destaque isso brutalmente para o aluno. Se o contexto estiver vazio, avise e responda com seu conhecimento.
 
-    const rag = await fetchRagContext(`${label} ${subject}`);
-    if (rag.context) {
-      console.log(`[RAG Teoria] MatchCount: ${rag.matchCount}, TopScore: ${rag.topScore}`);
-    }
+IMPORTANTE: Mantenha qualquer bloco <think> extremamente curto. Vá direto à geração da aula estruturada em Markdown.
 
-    let systemPrompt = `Você é um professor especializado em concursos públicos.
-Seu objetivo é explicar o tópico solicitado de forma simples, direta e didática, e fornecer dicas práticas de prova.
-Tópico: ${label}
-Matéria: ${subject}
-Área (Nicho): ${nicho || ""}
+[CONTEXTO VETORIAL]:
+${contextText || "Nenhum contexto encontrado na base de dados para este tema."}
 
-REGRAS ESTABELECIDAS:
-1. NUNCA cite o número de um artigo de lei, súmula, ou dispositivo legal específico, a menos que você tenha CERTEZA ABSOLUTA de que ele está correto e atualizado. Na dúvida, explique o conceito e o princípio geral sem citar o número.
-2. Foque em como isso costuma cair em provas.
-3. Responda em Markdown. Divida em duas seções claras: "### Teoria" e "### Dicas Práticas".
-4. Seja conciso, mas completo.
-`;
+=== PROTOCOLO DE CONFIABILIDADE ===
+${getDomainRules(subject)}`;
 
-    if (rag.context) {
-      const rawChunks = rag.context.split('\n---\n').filter(Boolean);
-      const chunkObjs = rawChunks.map((text, i) => ({ id: String(i), text, score: 1 }));
-      const optimizedChunks = RAGOptimizer.optimizeContext(chunkObjs, { maxTokens: 1500 });
-      const xmlContext = `<referencias_teoricas>\n` + optimizedChunks.map((c, i) => `  <trecho id="${i+1}">\n${c.text.trim()}\n  </trecho>`).join('\n') + `\n</referencias_teoricas>`;
-      systemPrompt += `\n\nCONTEXTO EXTRAÍDO OBRIGATÓRIO (baseie-se estritamente nos trechos em <referencias_teoricas> quando pertinente para ancorar a explicação):\n${xmlContext}\n`;
-    }
-
+    // 3. Chamada para a Groq
     const result = await callGroqWithFallback([
       { role: "system", content: systemPrompt },
-      { role: "user", content: `Gere a teoria e dicas para o tópico: ${label}` }
+      { role: "user", content: `Explique detalhadamente o tema: ${tema}` }
     ], {
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.3
+      model: "qwen/qwen3.6-27b",
+      temperature: 0.3,
+      max_tokens: 5000,
+      apiKey: groqApiKey
     });
 
-    if (engine) {
-      const cacheKey = `teoria:${subject}:${label}:${nicho||""}`;
-      await engine.cacheResponse(cacheKey, result);
-    }
-    return NextResponse.json({ teoria: result });
+    // 4. Limpeza centralizada via ai-protocols (extractCleanMarkdown)
+    const cleanContent = extractCleanMarkdown(result || "");
+
+    // Retorna 'resposta' (nova spec) e 'teoria' (compatibilidade frontend)
+    return NextResponse.json({ 
+      resposta: cleanContent,
+      teoria: cleanContent 
+    });
+
   } catch (error: any) {
-    console.error("Erro na rota de Teoria:", error);
-    return NextResponse.json({ error: error.message || "Erro ao gerar teoria" }, { status: 500 });
+    console.error("Erro na rota de Teoria (RAG + Groq):", error);
+    
+    const env = resolveEnv();
+    return NextResponse.json({ 
+      error: error.message || "Erro ao gerar teoria",
+      env_keys: Object.keys(env || {})
+    }, { status: 500 });
   }
 }

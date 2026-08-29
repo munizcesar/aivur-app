@@ -1,101 +1,140 @@
 export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
-import { fetchRagContext } from "@/lib/ragClient";
-import { getRequestContext } from "@cloudflare/next-on-pages";
-import { RAGEngine } from "@/lib/rag/engine";
-import { RAGOptimizer } from "@/lib/rag/optimizer";
+import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getDomainRules, extractCleanJson } from '@/lib/ai-protocols';
+
+// Função auxiliar para resolver bindings e env no Edge
+function resolveEnv(): any {
+  try {
+    const ctx = getRequestContext();
+    if (ctx?.env) return ctx.env;
+  } catch (_) {}
+  const g = globalThis as any;
+  if (g.GROQ_API_KEY) return g;
+  return process.env;
+}
 
 export async function POST(req: Request) {
   try {
-    const { label, subject, nicho, dificuldade, banca } = await req.json();
+    const env = resolveEnv();
+    const groqApiKey = env?.GROQ_API_KEY;
+
+    const { label, subject, nicho, dificuldade, banca } = await req.json() as {
+      label?: string;
+      subject?: string;
+      nicho?: string;
+      dificuldade?: string;
+      banca?: string;
+    };
 
     if (!label) {
       return NextResponse.json({ error: "Falta label" }, { status: 400 });
     }
 
-    let engine: RAGEngine | null = null;
-    try {
-      const env = (process.env.NODE_ENV === 'development' ? process.env : getRequestContext()?.env) as any;
-      if (env?.RAG_CACHE) {
-        engine = new RAGEngine(env);
+    // 1. Busca o contexto vetorial na nossa rota de busca (mesma lógica da teoria)
+    const reqUrl = new URL(req.url);
+    const searchUrl = `${reqUrl.origin}/api/rag/search?q=${encodeURIComponent(label)}`;
+    
+    console.log(`[RAG Questoes] Buscando contexto em: ${searchUrl}`);
+    const searchResponse = await fetch(searchUrl);
+    
+    let contextText = "";
+    if (searchResponse.ok) {
+      const searchData = await searchResponse.json() as { results?: Array<{ text: string }> };
+      if (searchData.results && searchData.results.length > 0) {
+        // Truncamento crucial (2500 chars por chunk) para evitar Rate Limit TPM
+        contextText = searchData.results
+          .map((r, i) => `[Trecho ${i + 1}]:\n${r.text.substring(0, 2500)}`)
+          .join('\n\n');
       }
-    } catch (e) {
-      // Fallback
+    } else {
+      console.error(`[RAG Questoes] Falha ao buscar contexto: ${searchResponse.status}`);
     }
 
-    if (engine) {
-      const cacheKey = `questoes:${subject}:${label}:${dificuldade||""}:${banca||""}`;
-      const cached = await engine.getCachedResponse(cacheKey);
-      if (cached) {
-        console.log(`[RAG_CACHE] Hit para questoes: ${label}`);
-        return NextResponse.json(JSON.parse(cached));
-      }
-    }
+    // 2. System Prompt + Protocolo de Confiabilidade centralizado
+    const systemPrompt = `Você atua como um Elaborador Sênior de Concursos para Guardas Municipais e Carreiras Policiais.
+Sua missão é gerar 2 questões inéditas de múltipla escolha com alto rigor técnico.
 
-    const rag = await fetchRagContext(`${label} ${subject}`);
-    if (rag.context) {
-      console.log(`[RAG Questoes] MatchCount: ${rag.matchCount}, TopScore: ${rag.topScore}`);
-    }
-
-    let systemPrompt = `Você é um elaborador de questões de concurso público.
-Seu objetivo é gerar 3 questões inéditas de múltipla escolha.
 Tópico: ${label}
-Matéria: ${subject || ""}
+Matéria: ${subject || "Geral"}
 Dificuldade: ${dificuldade || "Média"}
-Estilo da Banca Inspiradora: ${banca || "Estilo Genérico Múltipla Escolha"}
+Banca: ${banca || "SH Dias / Estilo Municipal"}
 
-REGRAS ESTABELECIDAS:
-1. Gere questões INÉDITAS inspiradas no estilo da banca. NUNCA reproduza enunciados reais de provas anteriores (isso evita problemas de copyright e de legislação desatualizada).
-2. Não cite artigos específicos de lei na justificativa a não ser que tenha 100% de certeza.
-3. Cada questão deve ter 5 alternativas (A, B, C, D, E), sendo apenas UMA correta.
-4. Você DEVE retornar EXATAMENTE e APENAS um JSON válido seguindo a estrutura:
+REGRAS DE OURO (Siga estritamente):
+1. PADRONIZAÇÃO DAS ALTERNATIVAS: Gere SEMPRE e EXATAMENTE 4 alternativas (A, B, C e D).
+2. O PERFIL DO EXAMINADOR: Os enunciados DEVEM trazer cenários práticos (aplicação de leis, estatutos em delegacias, regras de trânsito, matemática policial). Evite perguntas teóricas.
+3. CASCAS DE BANANA OBRIGATÓRIAS: Pelo menos UMA alternativa incorreta em cada questão deve ser uma pegadinha altamente plausível.
+4. JUSTIFICATIVA SOCRÁTICA: Explique rapidamente o motivo da correta e destrua a pegadinha. Seja CONCISO para economizar tokens.
+5. CONTEXTO VETORIAL: Use OBRIGATORIAMENTE o [CONTEXTO VETORIAL] abaixo.
+6. PENSAMENTO DIRETO: Mantenha qualquer bloco <think> extremamente curto (máx 200 palavras). Vá direto à geração do JSON.
+
+[CONTEXTO VETORIAL]:
+${contextText || "Nenhum contexto específico encontrado na base. Utilize seu conhecimento de ponta."}
+
+FORMATO JSON IMPLACÁVEL:
+Você DEVE retornar APENAS UM JSON VÁLIDO no exato formato abaixo e ABSOLUTAMENTE NENHUM TEXTO ADICIONAL (sem tags markdown, sem blocos <think>, apenas o objeto JSON puramente encodado).
+
 {
   "questoes": [
     {
-      "id": "uuid-curto",
-      "enunciado": "Texto da questão...",
+      "id": "gerar-um-id-unico-aqui",
+      "enunciado": "Texto da questão situacional...",
       "alternativas": {
-        "A": "Texto alternativa A",
-        "B": "Texto alternativa B",
-        "C": "Texto alternativa C",
-        "D": "Texto alternativa D",
-        "E": "Texto alternativa E"
+        "A": "Texto da alternativa A",
+        "B": "Texto da alternativa B",
+        "C": "Texto da alternativa C",
+        "D": "Texto da alternativa D"
       },
-      "correta": "A",
-      "justificativa": "A alternativa A está correta porque..."
+      "correta": "B",
+      "justificativa": "Explicação matadora da correta e destruição da pegadinha..."
     }
   ]
 }
-`;
 
-    if (rag.context) {
-      const rawChunks = rag.context.split('\n---\n').filter(Boolean);
-      const chunkObjs = rawChunks.map((text, i) => ({ id: String(i), text, score: 1 }));
-      const optimizedChunks = RAGOptimizer.optimizeContext(chunkObjs, { maxTokens: 1500 });
-      const xmlContext = `<referencias_teoricas>\n` + optimizedChunks.map((c, i) => `  <trecho id="${i+1}">\n${c.text.trim()}\n  </trecho>`).join('\n') + `\n</referencias_teoricas>`;
-      systemPrompt += `\n\nCONTEXTO EXTRAÍDO OBRIGATÓRIO (baseie-se estritamente nos trechos em <referencias_teoricas> como fundamentação base para elaborar as alternativas e justificar o gabarito. Ele contém as regras/leis relevantes para o tema):\n${xmlContext}\n`;
-    }
+=== PROTOCOLO DE CONFIABILIDADE ===
+${getDomainRules(subject || "")}`;
 
+    // 3. Chamada para a Groq
     const result = await callGroqWithFallback([
       { role: "system", content: systemPrompt },
-      { role: "user", content: `Gere questões para o tópico: ${label} (Dificuldade: ${dificuldade}, Banca: ${banca})` }
+      { role: "user", content: `Gere as questões para: ${label}` }
     ], {
-      model: "llama-3.3-70b-versatile",
+      model: "qwen/qwen3.6-27b",
       temperature: 0.3,
-      response_format: { type: "json_object" }
+      max_tokens: 5000,
+      apiKey: groqApiKey
     });
 
     if (!result) throw new Error("Resposta vazia da API Groq");
-    const json = JSON.parse(result);
 
-    if (engine) {
-      const cacheKey = `questoes:${subject}:${label}:${dificuldade||""}:${banca||""}`;
-      await engine.cacheResponse(cacheKey, result);
+    // 4. Extração de JSON centralizada via ai-protocols (extractCleanJson)
+    const cleanResult = extractCleanJson(result);
+
+    let json;
+    try {
+      json = JSON.parse(cleanResult);
+    } catch (e: any) {
+      console.error("JSON parse error:", e);
+      throw new Error("Falha ao parsear JSON gerado pela IA. Texto puro: " + cleanResult);
     }
+
+    // 5. Adiciona IDs randomicos se o modelo esqueceu
+    if (json.questoes && Array.isArray(json.questoes)) {
+      json.questoes = json.questoes.map((q: any) => ({
+        ...q,
+        id: q.id && q.id !== "gerar-um-id-unico-aqui" ? q.id : crypto.randomUUID()
+      }));
+    }
+
     return NextResponse.json(json);
   } catch (error: any) {
-    console.error("Erro na rota de Questões:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Erro na rota de Questões (RAG + Qwen):", error);
+    
+    const env = resolveEnv();
+    return NextResponse.json({ 
+      error: error.message,
+      env_keys: Object.keys(env || {}) 
+    }, { status: 500 });
   }
 }

@@ -1,0 +1,226 @@
+/* ═══════════════════════════════════════════════════════════════════
+   DASHBOARD — Layout Clean Editorial Brutalista
+   ═══════════════════════════════════════════════════════════════════ */
+
+.dashWrap {
+  background-color: var(--color-bg);
+  min-height: calc(100vh - 70px);
+  padding: 4rem 0 6rem 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboardLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: flex-start;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 992px) {
+  .dashboardLayout {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
+
+/* ─── LADO ESQUERDO: Hero Column ─── */
+.heroCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+}
+
+.heroEyebrow {
+  font-family: var(--font-body, 'Satoshi', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--elite-red, #C41230);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.heroEyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 2rem;
+  height: 2px;
+  background: var(--elite-red, #C41230);
+  flex-shrink: 0;
+}
+
+.heroTitle {
+  font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  line-height: 1.05;
+  font-weight: 900;
+  color: var(--color-heading, #0A2E45);
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+}
+
+.heroSub {
+  font-size: clamp(1.1rem, 1.5vw, 1.25rem);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  max-width: 90%;
+}
+
+.heroImageWrapper {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.heroImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  /* Subida sutil flutuando */
+  animation: floatMascot 6s ease-in-out infinite;
+}
+
+@keyframes floatMascot {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0); }
+}
+
+@media (max-width: 992px) {
+  /* No mobile, inverte a ordem para a imagem ficar no topo (opcional via flex/grid) ou só reduz */
+  .heroCol {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .heroEyebrow {
+    justify-content: center;
+  }
+  
+  .heroSub {
+    margin: 0 auto;
+  }
+
+  .heroImageWrapper {
+    max-width: 320px;
+  }
+}
+
+/* ─── LADO DIREITO: Pilares em Lista Horizontal ─── */
+.pillarsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 2rem;
+}
+
+@media (max-width: 992px) {
+  .pillarsCol {
+    padding-top: 0;
+  }
+}
+
+.pillarCard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: var(--color-surface, #FFFFFF);
+  border: 2px solid var(--elite-navy, #0A2E45);
+  border-radius: 8px;
+  padding: 20px 24px;
+  text-decoration: none;
+  color: inherit;
+  /* Brutalist offset shadow */
+  box-shadow: 4px 4px 0 var(--elite-navy, #0A2E45);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+
+.pillarCard:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--elite-navy, #0A2E45);
+}
+
+/* Card em destaque (Trilhas) */
+.pillarCardFeatured {
+  border-left: 4px solid var(--elite-red, #C41230);
+}
+
+/* Estrutura interna do card (Horizontal) */
+.pillarThumb {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(10, 46, 69, 0.05); /* translúcido suave */
+  border-radius: 12px;
+}
+
+.pillarThumb img {
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+.pillarContent {
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  flex-grow: 1;
+  gap: 0.25rem;
+}
+
+.pillarTitle {
+  font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-heading, #0A2E45);
+  letter-spacing: -0.01em;
+}
+
+.pillarDesc {
+  font-family: var(--font-body, 'Satoshi', sans-serif);
+  font-size: 0.95rem;
+  color: var(--color-text, #2B4C5F);
+  line-height: 1.4;
+}
+
+.pillarArrow {
+  align-self: center;
+  margin-left: auto;
+  color: var(--color-heading, #0A2E45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.pillarCard:hover .pillarArrow {
+  transform: translateX(4px);
+}
+
+/* Dark Mode Overrides */
+:global([data-theme="dark"]) .pillarThumb {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+:global([data-theme="dark"]) .pillarThumb img { 
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); 
+}

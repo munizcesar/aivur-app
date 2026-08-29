@@ -143,6 +143,62 @@
   transition: all 0.15s ease;
 }
 
+.generatorLabel {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.generatorInput {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  transition: border-color 0.15s ease;
+  outline: none;
+  box-shadow: none;
+}
+
+.generatorInput:focus {
+  border-color: var(--color-text);
+}
+
+.generatorBtn {
+  margin-top: var(--space-4);
+  background: var(--elite-red);
+  color: var(--elite-cream);
+  padding: 16px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  box-shadow: 4px 4px 0 var(--elite-wine);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.generatorBtn:hover:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--elite-wine);
+}
+
+.generatorBtn:disabled {
+  background: var(--color-surface-offset);
+  color: var(--color-text-faint);
+  box-shadow: none;
+  cursor: not-allowed;
+  border: 1px solid var(--color-border);
+}
+
 .cardActionBtn:hover {
   background: var(--color-surface-offset);
   color: var(--color-text);

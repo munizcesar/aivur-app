@@ -19,9 +19,10 @@ export default function LoginPage() {
         method: "POST"
       });
       if (res.ok) {
+        localStorage.setItem("aivur_logged_in", "true");
         window.location.href = "/";
       } else {
-        const data = await res.json();
+        const data = await res.json() as { error?: string };
         setError(data.error || "Erro no dev bypass");
       }
     } catch (err: any) {
@@ -36,12 +37,12 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("https://studymaster-worker.cesarmuniz0816.workers.dev/api/auth/magic-link", {
+      const res = await fetch("https://aivur-worker.cesarmuniz0816.workers.dev/api/auth/magic-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-      const data = await res.json();
+      const data = await res.json() as { error?: string; token_simulated?: string };
       
       if (!res.ok) throw new Error(data.error || "Falha ao enviar link");
       

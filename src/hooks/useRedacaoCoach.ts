@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 
-const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || 'https://studymaster-worker.cesarmuniz0816.workers.dev';
+const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || 'https://aivur-worker.cesarmuniz0816.workers.dev';
 
 export interface RedacaoResult {
   scores: {
@@ -65,11 +65,11 @@ export function useRedacaoCoach() {
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       
-      const data = await response.json();
+      const data = await response.json() as Partial<RedacaoResult> & { reply?: string };
       clearInterval(interval);
       
       if (data.scores) {
-        setResult(data);
+        setResult(data as RedacaoResult);
       } else if (data.reply) {
         // Fallback for LLMs that return stringified JSON in 'reply'
         try {

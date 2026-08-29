@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 
-const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || 'https://studymaster-worker.cesarmuniz0816.workers.dev';
+const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || 'https://aivur-worker.cesarmuniz0816.workers.dev';
 
 export interface Aivur360Plan {
   dailySchedule: { day: string; subjects: string[]; hours: number }[];
@@ -56,7 +56,7 @@ export function useAivur360() {
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       
-      const data = await response.json();
+      const data = await response.json() as { plan?: Aivur360Plan; reply?: string };
       clearInterval(interval);
       setProgress(100);
       setProgressMsg("Plano concluído!");

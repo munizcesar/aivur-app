@@ -6,7 +6,7 @@ import styles from "./Mentor.module.css";
 import { TopicDetails } from "./TopicDetails";
 import { getTopicCounts } from "@/hooks/useTopicContent";
 import { useCourseContext } from "@/context/CourseContext";
-import { HelpCircle, Layers, Youtube } from "lucide-react";
+import { HelpCircle, Layers, PlayCircle } from "lucide-react";
 
 interface ChecklistItemProps {
   topic: CourseTopic;
@@ -132,7 +132,7 @@ function ChecklistItem({ topic, isChecked, onToggle, ytTerm, subject, nicho }: C
             aria-label={`Buscar "${topic.label}" no YouTube`}
             tabIndex={-1}
           >
-            <Youtube width={16} height={16} />
+            <PlayCircle width={16} height={16} />
             <span>YouTube</span>
           </a>
         </div>

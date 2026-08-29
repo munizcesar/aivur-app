@@ -230,7 +230,7 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
       {/* TEORIA TAB */}
       {activeTab === "teoria" && (
         <div>
-          <div className="flex items-start gap-3 p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl text-slate-700 dark:text-slate-300 text-sm leading-relaxed mb-4">
+          <div className="flex items-start gap-3 p-4 bg-[#f68b33]/10 border border-[#f68b33]/20 rounded-xl text-slate-700 dark:text-slate-300 text-sm leading-relaxed mb-4">
             <ShieldCheck className="w-5 h-5 text-[#f68b33] mt-0.5 shrink-0" />
             <span><strong>{getDisclaimerAivur(subject)}</strong></span>
           </div>
@@ -264,7 +264,7 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
             </div>
           ) : (
             <button 
-              className="bg-[#f68b33] hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-orange-500/20 flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#f68b33] hover:brightness-110 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-[#f68b33]/20 flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => generateTeoria(topicLabel, subject, nicho)}
               disabled={isLoadingTeoria}
             >

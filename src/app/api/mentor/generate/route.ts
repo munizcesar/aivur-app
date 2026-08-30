@@ -164,34 +164,53 @@ Schema esperado do JSON:
       { role: "user", content: prompt }
     ];
 
-    const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey.trim()}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: messages,
-        temperature: 0.2,
-        max_tokens: 8000,
-        response_format: { type: "json_object" }
-      })
-    });
+    const fallbackModels = [
+      "llama-3.3-70b-versatile", // Primário
+      "openai/gpt-oss-120b",     // Plano B
+      "qwen/qwen3.6-27b"         // Plano C
+    ];
 
-    if (!groqResponse.ok) {
-      const errText = await groqResponse.text();
+    let groqResponse;
+    let lastErrorStatus = 500;
+    let lastErrorText = "";
+
+    for (const modelId of fallbackModels) {
+      groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey.trim()}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: modelId,
+          messages: messages,
+          temperature: 0.2,
+          max_tokens: 8000,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (groqResponse.ok) {
+        break; // Sucesso, aborta o loop de fallbacks
+      } else {
+        lastErrorStatus = groqResponse.status;
+        lastErrorText = await groqResponse.text();
+        console.warn(`[Generate Route] Falha no modelo ${modelId}: ${lastErrorStatus} - ${lastErrorText}`);
+      }
+    }
+
+    if (!groqResponse || !groqResponse.ok) {
       let parsedErr;
       try {
-        parsedErr = JSON.parse(errText);
+        parsedErr = JSON.parse(lastErrorText);
       } catch (e) {
-        parsedErr = { message: errText };
+        parsedErr = { message: lastErrorText };
       }
       return new Response(JSON.stringify({ 
-        error: "Erro na API da IA (Groq). O serviço pode estar indisponível ou rejeitou a requisição.", 
+        error: "Erro na API da IA (Groq). Todos os modelos falharam.", 
         details: parsedErr 
       }), {
-        status: groqResponse.status,
+        status: lastErrorStatus,
         headers: { "Content-Type": "application/json" }
       });
     }

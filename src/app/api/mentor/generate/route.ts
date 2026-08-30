@@ -169,8 +169,16 @@ Schema esperado do JSON:
       { role: "user", content: prompt }
     ];
 
-    console.log("🕵️ [Generate Route] Chave presente:", !!apiKey, " | Tamanho:", apiKey?.length);
-    
+    const typeOfKey = typeof apiKey;
+    const isString = typeOfKey === 'string';
+    const keyLength = isString ? apiKey.length : 0;
+    const safePrefix = isString && keyLength > 4 ? apiKey.substring(0, 4) : "N/A";
+    const exactValue = isString ? `"${safePrefix}***"` : String(apiKey);
+
+    if (keyLength === 0 || !isString || apiKey === "undefined" || apiKey === "null") {
+      throw new Error(`[DIAGNÓSTICO FATAL] Variável corrompida. Tipo: ${typeOfKey} | Valor: ${exactValue} | Tamanho: ${keyLength}`);
+    }
+
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {

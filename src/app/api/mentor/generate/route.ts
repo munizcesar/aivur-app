@@ -36,7 +36,8 @@ export async function POST(req: Request) {
   try {
     const ctx = getRequestContext();
     const env = ctx?.env as any;
-    const apiKey = env?.GROQ_API_KEY || process.env.GROQ_API_KEY;
+    const rawKey = env?.GROQ_API_KEY || process.env.GROQ_API_KEY || '';
+    const apiKey = typeof rawKey === 'string' ? rawKey.trim() : '';
     console.log("[Generate Route] Runtime Edge ativado. Chave extraída:", apiKey ? "SIM" : "NÃO");
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";

@@ -458,7 +458,7 @@ export default function WizardStep3() {
 
       {showExitModal && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-sm rounded-[8px] bg-[var(--color-surface)] p-6 shadow-[4px_4px_0_rgba(107,0,0,0.3)] border border-[var(--color-border)]">
+          <div className="w-full max-w-sm rounded-[8px] bg-[var(--color-surface)] p-4 md:p-6 shadow-[4px_4px_0_rgba(107,0,0,0.3)] border border-[var(--color-border)]">
             <h3 className="mb-2 text-xl font-semibold text-[var(--color-text)]">Sair do modo foco?</h3>
             <p className="mb-6 text-sm leading-relaxed text-[var(--color-text-muted)]">
               Seu progresso nesta sessao sera perdido. Deseja sair?

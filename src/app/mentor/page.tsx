@@ -24,7 +24,7 @@ export default function MentorPage() {
       <div key={course.id} style={{ position: "relative" }}>
         <Link
           href={`/mentor/${course.id}`}
-          className={`${styles.courseCard} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`}
+          className={`${styles.courseCard} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}
           id={`course-card-${course.id}`}
         >
           <div className={styles.courseCardIcon} aria-hidden="true">

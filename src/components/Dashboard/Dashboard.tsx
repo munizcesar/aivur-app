@@ -32,7 +32,7 @@ export default function Dashboard() {
           <div className={styles.pillarsCol}>
             
             {/* CARD 1 - Destaque */}
-            <Link href="/mentor/gerar" className={`${styles.pillarCard} ${styles.pillarCardFeatured} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+            <Link href="/mentor/gerar" className={`${styles.pillarCard} ${styles.pillarCardFeatured} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
               <div className={styles.pillarThumb}>
                 {/*eslint-disable-next-line @next/next/no-img-element*/}
                 <img src="/images/aivur/icon-trilhas.png" alt="Trilhas de Estudo" />
@@ -49,7 +49,7 @@ export default function Dashboard() {
             </Link>
 
             {/* CARD 2 */}
-            <Link href="/questoes" className={`${styles.pillarCard} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+            <Link href="/questoes" className={`${styles.pillarCard} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
               <div className={styles.pillarThumb}>
                 {/*eslint-disable-next-line @next/next/no-img-element*/}
                 <img src="/images/aivur/icon-questoes.png" alt="Caderno de Questões" />
@@ -66,7 +66,7 @@ export default function Dashboard() {
             </Link>
 
             {/* CARD 3 */}
-            <Link href="/material" className={`${styles.pillarCard} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+            <Link href="/material" className={`${styles.pillarCard} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
               <div className={styles.pillarThumb}>
                 {/*eslint-disable-next-line @next/next/no-img-element*/}
                 <img src="/images/aivur/icon-material.png" alt="Meu Material" />
@@ -83,7 +83,7 @@ export default function Dashboard() {
             </Link>
 
             {/* CARD 4 */}
-            <Link href="/redacao" className={`${styles.pillarCard} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+            <Link href="/redacao" className={`${styles.pillarCard} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
               <div className={styles.pillarThumb}>
                 {/*eslint-disable-next-line @next/next/no-img-element*/}
                 <img src="/images/aivur/icon-redacao.png" alt="Redação Coach" />

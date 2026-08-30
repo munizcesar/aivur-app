@@ -54,7 +54,7 @@ export default function Header() {
           </div>
           <div className={styles.headerActions}>
             <button 
-              className={`${styles.drawerToggle} ${isDrawerOpen ? styles.open : ""} transition-transform duration-150 active:scale-95`} 
+              className={`${styles.drawerToggle} ${isDrawerOpen ? styles.open : ""} transition-transform duration-150 active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center`} 
               onClick={toggleDrawer}
               role="dialog" 
               aria-modal="true" 
@@ -62,7 +62,7 @@ export default function Header() {
             >
               <span></span><span></span><span></span>
             </button>
-            <button className={`${styles.themeToggle} transition-transform duration-150 active:scale-95`} onClick={toggleTheme} aria-label="Alternar tema">
+            <button className={`${styles.themeToggle} transition-transform duration-150 active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center`} onClick={toggleTheme} aria-label="Alternar tema">
               {mounted ? (
                 theme === "dark" ? (
                   <Sun width={20} height={20} />

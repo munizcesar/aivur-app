@@ -48,7 +48,7 @@ export default function DesktopQuestionList({
   onNotificarErro,
 }: DesktopQuestionListProps) {
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+    <div className="flex flex-col gap-4 md:gap-6 max-w-4xl mx-auto">
       {questions.map((question, idx) => (
         <QuestionBlock
           key={question.id}
@@ -273,7 +273,7 @@ function QuestionBlock({
       )}
 
       {/* ── Barra de Ações Secundárias ── */}
-      <div className="flex flex-wrap items-center gap-5 px-4 py-2.5 text-xs border-t border-slate-200 dark:border-slate-700/60 text-slate-500 dark:text-slate-400">
+      <div className="flex flex-wrap items-center gap-4 md:gap-5 px-4 py-2.5 text-xs border-t border-slate-200 dark:border-slate-700/60 text-slate-500 dark:text-slate-400">
         <ActionLink
           icon={<CheckCircle2 size={15} />}
           label="Gabarito Comentado"

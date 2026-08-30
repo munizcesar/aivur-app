@@ -69,7 +69,7 @@ export default function SideDrawer() {
 
       {/* Drawer */}
       <aside 
-        className={`${styles.sideDrawer} ${isDrawerOpen ? styles.open : ""} backdrop-blur-md bg-background/80`}
+        className={`${styles.sideDrawer} ${isDrawerOpen ? styles.open : ""} backdrop-blur-md bg-background/80 w-[85vw] sm:w-[350px]`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -81,7 +81,7 @@ export default function SideDrawer() {
             </span>
             <span className={`${styles.drawerTitle} font-semibold tracking-tight`}>Painel de Estudo</span>
           </div>
-          <button className={styles.closeBtn} onClick={closeDrawer} aria-label="Fechar painel">
+          <button className={`${styles.closeBtn} min-h-[44px] min-w-[44px] flex items-center justify-center`} onClick={closeDrawer} aria-label="Fechar painel">
             <X width={20} height={20} />
           </button>
         </div>
@@ -121,7 +121,7 @@ export default function SideDrawer() {
         <div className={styles.drawerBody}>
           {/* Resumo Panel */}
           <div className={`${styles.drawerPanel} ${activeTab === "resumo" ? styles.active : ""}`}>
-            <div className={`${styles.drawerStreakCard} border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+            <div className={`${styles.drawerStreakCard} border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
               <div className={styles.drawerStreakIcon}><Flame width={26} height={26} fill="currentColor" /></div>
               <div className={styles.drawerStreakInfo}>
                 <span className={`${styles.drawerStreakCount} font-semibold tracking-tight`}>1</span>
@@ -139,15 +139,15 @@ export default function SideDrawer() {
             </div>
 
             <div className={styles.drawerMetricsGrid}>
-              <div className={`${styles.drawerMetric} ${styles.metricTotal} border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+              <div className={`${styles.drawerMetric} ${styles.metricTotal} border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
                 <span className={`${styles.drawerMetricValue} font-semibold tracking-tight`}>{answered}</span>
                 <span className={styles.drawerMetricLabel}>Questões</span>
               </div>
-              <div className={`${styles.drawerMetric} ${styles.metricCorrect} border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+              <div className={`${styles.drawerMetric} ${styles.metricCorrect} border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
                 <span className={`${styles.drawerMetricValue} font-semibold tracking-tight`}>0</span>
                 <span className={styles.drawerMetricLabel}>Acertos</span>
               </div>
-              <div className={`${styles.drawerMetric} ${styles.metricWrong} border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+              <div className={`${styles.drawerMetric} ${styles.metricWrong} border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
                 <span className={`${styles.drawerMetricValue} font-semibold tracking-tight`}>0</span>
                 <span className={styles.drawerMetricLabel}>Erros</span>
               </div>
@@ -177,7 +177,7 @@ export default function SideDrawer() {
               <div className={styles.rsSectionTitle}><Zap width={14} height={14} /> Ações Rápidas</div>
             </div>
             <div className={styles.drawerActionsList}>
-              <Link href="/mentor" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
+              <Link href="/mentor" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(217, 107, 84, 0.1)', color: '#D96B54' }}>
                   <GraduationCap width={22} height={22} />
                 </span>
@@ -187,7 +187,7 @@ export default function SideDrawer() {
                 </span>
               </Link>
               
-              <Link href="/questoes" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
+              <Link href="/questoes" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(122, 154, 140, 0.1)', color: '#7A9A8C' }}>
                   <ClipboardList width={22} height={22} />
                 </span>
@@ -197,7 +197,7 @@ export default function SideDrawer() {
                 </span>
               </Link>
 
-              <Link href="/material" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
+              <Link href="/material" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(217, 107, 84, 0.1)', color: '#D96B54' }}>
                   <FileText width={22} height={22} />
                 </span>
@@ -207,7 +207,7 @@ export default function SideDrawer() {
                 </span>
               </Link>
 
-              <Link href="/redacao" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
+              <Link href="/redacao" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(122, 154, 140, 0.1)', color: '#7A9A8C' }}>
                   <Brain width={22} height={22} />
                 </span>

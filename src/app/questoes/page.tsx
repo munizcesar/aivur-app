@@ -45,7 +45,7 @@ export default function QuestoesPage() {
               <img src="/images/aivur/questoes.png" alt="Aivur Questões 3D" style={{ width: '220px', height: 'auto', objectFit: 'contain', background: 'transparent', filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.3))' }} />
             </div>
           </div>
-          <div className={`${styles.wizardCard} border border-border/40 dark:border-white/10 shadow-sm p-6`} role="region" aria-live="polite">
+          <div className={`${styles.wizardCard} border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`} role="region" aria-live="polite">
             {(step <= 2) && <WizardStep2 />}
             {step >= 3 && <WizardStep3 />}
           </div>

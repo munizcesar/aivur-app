@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractCleanJson } from '@/lib/ai-protocols';
-import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export const runtime = 'edge';
-
-// Função auxiliar para resolver bindings e env no Edge
-function resolveEnv(): any {
-  try {
-    const ctx = getRequestContext();
-    if (ctx?.env) return ctx.env;
-  } catch (_) {}
-  const g = globalThis as any;
-  if (g.GROQ_API_KEY) return g;
-  return process.env;
-}
 
 // Basic in-memory rate limiting
 const ipMap = new Map<string, { count: number; resetTime: number }>();
@@ -44,11 +32,16 @@ function checkRateLimit(ip: string): boolean {
 }
 
 export async function POST(req: Request) {
+  const apiKey = process.env.GROQ_API_KEY;
+  
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: "GROQ_API_KEY não configurada no ambiente." }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+
   try {
-    const env = resolveEnv();
-    const rawKey = env?.GROQ_API_KEY || process.env.GROQ_API_KEY || "";
-    // Se estiver testando ou se o edge falhar, garanta que a chave real fornecida pelo usuário seja lida de forma robusta
-    const apiKey = typeof rawKey === 'string' && rawKey.trim().length > 0 ? rawKey.trim() : "SUA_CHAVE_GROQ_COMPLETA_AQUI";
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     if (!checkRateLimit(ip)) {
@@ -171,20 +164,10 @@ Schema esperado do JSON:
       { role: "user", content: prompt }
     ];
 
-    const typeOfKey = typeof apiKey;
-    const isString = typeOfKey === 'string';
-    const keyLength = isString ? apiKey.length : 0;
-    const safePrefix = isString && keyLength > 4 ? apiKey.substring(0, 4) : "N/A";
-    const exactValue = isString ? `"${safePrefix}***"` : String(apiKey);
-
-    if (keyLength === 0 || !isString || apiKey === "undefined" || apiKey === "null") {
-      throw new Error(`[DIAGNÓSTICO FATAL] Variável corrompida. Tipo: ${typeOfKey} | Valor: ${exactValue} | Tamanho: ${keyLength}`);
-    }
-
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        "Authorization": `Bearer ${apiKey.trim()}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -247,10 +230,9 @@ Schema esperado do JSON:
   } catch (error: any) {
     console.error("Erro na rota de Geração:", error);
     
-    const env = resolveEnv();
     return NextResponse.json({ 
       error: "Falha interna ao gerar o curso. " + error.message,
-      env_keys: Object.keys(env || {}) 
+      env_keys: Object.keys(process.env || {}) 
     }, { status: 500 });
   }
 }

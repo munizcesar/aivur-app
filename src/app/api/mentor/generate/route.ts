@@ -1,8 +1,9 @@
-export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
 import { extractCleanJson } from '@/lib/ai-protocols';
 import { getRequestContext } from '@cloudflare/next-on-pages';
+
+export const runtime = 'edge';
 
 // Função auxiliar para resolver bindings e env no Edge
 function resolveEnv(): any {
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
   try {
     const env = resolveEnv();
     const groqApiKey = env?.GROQ_API_KEY;
+    console.log("[Generate Route] Runtime Edge ativado. Chave extraída:", groqApiKey ? "SIM" : "NÃO");
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     if (!checkRateLimit(ip)) {

@@ -46,7 +46,9 @@ function checkRateLimit(ip: string): boolean {
 export async function POST(req: Request) {
   try {
     const env = resolveEnv();
-    const apiKey = env?.GROQ_API_KEY;
+    const rawKey = env?.GROQ_API_KEY || process.env.GROQ_API_KEY || "";
+    // Se estiver testando ou se o edge falhar, garanta que a chave real fornecida pelo usuário seja lida de forma robusta
+    const apiKey = typeof rawKey === 'string' && rawKey.trim().length > 0 ? rawKey.trim() : "SUA_CHAVE_GROQ_COMPLETA_AQUI";
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     if (!checkRateLimit(ip)) {

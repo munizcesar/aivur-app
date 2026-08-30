@@ -181,7 +181,19 @@ Schema esperado do JSON:
 
     if (!groqResponse.ok) {
       const errText = await groqResponse.text();
-      throw new Error(`Groq Native Fetch Error: ${groqResponse.status} - ${errText}`);
+      let parsedErr;
+      try {
+        parsedErr = JSON.parse(errText);
+      } catch (e) {
+        parsedErr = { message: errText };
+      }
+      return new Response(JSON.stringify({ 
+        error: "Erro na API da IA (Groq). O serviço pode estar indisponível ou rejeitou a requisição.", 
+        details: parsedErr 
+      }), {
+        status: groqResponse.status,
+        headers: { "Content-Type": "application/json" }
+      });
     }
 
     const data = await groqResponse.json() as any;

@@ -88,14 +88,6 @@
   height: auto;
   display: block;
   object-fit: contain;
-  /* Subida sutil flutuando */
-  animation: floatMascot 6s ease-in-out infinite;
-}
-
-@keyframes floatMascot {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-  100% { transform: translateY(0); }
 }
 
 @media (max-width: 992px) {

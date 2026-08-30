@@ -695,3 +695,17 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); }
     .mascot-wrapper, .aivo-recall-fab { right: 15px !important; bottom: 15px !important; }
     .speech-bubble { max-width: 200px !important; font-size: 13px; }
 }
+
+@theme {
+  --animate-float-premium: floatPremium 8s ease-in-out infinite;
+}
+
+@keyframes floatPremium {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+

@@ -114,3 +114,5 @@ A fundaÃƒÂ§ÃƒÂ£o do Backend de InteligÃƒÂªncia Artificial usa o padrÃƒÂ£o RAG (R
 
 
 - **Missão Tática de Refinamento Visual (Tailwind UI)** - ? CONCLUÍDO. Injetadas micro-interações de alta performance (feedback tátil), efeito glassmorphism em modais/barras e tipografia sofisticada nas rotas Home, Trilhas e Questões. Cartões ganharam bordas sutis para maior profundidade. Alterações estritamente baseadas em Tailwind, preservando a lógica e estados existentes. Commit: 'ui(design): injeta micro-interacoes, profundidade visual e tipografia premium nas telas principais'.
+
+- **Calibragem de Animação (Float Premium)** - ? CONCLUÍDO. A animação da imagem 3D principal no Dashboard foi substituída por uma animação de respiro de baixa amplitude (floatPremium 8s ease-in-out infinite), implementada através do Tailwind CSS v4 (@theme em globals.css). Isso eleva a estética para um padrão SaaS de alto nível e reduz o peso agressivo visual. Commit: 'ui(design): calibra animacao float-premium na imagem 3D principal'.

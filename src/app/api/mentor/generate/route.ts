@@ -4,6 +4,17 @@ import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export const runtime = 'edge';
 
+// Função auxiliar para resolver bindings e env no Edge
+function resolveEnv(): any {
+  try {
+    const ctx = getRequestContext();
+    if (ctx?.env) return ctx.env;
+  } catch (_) {}
+  const g = globalThis as any;
+  if (g.GROQ_API_KEY) return g;
+  return process.env;
+}
+
 // Basic in-memory rate limiting
 const ipMap = new Map<string, { count: number; resetTime: number }>();
 
@@ -34,16 +45,8 @@ function checkRateLimit(ip: string): boolean {
 
 export async function POST(req: Request) {
   try {
-    const ctx = getRequestContext();
-    const env = ctx?.env as any;
-    const rawKey = env?.GROQ_API_KEY || process.env.GROQ_API_KEY || '';
-    const apiKey = typeof rawKey === 'string' ? rawKey.trim() : '';
-
-    if (!apiKey || apiKey.length < 10) {
-      throw new Error(`[DIAGNÓSTICO AIVUR] O Cloudflare não entregou a chave para esta rota. Tamanho da chave lida: ${apiKey.length || 0}`);
-    }
-
-    console.log("[Generate Route] Runtime Edge ativado. Chave extraída:", apiKey ? "SIM" : "NÃO");
+    const env = resolveEnv();
+    const apiKey = env?.GROQ_API_KEY;
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     if (!checkRateLimit(ip)) {
@@ -234,11 +237,10 @@ Schema esperado do JSON:
   } catch (error: any) {
     console.error("Erro na rota de Geração:", error);
     
-    const ctx = getRequestContext();
-    const env = ctx?.env as any;
+    const env = resolveEnv();
     return NextResponse.json({ 
       error: "Falha interna ao gerar o curso. " + error.message,
-      env_keys: Object.keys(env || process.env || {}) 
+      env_keys: Object.keys(env || {}) 
     }, { status: 500 });
   }
 }

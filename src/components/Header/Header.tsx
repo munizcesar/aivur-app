@@ -35,11 +35,20 @@ export default function Header() {
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <Link href="/" className={`${styles.logo} transition-transform duration-150 active:scale-95`} aria-label="AIVUR - Voltar ao inicio">
               <Image 
-                src={mounted && theme === "dark" ? "/assets/logo-aivur-dark.png" : "/assets/logo-aivur-light.png"}
+                src="/assets/logo-aivur-light.png"
                 alt="AIVUR Logo" 
                 width={180} 
                 height={50} 
-                className={styles.logoIcon}
+                priority
+                className={`${styles.logoIcon} block dark:hidden`}
+              />
+              <Image 
+                src="/assets/logo-aivur-dark.png"
+                alt="AIVUR Logo" 
+                width={180} 
+                height={50} 
+                priority
+                className={`${styles.logoIcon} hidden dark:block`}
               />
             </Link>
           </div>

@@ -118,3 +118,6 @@ A fundaÃƒÂ§ÃƒÂ£o do Backend de InteligÃƒÂªncia Artificial usa o padrÃƒÂ£o RAG (R
 - **Calibragem de Animação (Float Premium)** - ? CONCLUÍDO. A animação da imagem 3D principal no Dashboard foi substituída por uma animação de respiro de baixa amplitude (floatPremium 8s ease-in-out infinite), implementada através do Tailwind CSS v4 (@theme em globals.css). Isso eleva a estética para um padrão SaaS de alto nível e reduz o peso agressivo visual. Commit: 'ui(design): calibra animacao float-premium na imagem 3D principal'.
 
 - **LCP Optimization (Hero Image)** - ? CONCLUÍDO. Adicionado fetchPriority=\high\ na tag \<img>\ do \hero-main.png\ (Dashboard.tsx) para forçar o carregamento imediato e eliminar o delay visual relatado pelo usuário, otimizando o LCP (Largest Contentful Paint). Commit: 'perf(ui): prioriza carregamento da imagem principal do hero para eliminar delay visual'.
+
+- **Eliminação de Flicker de Tema (Logo)** - ? CONCLUÍDO. A lógica JS (hydration mismatch) que alternava o logo no \Header.tsx\ com base no tema foi substituída por renderização estática simultânea com \
+ext/image\ (usando \lock dark:hidden\ e \hidden dark:block\). Adicionado \priority\ para evitar delay, melhorando a métrica CLS e eliminando o piscar da versão errada no FOUC. Commit: 'fix(ui): substitui logica de tema do logo js por css puro para eliminar flicker no carregamento'.

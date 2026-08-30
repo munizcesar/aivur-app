@@ -5,8 +5,8 @@
 @source "../app";
 
 :root {
-  /* ── AIVUR Color Palette (Light) - Warm Modern EdTech ── */
-  --color-bg:             #F9F6F0;
+  /* ✨ AIVUR Color Palette (Light) - Warm Modern EdTech ✨ */
+  --color-bg:             #F0F4F8; /* Um pouco mais escuro para destacar os cards brancos */
   --color-surface:        #FFFFFF;
   --color-surface-2:      #FFFFFF;
   --color-surface-raised: #FFFFFF;

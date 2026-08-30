@@ -382,9 +382,9 @@ export default function WizardStep2() {
       )}
 
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: "32px", borderTop: "1px solid var(--color-border)", paddingTop: "24px" }}>
-        <button className="btn btn-secondary" onClick={() => setStep(1)}>Voltar</button>
+        <button className="btn btn-secondary transition-transform duration-150 active:scale-95" onClick={() => setStep(1)}>Voltar</button>
         <button 
-          className="btn btn-primary" 
+          className="btn btn-primary transition-transform duration-150 active:scale-95" 
           onClick={handleNextStep}
           disabled={
             (mode === 'concurso' && (filters.materia === 'Todas' || !filters.materia)) ||

@@ -1,4 +1,4 @@
-﻿# PROJECT_MEMORY.md â€” MemÃ³ria Persistente do Projeto AIVUR/StudyMaster
+# PROJECT_MEMORY.md â€” MemÃ³ria Persistente do Projeto AIVUR/StudyMaster
 
 âš ï¸ **ATENÃ‡ÃƒO AO AGENTE: Antes de escrever cÃ³digo de backend/IA, leia e siga o ARCHITECTURE_RULES.md**
 
@@ -110,3 +110,7 @@ A fundaÃ§Ã£o do Backend de InteligÃªncia Artificial usa o padrÃ£o RAG (R
 
 - **Refatoracao Card de Topico** - CONCLUIDO. ChecklistItem.tsx: botoes pill reordenados (1. Questoes HelpCircle, 2. Flashcards Layers, 3. YouTube Youtube - todos lucide-react). TopicDetails.tsx: aba renomeada para 'Resumo + Dicas' com cor ativa #f68b33; disclaimer premium com ShieldCheck (sem emojis); botao 'Gerar Resumo + Dicas' com Sparkles icon e estilo bg-[#f68b33]; erro tratado com caixa suave. API mentor/teoria/route.ts: prompt refatorado para foco em confianca, bullet points, mnenonicos e maior incidencia em provas. Commit: fix(trilhas): refatora layout do card de topico, reordena acoes e otimiza prompt de geracao de resumo.
 
+- **Layout Desktop de Questões (QConcursos-style)** – ✅ CONCLUÍDO. Criado `DesktopQuestionList.tsx` com lista contínua (scroll vertical), breadcrumb de matéria/nicho/tópico, metadata (dificuldade/banca/tipo IA), alternativas compactas com clique direito para riscar (eliminação local sem persistência), botão Responder com feedback inline certo/errado, gabarito comentado expansível, e barra de 7 ações secundárias (Gabarito funcional, restantes preparadas com handlers vazios). Integrado em `TopicDetails.tsx` via breakpoint Tailwind `hidden md:block` — mobile mantém `FullscreenQuestion` intacto. Paleta 100% AIVUR Elite (#f68b33 ações, red-700 sombras, slate-900 fundo). Zero CSS externo, encapsulamento absoluto. Commit: `feat(mentor): implementa layout desktop de questoes estilo qconcursos com paleta aivur elite`.
+
+
+- **Miss�o T�tica de Refinamento Visual (Tailwind UI)** - ? CONCLU�DO. Injetadas micro-intera��es de alta performance (feedback t�til), efeito glassmorphism em modais/barras e tipografia sofisticada nas rotas Home, Trilhas e Quest�es. Cart�es ganharam bordas sutis para maior profundidade. Altera��es estritamente baseadas em Tailwind, preservando a l�gica e estados existentes. Commit: 'ui(design): injeta micro-interacoes, profundidade visual e tipografia premium nas telas principais'.

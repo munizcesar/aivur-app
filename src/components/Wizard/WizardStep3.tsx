@@ -364,7 +364,7 @@ export default function WizardStep3() {
       <div className="relative w-full max-w-6xl mx-auto px-4 md:px-6 py-5 md:py-8 pb-40 md:pb-12 hidden md:block">
       <div className="mb-6 md:mb-8 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
             Caderno de questoes
           </p>
           <h2 className="text-2xl md:text-4xl font-black tracking-tight text-[var(--color-text)]">
@@ -386,7 +386,7 @@ export default function WizardStep3() {
 
       {!isDesktop ? (
         <>
-          <div className="mb-4 flex items-center justify-between rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+          <div className="mb-4 flex items-center justify-between rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
             <span>Questao ativa</span>
             <span>
               {activeQuestionIndex + 1} de {generatedQuestions.length}
@@ -459,14 +459,14 @@ export default function WizardStep3() {
       {showExitModal && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-sm rounded-[8px] bg-[var(--color-surface)] p-6 shadow-[4px_4px_0_rgba(107,0,0,0.3)] border border-[var(--color-border)]">
-            <h3 className="mb-2 text-xl font-bold text-[var(--color-text)]">Sair do modo foco?</h3>
+            <h3 className="mb-2 text-xl font-semibold text-[var(--color-text)]">Sair do modo foco?</h3>
             <p className="mb-6 text-sm leading-relaxed text-[var(--color-text-muted)]">
               Seu progresso nesta sessao sera perdido. Deseja sair?
             </p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => setShowExitModal(false)}
-                className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-[var(--color-primary)] px-4 py-3 font-bold text-[var(--color-text)] shadow-[4px_4px_0_var(--color-primary-hover)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-[var(--color-primary)] px-4 py-3 font-semibold text-[var(--color-text)] shadow-[4px_4px_0_var(--color-primary-hover)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5"
               >
                 <BookOpen size={18} />
                 Continuar estudando
@@ -476,7 +476,7 @@ export default function WizardStep3() {
                   setShowExitModal(false);
                   handleBackToStep2();
                 }}
-                className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-[var(--color-border)] bg-transparent px-4 py-3 font-bold text-[var(--color-text-muted)] transition-colors hover:bg-[rgba(107,153,179,0.08)] hover:text-[var(--color-text)]"
+                className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-[var(--color-border)] bg-transparent px-4 py-3 font-semibold text-[var(--color-text-muted)] transition-colors hover:bg-[rgba(107,153,179,0.08)] hover:text-[var(--color-text)]"
               >
                 <RotateCcw size={18} />
                 Sair e comecar novo quiz
@@ -542,7 +542,7 @@ function QuestionCard({
 
   return (
     <article className={baseCardClasses}>
-      <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+      <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
         <span className="rounded-[6px] border border-[var(--color-border)] bg-[var(--color-surface-offset)] px-2.5 py-1 text-[var(--color-text)]">
           Q{idx + 1}
         </span>
@@ -577,7 +577,7 @@ function QuestionCard({
           <button
             onClick={onAnswer}
             disabled={!selectedOption}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--color-primary)] px-6 py-3.5 font-bold text-white shadow-[4px_4px_0_var(--color-primary-hover)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--color-primary)] px-6 py-3.5 font-semibold text-white shadow-[4px_4px_0_var(--color-primary-hover)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none duration-150 active:scale-95"
           >
             Responder
           </button>
@@ -645,7 +645,7 @@ function QuestionCard({
           >
             <div className="relative overflow-hidden rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface-offset)] px-4 py-4">
               <div className="absolute left-0 top-0 h-full w-1 bg-[var(--color-primary)]" />
-              <div className="flex items-center gap-2 pl-2 text-sm font-bold text-[var(--color-text)]">
+              <div className="flex items-center gap-2 pl-2 text-sm font-semibold text-[var(--color-text)]">
                 <Brain size={16} className="text-[var(--color-primary)]" />
                 Gabarito comentado / resolucao
               </div>
@@ -656,7 +656,7 @@ function QuestionCard({
 
               {Object.keys(data.qOptionExplanations).length > 0 && (
                 <div className="mt-4 space-y-3 pl-2">
-                  <h5 className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                  <h5 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
                     Analise das alternativas
                   </h5>
                   {Object.entries(data.qOptionExplanations).map(([key, exp]) => {
@@ -670,7 +670,7 @@ function QuestionCard({
                             : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)]"
                         }`}
                       >
-                        <span className={`mr-2 font-bold ${isRight ? "text-emerald-300" : "text-[var(--color-text)]"}`}>
+                        <span className={`mr-2 font-semibold ${isRight ? "text-emerald-300" : "text-[var(--color-text)]"}`}>
                           {key})
                         </span>
                         <span>{String(exp)}</span>

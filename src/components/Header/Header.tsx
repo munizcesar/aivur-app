@@ -29,11 +29,11 @@ export default function Header() {
   };
 
   return (
-    <header className={styles.siteHeader}>
+    <header className={`${styles.siteHeader} backdrop-blur-md bg-background/80`}>
       <div className="container">
         <div className={styles.headerInner}>
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            <Link href="/" className={styles.logo} aria-label="AIVUR - Voltar ao inicio">
+            <Link href="/" className={`${styles.logo} transition-transform duration-150 active:scale-95`} aria-label="AIVUR - Voltar ao inicio">
               <Image 
                 src={mounted && theme === "dark" ? "/assets/logo-aivur-dark.png" : "/assets/logo-aivur-light.png"}
                 alt="AIVUR Logo" 
@@ -45,7 +45,7 @@ export default function Header() {
           </div>
           <div className={styles.headerActions}>
             <button 
-              className={`${styles.drawerToggle} ${isDrawerOpen ? styles.open : ""}`} 
+              className={`${styles.drawerToggle} ${isDrawerOpen ? styles.open : ""} transition-transform duration-150 active:scale-95`} 
               onClick={toggleDrawer}
               role="dialog" 
               aria-modal="true" 
@@ -53,7 +53,7 @@ export default function Header() {
             >
               <span></span><span></span><span></span>
             </button>
-            <button className={styles.themeToggle} onClick={toggleTheme} aria-label="Alternar tema">
+            <button className={`${styles.themeToggle} transition-transform duration-150 active:scale-95`} onClick={toggleTheme} aria-label="Alternar tema">
               {mounted ? (
                 theme === "dark" ? (
                   <Sun width={20} height={20} />

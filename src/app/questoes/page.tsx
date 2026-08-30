@@ -33,7 +33,7 @@ export default function QuestoesPage() {
         <div className="container">
           <div style={{ display: 'flex', flexWrap: 'wrap-reverse', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', marginBottom: '2rem' }}>
             <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column' }}>
-              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--elite-cream, #FBEBD0)', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--elite-cream, #FBEBD0)', marginBottom: '0.5rem', letterSpacing: '-0.02em' }} className="font-semibold tracking-tight">
                 Caderno de Questões
               </h1>
               <p className="text-slate-500 dark:text-slate-400 text-lg">
@@ -45,7 +45,7 @@ export default function QuestoesPage() {
               <img src="/images/aivur/questoes.png" alt="Aivur Questões 3D" style={{ width: '220px', height: 'auto', objectFit: 'contain', background: 'transparent', filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.3))' }} />
             </div>
           </div>
-          <div className={styles.wizardCard} role="region" aria-live="polite">
+          <div className={`${styles.wizardCard} border border-border/40 dark:border-white/10 shadow-sm p-6`} role="region" aria-live="polite">
             {(step <= 2) && <WizardStep2 />}
             {step >= 3 && <WizardStep3 />}
           </div>

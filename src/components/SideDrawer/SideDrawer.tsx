@@ -69,7 +69,7 @@ export default function SideDrawer() {
 
       {/* Drawer */}
       <aside 
-        className={`${styles.sideDrawer} ${isDrawerOpen ? styles.open : ""}`}
+        className={`${styles.sideDrawer} ${isDrawerOpen ? styles.open : ""} backdrop-blur-md bg-background/80`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -79,7 +79,7 @@ export default function SideDrawer() {
             <span className={styles.drawerLogo}>
               <GraduationCap width={22} height={22} />
             </span>
-            <span className={styles.drawerTitle}>Painel de Estudo</span>
+            <span className={`${styles.drawerTitle} font-semibold tracking-tight`}>Painel de Estudo</span>
           </div>
           <button className={styles.closeBtn} onClick={closeDrawer} aria-label="Fechar painel">
             <X width={20} height={20} />
@@ -121,10 +121,10 @@ export default function SideDrawer() {
         <div className={styles.drawerBody}>
           {/* Resumo Panel */}
           <div className={`${styles.drawerPanel} ${activeTab === "resumo" ? styles.active : ""}`}>
-            <div className={styles.drawerStreakCard}>
+            <div className={`${styles.drawerStreakCard} border border-border/40 dark:border-white/10 shadow-sm p-6`}>
               <div className={styles.drawerStreakIcon}><Flame width={26} height={26} fill="currentColor" /></div>
               <div className={styles.drawerStreakInfo}>
-                <span className={styles.drawerStreakCount}>1</span>
+                <span className={`${styles.drawerStreakCount} font-semibold tracking-tight`}>1</span>
                 <span className={styles.drawerStreakLabel}>dia de sequência</span>
               </div>
             </div>
@@ -139,23 +139,23 @@ export default function SideDrawer() {
             </div>
 
             <div className={styles.drawerMetricsGrid}>
-              <div className={`${styles.drawerMetric} ${styles.metricTotal}`}>
-                <span className={styles.drawerMetricValue}>{answered}</span>
+              <div className={`${styles.drawerMetric} ${styles.metricTotal} border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+                <span className={`${styles.drawerMetricValue} font-semibold tracking-tight`}>{answered}</span>
                 <span className={styles.drawerMetricLabel}>Questões</span>
               </div>
-              <div className={`${styles.drawerMetric} ${styles.metricCorrect}`}>
-                <span className={styles.drawerMetricValue}>0</span>
+              <div className={`${styles.drawerMetric} ${styles.metricCorrect} border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+                <span className={`${styles.drawerMetricValue} font-semibold tracking-tight`}>0</span>
                 <span className={styles.drawerMetricLabel}>Acertos</span>
               </div>
-              <div className={`${styles.drawerMetric} ${styles.metricWrong}`}>
-                <span className={styles.drawerMetricValue}>0</span>
+              <div className={`${styles.drawerMetric} ${styles.metricWrong} border border-border/40 dark:border-white/10 shadow-sm p-6`}>
+                <span className={`${styles.drawerMetricValue} font-semibold tracking-tight`}>0</span>
                 <span className={styles.drawerMetricLabel}>Erros</span>
               </div>
             </div>
 
             <div className={styles.drawerAccRow}>
               <div className={styles.drawerAccLabel}>Aproveitamento</div>
-              <div className={styles.drawerAccValue}>0%</div>
+              <div className={`${styles.drawerAccValue} font-semibold tracking-tight`}>0%</div>
             </div>
           </div>
 
@@ -177,42 +177,42 @@ export default function SideDrawer() {
               <div className={styles.rsSectionTitle}><Zap width={14} height={14} /> Ações Rápidas</div>
             </div>
             <div className={styles.drawerActionsList}>
-              <Link href="/mentor" onClick={closeDrawer} className={styles.drawerActionBtn} style={{ minHeight: '60px', background: 'var(--color-surface)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              <Link href="/mentor" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(217, 107, 84, 0.1)', color: '#D96B54' }}>
                   <GraduationCap width={22} height={22} />
                 </span>
                 <span className={styles.drawerActionText}>
-                  <strong style={{ color: '#2B4C5F' }}>Trilhas de Estudo</strong>
+                  <strong style={{ color: '#2B4C5F' }} className="font-semibold tracking-tight">Trilhas de Estudo</strong>
                   <span>Cronograma via edital</span>
                 </span>
               </Link>
               
-              <Link href="/questoes" onClick={closeDrawer} className={styles.drawerActionBtn} style={{ minHeight: '60px', background: 'var(--color-surface)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              <Link href="/questoes" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(122, 154, 140, 0.1)', color: '#7A9A8C' }}>
                   <ClipboardList width={22} height={22} />
                 </span>
                 <span className={styles.drawerActionText}>
-                  <strong style={{ color: '#2B4C5F' }}>Caderno de Questões</strong>
+                  <strong style={{ color: '#2B4C5F' }} className="font-semibold tracking-tight">Caderno de Questões</strong>
                   <span>Filtre por banca e cargo</span>
                 </span>
               </Link>
 
-              <Link href="/material" onClick={closeDrawer} className={styles.drawerActionBtn} style={{ minHeight: '60px', background: 'var(--color-surface)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              <Link href="/material" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(217, 107, 84, 0.1)', color: '#D96B54' }}>
                   <FileText width={22} height={22} />
                 </span>
                 <span className={styles.drawerActionText}>
-                  <strong style={{ color: '#2B4C5F' }}>Meu Material</strong>
+                  <strong style={{ color: '#2B4C5F' }} className="font-semibold tracking-tight">Meu Material</strong>
                   <span>Transforme material em questões</span>
                 </span>
               </Link>
 
-              <Link href="/redacao" onClick={closeDrawer} className={styles.drawerActionBtn} style={{ minHeight: '60px', background: 'var(--color-surface)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              <Link href="/redacao" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(122, 154, 140, 0.1)', color: '#7A9A8C' }}>
                   <Brain width={22} height={22} />
                 </span>
                 <span className={styles.drawerActionText}>
-                  <strong style={{ color: '#2B4C5F' }}>Redação Coach</strong>
+                  <strong style={{ color: '#2B4C5F' }} className="font-semibold tracking-tight">Redação Coach</strong>
                   <span>Correção completa C1 a C5</span>
                 </span>
               </Link>

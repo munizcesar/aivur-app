@@ -191,6 +191,7 @@ Schema esperado do JSON:
       });
 
       if (groqResponse.ok) {
+        console.log(`[AIVUR IA] Sucesso na geracao utilizando o modelo: ${modelId}`);
         break; // Sucesso, aborta o loop de fallbacks
       } else {
         lastErrorStatus = groqResponse.status;

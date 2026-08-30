@@ -120,3 +120,17 @@
   transform: rotate(-45deg);
   background: var(--color-primary);
 }
+
+.logoLight {
+  display: block;
+}
+.logoDark {
+  display: none;
+}
+:global([data-theme="dark"]) .logoLight {
+  display: none !important;
+}
+:global([data-theme="dark"]) .logoDark {
+  display: block !important;
+}
+

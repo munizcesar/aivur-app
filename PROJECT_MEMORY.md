@@ -121,3 +121,5 @@ A fundaÃƒÂ§ÃƒÂ£o do Backend de InteligÃƒÂªncia Artificial usa o padrÃƒÂ£o RAG (R
 
 - **Eliminação de Flicker de Tema (Logo)** - ? CONCLUÍDO. A lógica JS (hydration mismatch) que alternava o logo no \Header.tsx\ com base no tema foi substituída por renderização estática simultânea com \
 ext/image\ (usando \lock dark:hidden\ e \hidden dark:block\). Adicionado \priority\ para evitar delay, melhorando a métrica CLS e eliminando o piscar da versão errada no FOUC. Commit: 'fix(ui): substitui logica de tema do logo js por css puro para eliminar flicker no carregamento'.
+
+- **Correção Definitiva do Logo (Flicker/Contraste)** - ? CONCLUÍDO. O Tailwind v4 neste projeto não estava mapeando a variante \dark:\ para \[data-theme="dark"]\ nativamente, o que quebrou as classes \dark:hidden\. A solução definitiva e blindada foi criar classes puras de CSS Module (\.logoLight\ e \.logoDark\) no \Header.module.css\ que escutam diretamente o seletor \:global([data-theme="dark"])\. Isso corrigiu o contraste nos dois temas e manteve o carregamento instantâneo sem flicker de JS. Commit: 'fix(ui): implementa toggle de logo via CSS Modules para contornar limitacao do Tailwind v4'.

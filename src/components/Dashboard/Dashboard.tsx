@@ -24,7 +24,7 @@ export default function Dashboard() {
             
             <div className={styles.heroImageWrapper}>
               {/*eslint-disable-next-line @next/next/no-img-element*/}
-              <img src="/images/aivur/hero-main.png" alt="Aivur Mascote Inteligente" className={`${styles.heroImage} animate-float-premium`} />
+              <img src="/images/aivur/hero-main.png" alt="Aivur Mascote Inteligente" className={`${styles.heroImage} animate-float-premium`} fetchPriority="high" />
             </div>
           </div>
 

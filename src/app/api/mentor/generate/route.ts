@@ -38,6 +38,11 @@ export async function POST(req: Request) {
     const env = ctx?.env as any;
     const rawKey = env?.GROQ_API_KEY || process.env.GROQ_API_KEY || '';
     const apiKey = typeof rawKey === 'string' ? rawKey.trim() : '';
+
+    if (!apiKey || apiKey.length < 10) {
+      throw new Error(`[DIAGNÓSTICO AIVUR] O Cloudflare não entregou a chave para esta rota. Tamanho da chave lida: ${apiKey.length || 0}`);
+    }
+
     console.log("[Generate Route] Runtime Edge ativado. Chave extraída:", apiKey ? "SIM" : "NÃO");
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";

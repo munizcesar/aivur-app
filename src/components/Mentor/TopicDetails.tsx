@@ -6,6 +6,7 @@ import { useCourseContext } from "@/context/CourseContext";
 import { useLocalCourses } from "@/hooks/useLocalCourses";
 import ReactMarkdown from 'react-markdown';
 import { FullscreenQuestion } from "@/components/UI/FullscreenQuestion";
+import DesktopQuestionList from "@/components/Mentor/DesktopQuestionList";
 import { Sparkles, ShieldCheck } from "lucide-react";
 
 export function getDisclaimerAivur(subject: string) {
@@ -356,7 +357,16 @@ export function TopicDetails({ topicId, topicLabel, subject, nicho }: TopicDetai
                 </button>
               </div>
               <div className="hidden md:block">
-                {state.questoes.map(q => <QuestaoView key={q.id} q={q} />)}
+                <DesktopQuestionList
+                  questions={state.questoes}
+                  userResponses={state.userResponses}
+                  subject={subject}
+                  nicho={nicho}
+                  topicLabel={topicLabel}
+                  dificuldade={dificuldade}
+                  banca={banca}
+                  onAnswer={handleAnswerQuestao}
+                />
               </div>
               
               <div className="md:hidden mt-4">

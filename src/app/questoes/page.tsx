@@ -29,7 +29,7 @@ export default function QuestoesPage() {
   return (
     <>
       <Header />
-      <main style={{ flex: 1, padding: "2rem 0", minHeight: "85vh", background: "var(--elite-navy, #0A2E45)" }}>
+      <main style={{ flex: 1, padding: "2rem 0", minHeight: "85vh" }}>
         <div className="container">
           <div style={{ display: 'flex', flexWrap: 'wrap-reverse', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', marginBottom: '2rem' }}>
             <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column' }}>

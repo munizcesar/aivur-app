@@ -75,19 +75,19 @@ export default function MinhasTrilhasView({
   }, [localCourses, isHydrated]);
 
   return (
-    <div className="w-full max-w-[1100px] mx-auto px-4 py-6 md:py-8">
+    <div className="w-full max-w-[1100px] mx-auto px-6 py-8 md:px-12 md:py-16">
       {/* CABEÇALHO DA VIEW 2 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 pb-8 mb-10 border-b border-[#0A2E45]/50">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#F4A261]/15 text-[#F4A261] text-xs font-bold uppercase tracking-wider mb-2">
-            <Compass className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0A2E45]/40 border border-[#6B99B3]/20 text-[#6B99B3] text-[10px] font-bold uppercase tracking-widest mb-3 shadow-[0_0_10px_rgba(10,46,69,0.5)]">
+            <Compass className="w-3.5 h-3.5 text-[#F4A261]" />
             Mentor AIVUR 360 · Painel
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
             Minhas Trilhas Ativas
           </h1>
-          <p className="text-sm sm:text-base text-[#6B99B3] mt-1 max-w-xl">
-            Acompanhe o checklist de metas do seu concurso e monitore sua taxa de retenção.
+          <p className="text-sm text-[#6B99B3] mt-2 max-w-xl font-medium">
+            Acompanhe o checklist de metas do seu edital e monitore sua taxa de retenção.
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export default function MinhasTrilhasView({
           <button
             type="button"
             onClick={onNavigateToCriar}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#C41230] hover:bg-[#6B0000] text-[#FBEBD0] text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#C41230] hover:bg-[#900B20] text-[#FBEBD0] text-sm font-bold shadow-[0_4px_14px_rgba(196,18,48,0.3)] hover:shadow-[0_6px_20px_rgba(196,18,48,0.5)] active:scale-[0.98] transition-all cursor-pointer"
             aria-label="Gerar novas trilhas de estudo"
           >
             <Plus className="w-4 h-4" />
@@ -120,11 +120,11 @@ export default function MinhasTrilhasView({
         </div>
 
         {!isHydrated ? (
-          <div className="p-8 text-center rounded-xl border border-[rgba(107,153,179,0.2)] bg-[#0A2E45]/20 text-[#6B99B3] animate-pulse">
+          <div className="p-12 text-center rounded-2xl border border-[#0A2E45]/40 bg-[#020C14]/50 text-[#6B99B3] animate-pulse">
             Carregando suas trilhas ativas...
           </div>
         ) : localCourses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {localCourses.map((course) => {
               const prog = progressMap[course.id] || { done: 0, total: 0, percent: 0 };
               const subjectCount = course.subjects.length;
@@ -132,18 +132,18 @@ export default function MinhasTrilhasView({
               return (
                 <div
                   key={course.id}
-                  className="rounded-xl border border-[rgba(107,153,179,0.2)] hover:border-[rgba(107,153,179,0.4)] bg-[#0A2E45]/30 p-5 backdrop-blur-sm transition-all duration-200 flex flex-col justify-between group"
+                  className="rounded-2xl border border-[#0A2E45]/50 hover:border-[#6B99B3]/40 bg-[#0A2E45]/20 p-6 backdrop-blur-sm transition-all duration-300 flex flex-col justify-between group shadow-[0_8px_30px_rgba(2,12,20,0.5)]"
                 >
                   <div>
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-[#FBEBD0] transition-colors leading-snug line-clamp-2">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <h3 className="text-lg font-bold text-white group-hover:text-[#FBEBD0] transition-colors leading-snug line-clamp-2">
                         {course.title}
                       </h3>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <button
                           type="button"
                           onClick={() => setEditingCourse({ id: course.id, title: course.title })}
-                          className="p-1.5 rounded text-[#6B99B3] hover:text-white hover:bg-[#020C14]/50 transition-colors"
+                          className="p-1.5 rounded-lg text-[#6B99B3] hover:text-white hover:bg-[#0A2E45]/80 transition-colors"
                           title="Renomear trilha"
                           aria-label="Renomear trilha"
                         >
@@ -152,7 +152,7 @@ export default function MinhasTrilhasView({
                         <button
                           type="button"
                           onClick={() => setDeletingCourse(course)}
-                          className="p-1.5 rounded text-[#6B99B3] hover:text-red-400 hover:bg-[#020C14]/50 transition-colors"
+                          className="p-1.5 rounded-lg text-[#6B99B3] hover:text-red-400 hover:bg-red-950/30 transition-colors"
                           title="Excluir trilha"
                           aria-label="Excluir trilha"
                         >
@@ -161,34 +161,34 @@ export default function MinhasTrilhasView({
                       </div>
                     </div>
 
-                    <p className="text-xs text-[#6B99B3] mb-4">
+                    <p className="text-xs font-semibold text-[#6B99B3] mb-5">
                       {subjectCount} disciplina{subjectCount !== 1 ? "s" : ""} • {prog.total} tópicos mapeados
                     </p>
 
                     {/* BARRA DE PROGRESSO */}
-                    <div className="space-y-1.5 mb-5">
-                      <div className="flex justify-between text-xs text-[#6B99B3] font-semibold">
-                        <span>Progresso de retenção</span>
-                        <span className="text-[#F4A261] font-bold">{prog.percent}%</span>
+                    <div className="space-y-2 mb-6">
+                      <div className="flex justify-between text-xs text-[#6B99B3] font-bold">
+                        <span>Taxa de Retenção</span>
+                        <span className="text-[#F4A261]">{prog.percent}%</span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-[#020C14]/80 overflow-hidden border border-[rgba(107,153,179,0.15)]">
+                      <div className="w-full h-2.5 rounded-full bg-[#020C14] overflow-hidden border border-[#0A2E45]">
                         <div
-                          className="h-full bg-gradient-to-r from-[#C41230] to-[#F4A261] transition-all duration-500 rounded-full"
+                          className="h-full bg-gradient-to-r from-[#C41230] to-[#F4A261] transition-all duration-700 ease-out rounded-full"
                           style={{ width: `${prog.percent}%` }}
                         />
                       </div>
-                      <div className="flex justify-between text-[11px] text-slate-500">
-                        <span>{prog.done} tópicos concluídos</span>
+                      <div className="flex justify-between text-[11px] font-medium text-slate-500">
+                        <span>{prog.done} concluídos</span>
                         <span>{prog.total - prog.done} restantes</span>
                       </div>
                     </div>
                   </div>
 
                   {/* AÇÃO DE ACESSO */}
-                  <div className="pt-3 border-t border-[rgba(107,153,179,0.15)]">
+                  <div className="pt-4 border-t border-[#0A2E45]/40">
                     <Link
                       href={`/mentor/${course.id}`}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#0A2E45] hover:bg-[#0F3A53] text-[#FBEBD0] text-xs sm:text-sm font-bold border border-[rgba(107,153,179,0.25)] transition-all group-hover:border-[#F4A261]/60"
+                      className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#0A2E45]/60 hover:bg-[#0F3A53] text-[#FBEBD0] text-sm font-bold border border-[#6B99B3]/20 transition-all group-hover:border-[#F4A261]/50 group-hover:shadow-[0_4px_15px_rgba(244,162,97,0.1)]"
                     >
                       <span>Acessar Cronograma</span>
                       <ArrowRight className="w-4 h-4 text-[#F4A261]" />
@@ -200,24 +200,24 @@ export default function MinhasTrilhasView({
           </div>
         ) : (
           /* ESTADO VAZIO ELEGANTE */
-          <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[#0A2E45]/20 p-8 sm:p-10 text-center backdrop-blur-sm">
-            <div className="w-12 h-12 rounded-full bg-[#C41230]/15 flex items-center justify-center mx-auto mb-4 text-[#C41230]">
+          <div className="rounded-2xl border border-[#0A2E45]/40 bg-[#020C14]/50 p-10 sm:p-14 text-center shadow-[0_8px_30px_rgba(2,12,20,0.6)]">
+            <div className="w-14 h-14 rounded-full bg-[#0A2E45]/40 border border-[#6B99B3]/20 flex items-center justify-center mx-auto mb-5 text-[#6B99B3] shadow-[0_0_15px_rgba(10,46,69,0.3)]">
               <Compass className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-1">
+            <h3 className="text-xl font-bold text-white mb-2">
               Você ainda não possui trilhas personalizadas
             </h3>
-            <p className="text-xs sm:text-sm text-[#6B99B3] max-w-md mx-auto mb-6">
-              Comece agora colando seu edital para estruturar suas metas diárias ou selecione um dos cursos prontos abaixo.
+            <p className="text-sm text-[#6B99B3] max-w-md mx-auto mb-8 leading-relaxed">
+              Estruture seu conteúdo programático agora para desbloquear seu roteiro de estudos otimizado.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={onNavigateToCriar}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-[#C41230] hover:bg-[#6B0000] text-[#FBEBD0] text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-[#C41230] hover:bg-[#900B20] text-[#FBEBD0] text-sm font-bold shadow-[0_4px_14px_rgba(196,18,48,0.3)] hover:shadow-[0_6px_20px_rgba(196,18,48,0.5)] active:scale-[0.98] transition-all"
               >
                 <Plus className="w-4 h-4" />
-                <span>Gerar trilhas</span>
+                <span>Gerar nova trilha</span>
               </button>
             </div>
           </div>

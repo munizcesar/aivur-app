@@ -20,3 +20,4 @@ export default function MinhasTrilhasPage() {
     </Suspense>
   );
 }
+

@@ -18,8 +18,8 @@
 .wizardCard {
   min-height: 360px;
   position: relative;
-  /* Fundo translúcido Cream — sutil, sem glassmorphism pesado */
-  background: rgba(251, 235, 208, 0.04);
+  /* Fundo azul padrão mantido apenas no card */
+  background: var(--elite-navy, #0A2E45);
   border-radius: 8px;
   /* Sombra compacta sólida, sem difusão excessiva */
   box-shadow: 4px 4px 0 rgba(107, 0, 0, 0.35);

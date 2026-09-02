@@ -20,9 +20,6 @@
   position: relative;
   /* Fundo azul padrão mantido apenas no card */
   background: var(--elite-navy, #0A2E45);
-  border-radius: 8px;
-  /* Sombra compacta sólida, sem difusão excessiva */
-  box-shadow: 4px 4px 0 rgba(107, 0, 0, 0.35);
   padding: var(--space-8);
   border: 1px solid rgba(107, 153, 179, 0.2);
   overflow: visible;

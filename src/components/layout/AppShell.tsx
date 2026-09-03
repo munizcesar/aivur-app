@@ -56,12 +56,12 @@ export function AppShell({
             )}
 
             {/* ÁREA DE CONTEÚDO PRINCIPAL */}
-            <main className="flex-1 min-w-0 flex flex-col gap-6">
+            <main className="flex-1 min-w-0 w-full flex flex-col gap-6">
               {/* SLOT 3: PAINEL DE GERAÇÃO DE TRILHAS - RESERVA RÍGIDA MIN-H-[220PX] */}
               {trilhasPanelSlot && (
                 <section 
                   id="trilhas-generator-panel-slot"
-                  className="w-full shrink-0 flex flex-col min-h-[220px] rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 p-6 shadow-xl relative transition-all"
+                  className="w-full block min-h-[220px] rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 p-6 shadow-xl relative transition-all"
                 >
                   <ErrorBoundary title="Erro no Painel de Geração de Trilhas">
                     {trilhasPanelSlot}
@@ -70,7 +70,7 @@ export function AppShell({
               )}
 
               {/* CONTEÚDO DA PÁGINA */}
-              <div className="flex-1 w-full flex flex-col">
+              <div className="flex-1 w-full block">
                 <ErrorBoundary title="Erro na Área de Conteúdo">
                   {children}
                 </ErrorBoundary>

@@ -3,10 +3,6 @@ import { Fraunces } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AivoWrapper from "@/components/Aivo/AivoWrapper";
 import GlobalSync from "@/components/Sync/GlobalSync";
-import AppShell from "@/components/layout/AppShell";
-import Header from "@/components/Header/Header";
-import SideDrawer from "@/components/SideDrawer/SideDrawer";
-import TrilhaGenerator from "@/components/Trilhas/Generator/TrilhaGenerator";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -60,19 +56,9 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning className={fraunces.variable}>
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false}>
-          <AppShell
-            headerSlot={<Header />}
-            sidebarSlot={
-              <div className="hidden md:block w-full">
-                <SideDrawer />
-              </div>
-            }
-            trilhasPanelSlot={<TrilhaGenerator />}
-          >
-            {children}
-            <AivoWrapper />
-            <GlobalSync />
-          </AppShell>
+          {children}
+          <AivoWrapper />
+          <GlobalSync />
         </ThemeProvider>
       </body>
     </html>

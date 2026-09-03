@@ -129,3 +129,6 @@ ext/image\ (usando \lock dark:hidden\ e \hidden dark:block\). Adicionado \prior
 - **1-Click Onboarding (Trilhas)** - ✅ CONCLUÍDO. Implementada a instanciação imediata de templates 'isReady' (ex: GM Hortolândia 2026) da TemplatesSection diretamente para o IndexedDB sem duplicidade. Adicionado micro-feedback de loading no botão para evitar cliques múltiplos. Templates não prontos (apenas prompt) preenchem e focam (com auto-scroll) o botão da view de Criação. Encapsulamento com Tailwind mantido.
 
 - **Refinamento Premium (Trilhas UI)** - ✅ CONCLUÍDO. Implementado grid matemático e padding restrito na view de Trilhas Ativas e Hub de Templates. Remoção completa de vazamentos CSS (CSS bleed vermelhos) via adoção de sombras profundas em deep-blue (glassmorphism sutil). Ação dos templates unificada para 'Usar Template' com loading inline, blindando a hierarquia visual. Layout de Empty State refeito focado em conversão limpa.
+
+## Diretrizes Arquiteturais (Atualizado)
+- **Validao Preventiva Zod:** Qualquer nova API Route, Server Action ou endpoint de mutao obrigatoriamente deve utilizar esquemas de validao Zod antes de processar qualquer payload ou acionar servios externos. Isso garante a blindagem contra inputs malformados e elimina gastos desnecessrios de tokens ou ciclos de processamento no Edge.

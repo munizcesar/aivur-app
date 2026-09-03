@@ -101,7 +101,7 @@ export function TrilhaGenerator() {
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col justify-between min-h-[220px]">
+    <div className="w-full block min-h-[220px]">
       <AnimatePresence mode="wait">
         {status === "idle" && (
           <GeneratorForm key="form" onSubmit={handleGenerate} />
@@ -121,7 +121,7 @@ export function TrilhaGenerator() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="w-full flex-1 flex flex-col"
+            className="w-full block"
           >
             <TrilhaViewer data={trilhaData} onReset={handleReset} />
           </motion.div>

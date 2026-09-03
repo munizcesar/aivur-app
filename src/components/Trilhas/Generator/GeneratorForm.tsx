@@ -35,7 +35,7 @@ export function GeneratorForm({ onSubmit }: GeneratorFormProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col gap-5 w-full flex-1 justify-between"
+      className="flex flex-col gap-5 w-full"
     >
       <div className="space-y-4">
         <div className="space-y-1.5">

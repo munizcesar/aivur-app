@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
+
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface UniversalQuestion {
@@ -101,7 +101,7 @@ export function FullscreenQuestion({
 
   if (!mounted) return null;
 
-  return createPortal(
+  return (
     <div className="fixed inset-0 z-[99999] w-screen h-screen flex flex-col bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 overflow-y-auto m-0 p-0">
       <header className="flex items-center gap-3 px-4 py-3 shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100">
         <button onClick={onBack} aria-label="Voltar" className="p-1 rounded-full active:opacity-70 hover:bg-slate-100 dark:hover:bg-slate-800">
@@ -236,7 +236,6 @@ export function FullscreenQuestion({
           <ChevronRight size={28} />
         </button>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }

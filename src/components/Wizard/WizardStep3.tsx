@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useQuizStore } from "@/store/useQuizStore";
 import {
   AlertTriangle,
@@ -116,17 +117,9 @@ export default function WizardStep3() {
   const [results, setResults] = useState<(boolean | null)[]>([]);
   const [expandedResolutions, setExpandedResolutions] = useState<boolean[]>([]);
   const [showExitModal, setShowExitModal] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const abortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 768px)");
-    const sync = () => setIsDesktop(media.matches);
-    sync();
-    media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
-  }, []);
 
   useEffect(() => {
     if (!loading && !error && generatedQuestions.length > 0) {
@@ -361,162 +354,113 @@ export default function WizardStep3() {
 
   return (
     <>
-      <div className="relative w-full max-w-6xl mx-auto px-4 md:px-6 py-5 md:py-8 pb-40 md:pb-12 hidden md:block">
-      <div className="mb-6 md:mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-            Caderno de questoes
-          </p>
-          <h2 className="text-2xl md:text-4xl font-black tracking-tight text-[var(--color-text)]">
-            {mode === "concurso" ? filters.materia || "Questoes" : "Questoes"}
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm md:text-base leading-relaxed text-[var(--color-text-muted)]">
-            Responda primeiro, confira a resolucao depois e navegue com fluidez entre desktop e mobile.
-          </p>
-        </div>
+  return (
+    <>
+      {isMobile ? (
+        <FullscreenQuestion
+          question={universalQuestion}
+          index={activeQuestionIndex + 1}
+          total={generatedQuestions.length}
+          subject={mode === "concurso" ? filters.materia || "Questões" : "Questões"}
+          userResponse={selectedOptions[activeQuestionIndex] || undefined}
+          onBack={handleBackToStep2}
+          onPrev={() => handleQuestionNav(-1)}
+          onNext={() => {
+            if (activeQuestionIndex + 1 < generatedQuestions.length) handleQuestionNav(1);
+          }}
+          onAnswer={(optionId) => {
+            setSelectedOptions((current) => {
+              const next = [...current];
+              next[activeQuestionIndex] = optionId;
+              return next;
+            });
+            const isCorrect = optionId === normalized.qAnswer;
+            setResults((current) => {
+              const next = [...current];
+              next[activeQuestionIndex] = isCorrect;
+              return next;
+            });
+            setExpandedResolutions((current) => {
+              const next = [...current];
+              next[activeQuestionIndex] = true;
+              return next;
+            });
+          }}
+        />
+      ) : (
+        <div className="relative w-full max-w-6xl mx-auto px-4 md:px-6 py-5 md:py-8 pb-40 md:pb-12">
+          <div className="mb-6 md:mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div className="min-w-0">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                Caderno de questoes
+              </p>
+              <h2 className="text-2xl md:text-4xl font-black tracking-tight text-[var(--color-text)]">
+                {mode === "concurso" ? filters.materia || "Questoes" : "Questoes"}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm md:text-base leading-relaxed text-[var(--color-text-muted)]">
+                Responda primeiro, confira a resolucao depois e navegue com fluidez entre desktop e mobile.
+              </p>
+            </div>
 
-        <button
-          onClick={handleBackToStep2}
-          className="inline-flex items-center gap-2 rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-semibold text-[var(--color-text)] transition-colors hover:border-[rgba(196,18,48,0.45)] hover:bg-[rgba(196,18,48,0.08)]"
-        >
-          <Filter size={16} />
-          Alterar filtros
-        </button>
-      </div>
-
-      {!isDesktop ? (
-        <>
-          <div className="mb-4 flex items-center justify-between rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
-            <span>Questao ativa</span>
-            <span>
-              {activeQuestionIndex + 1} de {generatedQuestions.length}
-            </span>
+            <button
+              onClick={handleBackToStep2}
+              className="inline-flex items-center gap-2 rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-semibold text-[var(--color-text)] transition-colors hover:border-[rgba(196,18,48,0.45)] hover:bg-[rgba(196,18,48,0.08)]"
+            >
+              <Filter size={16} />
+              Alterar filtros
+            </button>
           </div>
 
-          <QuestionCard
-            question={activeQuestion}
-            idx={activeQuestionIndex}
-            filters={filters}
-            compact
-            isAnswered={results[activeQuestionIndex] !== null}
-            isCorrect={results[activeQuestionIndex]}
-            selectedOption={selectedOptions[activeQuestionIndex]}
-            isResolutionOpen={expandedResolutions[activeQuestionIndex]}
-            onSelect={(key: string) => handleSelectOption(activeQuestionIndex, key)}
-            onAnswer={() => handleConfirmAnswer(activeQuestionIndex)}
-            onToggleResolution={() => handleToggleResolution(activeQuestionIndex)}
-          />
+          <div className="space-y-6">
+            {generatedQuestions.map((question: any, idx: number) => (
+              <QuestionCard
+                key={idx}
+                question={question}
+                idx={idx}
+                filters={filters}
+                compact={false}
+                isAnswered={results[idx] !== null}
+                isCorrect={results[idx]}
+                selectedOption={selectedOptions[idx]}
+                isResolutionOpen={expandedResolutions[idx]}
+                onSelect={(key: string) => handleSelectOption(idx, key)}
+                onAnswer={() => handleConfirmAnswer(idx)}
+                onToggleResolution={() => handleToggleResolution(idx)}
+              />
+            ))}
+          </div>
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--color-border)] bg-white/98 px-4 py-3 shadow-[0_-10px_28px_rgba(0,0,0,0.12)] backdrop-blur md:hidden">
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
-              <button
-                disabled={activeQuestionIndex === 0}
-                onClick={() => handleQuestionNav(-1)}
-                className="inline-flex min-w-[88px] items-center justify-center gap-1.5 rounded-[8px] border border-[var(--color-border)] px-3 py-2 text-sm font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[rgba(196,18,48,0.35)] hover:text-[var(--color-primary)] disabled:cursor-not-allowed disabled:text-[var(--color-text-faint)]"
-              >
-                <ChevronLeft size={18} />
-                Anterior
-              </button>
-
-              <div className="flex flex-1 items-center justify-center">
-                <div className="rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface-offset)] px-4 py-2 text-sm font-semibold text-[var(--color-text-muted)]">
-                  Questao {activeQuestionIndex + 1} de {generatedQuestions.length}
+          {showExitModal && (
+            <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 p-4">
+              <div className="w-full max-w-sm rounded-[8px] bg-[var(--color-surface)] p-4 md:p-6 shadow-[4px_4px_0_rgba(107,0,0,0.3)] border border-[var(--color-border)]">
+                <h3 className="mb-2 text-xl font-semibold text-[var(--color-text)]">Sair do modo foco?</h3>
+                <p className="mb-6 text-sm leading-relaxed text-[var(--color-text-muted)]">
+                  Seu progresso nesta sessao sera perdido. Deseja sair?
+                </p>
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => setShowExitModal(false)}
+                    className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-[var(--color-primary)] px-4 py-3 font-semibold text-[var(--color-text)] shadow-[4px_4px_0_var(--color-primary-hover)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5"
+                  >
+                    <BookOpen size={18} />
+                    Continuar estudando
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowExitModal(false);
+                      handleBackToStep2();
+                    }}
+                    className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-[var(--color-border)] bg-transparent px-4 py-3 font-semibold text-[var(--color-text-muted)] transition-colors hover:bg-[rgba(107,153,179,0.08)] hover:text-[var(--color-text)]"
+                  >
+                    <RotateCcw size={18} />
+                    Sair e comecar novo quiz
+                  </button>
                 </div>
               </div>
-
-              <button
-                disabled={activeQuestionIndex === generatedQuestions.length - 1}
-                onClick={() => handleQuestionNav(1)}
-                className="inline-flex min-w-[88px] items-center justify-center gap-1.5 rounded-[8px] border border-[var(--color-border)] px-3 py-2 text-sm font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[rgba(196,18,48,0.35)] hover:text-[var(--color-primary)] disabled:cursor-not-allowed disabled:text-[var(--color-text-faint)]"
-              >
-                Proximo
-                <ChevronRight size={18} />
-              </button>
             </div>
-          </div>
-        </>
-      ) : (
-        <div className="space-y-6">
-          {generatedQuestions.map((question: any, idx: number) => (
-            <QuestionCard
-              key={idx}
-              question={question}
-              idx={idx}
-              filters={filters}
-              compact={false}
-              isAnswered={results[idx] !== null}
-              isCorrect={results[idx]}
-              selectedOption={selectedOptions[idx]}
-              isResolutionOpen={expandedResolutions[idx]}
-              onSelect={(key: string) => handleSelectOption(idx, key)}
-              onAnswer={() => handleConfirmAnswer(idx)}
-              onToggleResolution={() => handleToggleResolution(idx)}
-            />
-          ))}
+          )}
         </div>
       )}
-
-      {showExitModal && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-sm rounded-[8px] bg-[var(--color-surface)] p-4 md:p-6 shadow-[4px_4px_0_rgba(107,0,0,0.3)] border border-[var(--color-border)]">
-            <h3 className="mb-2 text-xl font-semibold text-[var(--color-text)]">Sair do modo foco?</h3>
-            <p className="mb-6 text-sm leading-relaxed text-[var(--color-text-muted)]">
-              Seu progresso nesta sessao sera perdido. Deseja sair?
-            </p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => setShowExitModal(false)}
-                className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-[var(--color-primary)] px-4 py-3 font-semibold text-[var(--color-text)] shadow-[4px_4px_0_var(--color-primary-hover)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5"
-              >
-                <BookOpen size={18} />
-                Continuar estudando
-              </button>
-              <button
-                onClick={() => {
-                  setShowExitModal(false);
-                  handleBackToStep2();
-                }}
-                className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-[var(--color-border)] bg-transparent px-4 py-3 font-semibold text-[var(--color-text-muted)] transition-colors hover:bg-[rgba(107,153,179,0.08)] hover:text-[var(--color-text)]"
-              >
-                <RotateCcw size={18} />
-                Sair e comecar novo quiz
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      </div>
-
-      <FullscreenQuestion
-        question={universalQuestion}
-        index={activeQuestionIndex + 1}
-        total={generatedQuestions.length}
-        subject={mode === "concurso" ? filters.materia || "Questões" : "Questões"}
-        userResponse={selectedOptions[activeQuestionIndex] || undefined}
-        onBack={handleBackToStep2}
-        onPrev={() => handleQuestionNav(-1)}
-        onNext={() => {
-          if (activeQuestionIndex + 1 < generatedQuestions.length) handleQuestionNav(1);
-        }}
-        onAnswer={(optionId) => {
-          setSelectedOptions((current) => {
-            const next = [...current];
-            next[activeQuestionIndex] = optionId;
-            return next;
-          });
-          const isCorrect = optionId === normalized.qAnswer;
-          setResults((current) => {
-            const next = [...current];
-            next[activeQuestionIndex] = isCorrect;
-            return next;
-          });
-          setExpandedResolutions((current) => {
-            const next = [...current];
-            next[activeQuestionIndex] = true;
-            return next;
-          });
-        }}
-      />
     </>
   );
 }

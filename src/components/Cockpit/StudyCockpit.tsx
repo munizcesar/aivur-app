@@ -385,6 +385,7 @@ function QuestionList() {
                   const isSelected = selected === option.id;
                   const isCorrect = answered && option.id === question.correta;
                   const isWrong = answered && isSelected && !isCorrect;
+                  const isInactive = answered && !isCorrect && !isWrong;
 
                   return (
                     <button
@@ -397,6 +398,8 @@ function QuestionList() {
                           ? "border-emerald-500 bg-emerald-50 text-emerald-900"
                           : isWrong
                             ? "border-rose-500 bg-rose-50 text-rose-900"
+                            : isInactive
+                              ? "border-slate-200 bg-white text-slate-600 opacity-60"
                             : isSelected
                           ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5 shadow-md ring-1 ring-[var(--color-primary)]/50"
                           : "hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm"
@@ -410,13 +413,21 @@ function QuestionList() {
                         minHeight: "72px",
                         boxSizing: "border-box",
                         backgroundColor: isCorrect
-                          ? "#f0fdf4"
+                          ? "#ecfdf5"
                           : isWrong
-                            ? "#fef2f2"
+                            ? "#fff1f2"
                             : isSelected
                               ? "color-mix(in srgb, var(--color-primary) 5%, white)"
                               : "#ffffff",
-                            borderColor: isCorrect ? "#10b981" : isWrong ? "#f43f5e" : undefined,
+                        borderColor: isCorrect
+                          ? "#10b981"
+                          : isWrong
+                            ? "#f43f5e"
+                            : isInactive
+                              ? "#e2e8f0"
+                              : undefined,
+                        color: isCorrect ? "#064e3b" : isWrong ? "#881337" : isInactive ? "#475569" : "#1e293b",
+                        opacity: isInactive ? 0.6 : 1,
                       }}
                     >
                       <span
@@ -428,15 +439,21 @@ function QuestionList() {
                           height: "40px",
                           minWidth: "40px",
                           minHeight: "40px",
-                          color: isCorrect || isWrong ? "#ffffff" : "#334155",
+                          color: isCorrect || isWrong ? "#ffffff" : isInactive ? "#475569" : "#334155",
                           backgroundColor: isCorrect ? "#10b981" : isWrong ? "#f43f5e" : isSelected ? "#e2e8f0" : "#ffffff",
-                          borderColor: isCorrect ? "#16a34a" : isWrong ? "#dc2626" : isSelected ? "var(--color-primary)" : "#cbd5e1",
+                          borderColor: isCorrect ? "#10b981" : isWrong ? "#f43f5e" : isSelected ? "var(--color-primary)" : "#cbd5e1",
                           transform: isSelected ? "scale(1.05)" : "scale(1)",
                         }}
                       >
                         {option.id}
                       </span>
-                      <span className="text-base font-medium leading-relaxed text-slate-800" style={{ color: "#1e293b", minWidth: 0 }}>
+                      <span
+                        className="text-base font-medium leading-relaxed text-slate-800"
+                        style={{
+                          color: isCorrect ? "#064e3b" : isWrong ? "#881337" : isInactive ? "#475569" : "#1e293b",
+                          minWidth: 0,
+                        }}
+                      >
                         {option.texto}
                       </span>
                     </button>
@@ -445,7 +462,7 @@ function QuestionList() {
               </div>
               {answered && (
                 <div
-                  className={`mt-4 rounded-xl border px-4 py-4 opacity-100 transition-opacity duration-300 ease-in-out ${
+                  className={`mt-6 rounded-xl border p-4 opacity-100 transition-opacity duration-300 ease-in-out ${
                     selected === question.correta
                       ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                       : "border-slate-200 bg-slate-100 text-slate-800"

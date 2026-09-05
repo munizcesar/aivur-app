@@ -23,57 +23,52 @@ export default function TrilhasAccordion({
   const [open, setOpen] = useState(false);
 
   const done = topics.filter((t) => t.done).length;
-  const pct = progressPercent ?? (topics.length > 0 ? Math.round((done / topics.length) * 100) : 0);
+  const pct =
+    progressPercent ??
+    (topics.length > 0 ? Math.round((done / topics.length) * 100) : 0);
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
-      {/* Header */}
+      {/* ── Header ── */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-4 px-5 py-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+        className="flex w-full items-center justify-between px-6 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
         aria-expanded={open}
       >
-        {/* Progress ring placeholder */}
-        <span
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold tabular-nums"
-          style={{
-            borderColor: pct === 100 ? "#10b981" : "#e2e8f0",
-            color: pct === 100 ? "#10b981" : "#64748b",
-            backgroundColor: pct === 100 ? "#ecfdf5" : "#f8fafc",
-          }}
-        >
-          {pct}%
-        </span>
-
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-semibold text-slate-800">{title}</p>
-          <p className="mt-0.5 text-xs text-slate-500">
-            {done}/{topics.length} tópicos concluídos
+        {/* Left: title + fraction */}
+        <div className="min-w-0 flex-1 pr-4">
+          <p className="truncate text-base font-semibold text-slate-800">
+            {title}
           </p>
-          {/* Progress bar */}
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <p className="mt-0.5 text-sm text-slate-500">
+            {done}/{topics.length} tópicos
+          </p>
+        </div>
+
+        {/* Right: percent + progress bar + chevron */}
+        <div className="flex flex-shrink-0 items-center gap-3">
+          <span className="w-10 text-right text-sm font-bold tabular-nums text-emerald-600">
+            {pct}%
+          </span>
+          <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-200">
             <div
               className="h-full rounded-full bg-emerald-500 transition-all duration-500"
               style={{ width: `${pct}%` }}
             />
           </div>
+          <ChevronDown
+            className="h-4 w-4 text-slate-400 transition-transform duration-200"
+            style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+          />
         </div>
-
-        <ChevronDown
-          className="h-5 w-5 flex-shrink-0 text-slate-400 transition-transform duration-200"
-          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-        />
       </button>
 
-      {/* Topics list */}
+      {/* ── Topics list ── */}
       {open && (
-        <ul className="divide-y divide-slate-100 border-t border-slate-100 px-5">
+        <ul className="divide-y divide-slate-100 border-t border-slate-100 px-6">
           {topics.map((topic) => (
-            <li
-              key={topic.id}
-              className="flex items-center gap-3 py-3 text-sm"
-            >
+            <li key={topic.id} className="flex items-center gap-3 py-3 text-sm">
               {topic.done ? (
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-500" />
               ) : (

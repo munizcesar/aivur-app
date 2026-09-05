@@ -92,7 +92,7 @@ export default function MentorPage() {
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
           <h2 style={{ fontSize: "1.2rem", fontWeight: "600" }}>Meus Cursos Gerados</h2>
-          <Link href="/mentor/gerar" style={{ backgroundColor: "white", color: "black", padding: "0.5rem 1rem", borderRadius: "8px", fontWeight: "600", textDecoration: "none", fontSize: "0.9rem" }} className="transition-transform duration-150 active:scale-95">
+          <Link href="/trilhas/novo" style={{ backgroundColor: "white", color: "black", padding: "0.5rem 1rem", borderRadius: "8px", fontWeight: "600", textDecoration: "none", fontSize: "0.9rem" }} className="transition-transform duration-150 active:scale-95">
             + Criar Nova Trilha
           </Link>
         </div>
@@ -105,7 +105,7 @@ export default function MentorPage() {
           ) : (
             <div style={{ padding: "2rem", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "12px", textAlign: "center" }} className="border border-border/40 dark:border-white/10 shadow-sm">
               <p style={{ color: "#a1a1aa", marginBottom: "1rem" }}>Você ainda não gerou nenhuma trilha de estudos personalizada.</p>
-              <Link href="/mentor/gerar" style={{ backgroundColor: "white", color: "black", padding: "0.5rem 1rem", borderRadius: "8px", fontWeight: "600", textDecoration: "none" }} className="transition-transform duration-150 active:scale-95">
+              <Link href="/trilhas/novo" style={{ backgroundColor: "white", color: "black", padding: "0.5rem 1rem", borderRadius: "8px", fontWeight: "600", textDecoration: "none" }} className="transition-transform duration-150 active:scale-95">
                 Gerar com IA agora
               </Link>
             </div>

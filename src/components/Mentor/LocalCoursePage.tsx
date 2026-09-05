@@ -36,7 +36,7 @@ export default function LocalCoursePage({ courseId }: { courseId: string }) {
           <p style={{ marginTop: "1rem" }}>
             Esta trilha pode ter sido removida ou no existe no seu dispositivo.
           </p>
-          <Link href="/mentor" className={styles.backLink} style={{ display: "inline-block", marginTop: "2rem" }}>
+          <Link href="/trilhas" className={styles.backLink} style={{ display: "inline-block", marginTop: "2rem" }}>
             ? Voltar para Trilhas
           </Link>
         </div>

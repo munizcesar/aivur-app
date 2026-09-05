@@ -136,7 +136,7 @@ export default function Generator() {
 
   return (
     <div className={styles.page}>
-      <Link href="/mentor" className={styles.backLink}>
+      <Link href="/trilhas" className={styles.backLink}>
         ← Voltar para Trilhas
       </Link>
 

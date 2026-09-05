@@ -32,7 +32,7 @@ export default function Dashboard() {
           <div className={styles.pillarsCol}>
             
             {/* CARD 1 - Destaque */}
-            <Link href="/mentor/gerar" className={`${styles.pillarCard} ${styles.pillarCardFeatured} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
+            <Link href="/trilhas" className={`${styles.pillarCard} ${styles.pillarCardFeatured} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
               <div className={styles.pillarThumb}>
                 {/*eslint-disable-next-line @next/next/no-img-element*/}
                 <img src="/images/aivur/icon-trilhas.png" alt="Trilhas de Estudo" />

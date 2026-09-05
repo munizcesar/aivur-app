@@ -63,7 +63,7 @@ export default function CoursePage({ course, onUpdateCourse }: CoursePageProps) 
   return (
     <div className={styles.page}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Link href="/mentor" className={styles.backLink}>
+        <Link href="/trilhas" className={styles.backLink}>
           ← Voltar para Trilhas
         </Link>
         {onUpdateCourse && (

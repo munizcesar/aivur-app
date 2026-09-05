@@ -22,43 +22,20 @@ export default function TrilhasPage() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-4xl px-4 py-10 md:py-14">
+      <div className="max-w-4xl mx-auto px-5 pt-10 pb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="flex-1">
+          <p className="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">AIVUR • Trilhas de Estudo</p>
+          <h1 className="text-slate-800 text-3xl font-bold mb-3">Suas Trilhas de Estudo</h1>
+          <p className="text-slate-600 mb-6 max-w-md">Evolua pelo edital com disciplina. Marque tópicos concluídos e acompanhe sua taxa de retenção em tempo real.</p>
+          <Link href="/trilhas/novo" className="flex items-center w-max gap-2 px-5 py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
+            <span className="text-lg">+</span> Gerar Trilha com IA
+          </Link>
+        </div>
+        {/* Se a imagem /trilhas.png não existir na pasta public, comente ou remova a tag <img> abaixo temporariamente para evitar o ícone de imagem quebrada */}
+        <div className="hidden md:block w-32 h-32 shrink-0 bg-slate-200 rounded-full animate-pulse"></div>
+      </div>
 
-        {/* ── Hero Section ── */}
-        <section className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex-1">
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              AIVUR · Trilhas de Estudo
-            </p>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-800 md:text-4xl">
-              Suas Trilhas de Estudo
-            </h1>
-            <p className="mt-3 max-w-md text-base leading-relaxed text-slate-600">
-              Evolua pelo edital com disciplina. Marque tópicos concluídos e
-              acompanhe sua taxa de retenção em tempo real.
-            </p>
-            <div className="mt-5">
-              <Link
-                href="/trilhas/novo"
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-emerald-700 active:scale-[0.98]"
-              >
-                <Plus className="h-4 w-4" />
-                Gerar Trilha com IA
-              </Link>
-            </div>
-          </div>
-
-          {/* Mascote — fixo 128×128 */}
-          <div className="flex-shrink-0 self-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/trilhas.png"
-              alt="Mascote AIVUR — Trilhas de Estudo"
-              className="w-32 h-32 object-contain drop-shadow-md"
-            />
-          </div>
-        </section>
-
+      <div className="max-w-4xl mx-auto px-5 pb-14">
         {/* ── Cabeçalho da Seção de Listagem ── */}
         <section aria-label="Lista de trilhas de estudo">
           <div className="mb-5 flex items-center justify-between gap-4">
@@ -98,7 +75,6 @@ export default function TrilhasPage() {
             ))}
           </div>
         </section>
-
       </div>
     </main>
   );

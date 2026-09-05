@@ -51,7 +51,7 @@ export default function TrilhasAccordion({
           <span className="w-10 text-right text-sm font-bold tabular-nums text-emerald-600">
             {pct}%
           </span>
-          <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-200">
+          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
             <div
               className="h-full rounded-full bg-emerald-500 transition-all duration-500"
               style={{ width: `${pct}%` }}

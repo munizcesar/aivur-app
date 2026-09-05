@@ -28,44 +28,42 @@ export default function TrilhasAccordion({
     (topics.length > 0 ? Math.round((done / topics.length) * 100) : 0);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
+    <div style={{ overflow: "hidden", borderRadius: "12px", border: "1px solid #e2e8f0", backgroundColor: "#ffffff", boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)" }}>
       {/* ── Header ── */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+        style={{ display: "block", width: "100%", textAlign: "left", cursor: "pointer", background: "transparent", border: "none", padding: 0 }}
         aria-expanded={open}
       >
-        {/* Envolver o flex em uma div resolve bugs de layout dentro de <button> */}
-        <div className="flex w-full items-center justify-between px-6 py-5 gap-4">
+        <div style={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", gap: "16px" }}>
           
           {/* Left: title + fraction */}
-          <div className="flex flex-col gap-1">
-            <h3 className="text-base font-semibold text-slate-800 m-0 leading-tight">
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#1e293b", margin: 0, lineHeight: 1.25 }}>
               {title}
             </h3>
-            <p className="text-sm text-slate-500 m-0 leading-tight">
+            <p style={{ fontSize: "14px", color: "#64748b", margin: 0, lineHeight: 1.25 }}>
               {done}/{topics.length} tópicos
             </p>
           </div>
 
           {/* Right: percent + progress bar + chevron */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <div className="flex flex-col items-end gap-1.5">
-              <span className="text-sm font-bold tabular-nums text-emerald-600 leading-none">
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px" }}>
+              <span style={{ fontSize: "14px", fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "#059669", lineHeight: 1 }}>
                 {pct}%
               </span>
-              <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
+              <div style={{ height: "6px", width: "96px", overflow: "hidden", borderRadius: "9999px", backgroundColor: "#e2e8f0" }}>
                 <div
-                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                  style={{ width: `${pct}%` }}
+                  style={{ height: "100%", borderRadius: "9999px", backgroundColor: "#10b981", transition: "all 0.5s ease", width: `${pct}%` }}
                 />
               </div>
             </div>
             <ChevronDown
               size={20}
-              className="text-slate-400 transition-transform duration-200 flex-shrink-0"
-              style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+              color="#94a3b8"
+              style={{ flexShrink: 0, transition: "transform 0.2s ease", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
             />
           </div>
         </div>
@@ -73,20 +71,15 @@ export default function TrilhasAccordion({
 
       {/* ── Topics list ── */}
       {open && (
-        <ul className="divide-y divide-slate-100 border-t border-slate-100 px-6">
+        <ul style={{ margin: 0, padding: "0 24px", listStyle: "none", borderTop: "1px solid #f1f5f9" }}>
           {topics.map((topic) => (
-            <li key={topic.id} className="flex items-center gap-3 py-3 text-sm">
-              {/* O `size={18}` trava a dimensão real do SVG contra conflitos globais de CSS */}
+            <li key={topic.id} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 0", fontSize: "14px", borderBottom: "1px solid #f1f5f9" }}>
               {topic.done ? (
-                <CheckCircle2 size={18} className="flex-shrink-0 text-emerald-500" />
+                <CheckCircle2 size={18} color="#10b981" style={{ flexShrink: 0 }} />
               ) : (
-                <Circle size={18} className="flex-shrink-0 text-slate-300" />
+                <Circle size={18} color="#cbd5e1" style={{ flexShrink: 0 }} />
               )}
-              <span
-                className={
-                  topic.done ? "text-slate-400 line-through" : "text-slate-700"
-                }
-              >
+              <span style={{ color: topic.done ? "#94a3b8" : "#334155", textDecoration: topic.done ? "line-through" : "none" }}>
                 {topic.label}
               </span>
             </li>

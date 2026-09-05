@@ -10,62 +10,89 @@ export const metadata: Metadata = {
     "Evolua pelo edital com trilhas personalizadas. Acompanhe seu progresso por disciplina e tópico.",
 };
 
-// Trilha ativa exibida nesta página.
-// Para trocar: altere o id abaixo. O restante do layout se adapta automaticamente.
 const TRILHA_ATIVA = TRILHAS_CATALOG[0];
 
 export default function TrilhasPage() {
   const { title, subtitle, disciplinas } = TRILHA_ATIVA;
 
-  // badge só existe quando type === "edital" — a tipagem garante isso em tempo de compilação.
+  // badge só existe quando type === "edital"
   const badge = TRILHA_ATIVA.type === "edital" ? TRILHA_ATIVA.badge : null;
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="max-w-4xl mx-auto px-5 pt-10 pb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="flex-1">
-          <p className="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">AIVUR • Trilhas de Estudo</p>
-          <h1 className="text-slate-800 text-3xl font-bold mb-3">Suas Trilhas de Estudo</h1>
-          <p className="text-slate-600 mb-6 max-w-md">Evolua pelo edital com disciplina. Marque tópicos concluídos e acompanhe sua taxa de retenção em tempo real.</p>
-          <Link href="/trilhas/novo" className="flex items-center w-max gap-2 px-5 py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
-            <span className="text-lg">+</span> Gerar Trilha com IA
-          </Link>
+    <main style={{ minHeight: "100vh", backgroundColor: "#f8fafc" }}>
+      <div style={{ maxWidth: "896px", margin: "0 auto", padding: "40px 20px 56px" }}>
+        
+        {/* ── Hero Section (Blindado com Inline Styles) ── */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px", gap: "24px", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 0%", minWidth: "280px" }}>
+            <p style={{ color: "#64748b", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 8px 0" }}>
+              AIVUR • Trilhas de Estudo
+            </p>
+            <h1 style={{ color: "#1e293b", fontSize: "30px", fontWeight: 800, margin: "0 0 12px 0", lineHeight: 1.2 }}>
+              Suas Trilhas de Estudo
+            </h1>
+            <p style={{ color: "#475569", fontSize: "16px", marginBottom: "24px", maxWidth: "450px", lineHeight: 1.6, margin: "0 0 24px 0" }}>
+              Evolua pelo edital com disciplina. Marque tópicos concluídos e acompanhe sua taxa de retenção em tempo real.
+            </p>
+            <Link
+              href="/trilhas/novo"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#059669",
+                color: "#ffffff",
+                padding: "10px 20px",
+                borderRadius: "8px",
+                fontWeight: 600,
+                textDecoration: "none",
+                fontSize: "14px"
+              }}
+            >
+              <Plus size={18} />
+              Gerar Trilha com IA
+            </Link>
+          </div>
+          
+          {/* Mascote restaurado (com o caminho correto do seu projeto antigo) e estilizado rigidamente */}
+          <div style={{ flexShrink: 0 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/aivur/icon-trilhas.png"
+              alt="Mascote AIVUR"
+              style={{ width: "128px", height: "128px", objectFit: "contain", display: "block" }}
+            />
+          </div>
         </div>
-        {/* Se a imagem /trilhas.png não existir na pasta public, comente ou remova a tag <img> abaixo temporariamente para evitar o ícone de imagem quebrada */}
-        <div className="hidden md:block w-32 h-32 shrink-0 bg-slate-200 rounded-full animate-pulse"></div>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-5 pb-14">
         {/* ── Cabeçalho da Seção de Listagem ── */}
         <section aria-label="Lista de trilhas de estudo">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              {/*
-               * BRASÃO — só renderiza quando a trilha é do tipo "edital".
-               * Matérias avulsas (type="materia") nunca exibem este elemento.
-               * A regra é garantida tanto pela tipagem TypeScript quanto pelo
-               * condicional abaixo — dupla proteção.
-               */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
               {badge && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={badge.src}
                   alt={badge.alt}
-                  className="w-9 h-9 flex-shrink-0 object-contain"
+                  style={{ width: "36px", height: "36px", objectFit: "contain", flexShrink: 0 }}
                 />
               )}
-              <div className="min-w-0">
-                <h2 className="text-lg font-bold text-slate-800 truncate">{title}</h2>
-                <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
+              <div style={{ minWidth: 0 }}>
+                <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#1e293b", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {title}
+                </h2>
+                <p style={{ marginTop: "2px", fontSize: "12px", color: "#64748b", margin: 0 }}>
+                  {subtitle}
+                </p>
               </div>
             </div>
-            <span className="flex-shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
+            <span style={{ flexShrink: 0, borderRadius: "9999px", border: "1px solid #e2e8f0", backgroundColor: "#ffffff", padding: "4px 12px", fontSize: "12px", fontWeight: 600, color: "#64748b" }}>
               {disciplinas.length} disciplina{disciplinas.length !== 1 ? "s" : ""}
             </span>
           </div>
 
           {/* ── Accordions ── */}
-          <div className="flex flex-col gap-3">
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {disciplinas.map((disc) => (
               <TrilhasAccordion
                 key={disc.id}
@@ -75,6 +102,7 @@ export default function TrilhasPage() {
             ))}
           </div>
         </section>
+
       </div>
     </main>
   );

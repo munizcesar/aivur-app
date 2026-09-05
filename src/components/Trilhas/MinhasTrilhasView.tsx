@@ -1,0 +1,326 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { 
+  Plus, 
+  Sparkles, 
+  BookOpen, 
+  Layers, 
+  CheckCircle2, 
+  ArrowRight, 
+  Edit3, 
+  Trash2, 
+  Clock, 
+  GraduationCap, 
+  Compass,
+  AlertTriangle,
+  X
+} from "lucide-react";
+import { useLocalCourses } from "@/hooks/useLocalCourses";
+import TemplatesSection from "./TemplatesSection";
+import type { Course } from "@/types/course";
+import type { CourseTemplate } from "@/data/courses/templates";
+
+interface MinhasTrilhasViewProps {
+  onNavigateToCriar: () => void;
+  onSelectTemplate?: (template: CourseTemplate) => void;
+}
+
+export default function MinhasTrilhasView({
+  onNavigateToCriar,
+  onSelectTemplate,
+}: MinhasTrilhasViewProps) {
+  const { courses: localCourses, isHydrated, deleteCourse, updateCourse } = useLocalCourses();
+
+  // Progress map: { [courseId]: { done: number, total: number, percent: number } }
+  const [progressMap, setProgressMap] = useState<Record<string, { done: number; total: number; percent: number }>>({});
+  
+  // Modals state
+  const [editingCourse, setEditingCourse] = useState<{ id: string; title: string } | null>(null);
+  const [deletingCourse, setDeletingCourse] = useState<Course | null>(null);
+
+  // Calcula o progresso real de cada trilha a partir do localStorage
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    const map: Record<string, { done: number; total: number; percent: number }> = {};
+
+    localCourses.forEach((c) => {
+      const totalItems = c.subjects.reduce(
+        (acc, s) => acc + s.nichos.reduce((a, n) => a + n.items.length, 0),
+        0
+      );
+
+      let doneItems = 0;
+      try {
+        const raw = localStorage.getItem(`aivur_checklist_${c.id}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            doneItems = parsed.length;
+          }
+        }
+      } catch {
+        doneItems = 0;
+      }
+
+      const percent = totalItems > 0 ? Math.min(100, Math.round((doneItems / totalItems) * 100)) : 0;
+      map[c.id] = { done: doneItems, total: totalItems, percent };
+    });
+
+    setProgressMap(map);
+  }, [localCourses, isHydrated]);
+
+  return (
+    <div className="w-full max-w-[1100px] mx-auto px-4 py-6 md:py-8">
+      {/* CABEÇALHO DA VIEW 2 */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
+        <div>
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#F4A261]/15 text-[#F4A261] text-xs font-bold uppercase tracking-wider mb-2">
+            <Compass className="w-3.5 h-3.5" />
+            Mentor AIVUR 360 · Painel
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Minhas Trilhas Ativas
+          </h1>
+          <p className="text-sm sm:text-base text-[#6B99B3] mt-1 max-w-xl">
+            Acompanhe o checklist de metas do seu concurso e monitore sua taxa de retenção.
+          </p>
+        </div>
+
+        {/* AÇÃO PRIMÁRIA (RETORNO/CRIAÇÃO): GERA NOVAS JORNADAS */}
+        <div className="flex-shrink-0">
+          <button
+            type="button"
+            onClick={onNavigateToCriar}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#C41230] hover:bg-[#6B0000] text-[#FBEBD0] text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+            aria-label="Gerar novas trilhas de estudo"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Gerar trilhas</span>
+          </button>
+        </div>
+      </div>
+
+      {/* LISTA DE TRILHAS ATIVAS DO USUÁRIO */}
+      <div className="mb-12">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+            <GraduationCap className="w-5 h-5 text-[#C41230]" />
+            Trilhas em Andamento
+          </h2>
+          {localCourses.length > 0 && (
+            <span className="text-xs text-[#6B99B3] font-semibold">
+              {localCourses.length} trilha{localCourses.length !== 1 ? "s" : ""} ativa{localCourses.length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+
+        {!isHydrated ? (
+          <div className="p-8 text-center rounded-xl border border-[rgba(107,153,179,0.2)] bg-[#0A2E45]/20 text-[#6B99B3] animate-pulse">
+            Carregando suas trilhas ativas...
+          </div>
+        ) : localCourses.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {localCourses.map((course) => {
+              const prog = progressMap[course.id] || { done: 0, total: 0, percent: 0 };
+              const subjectCount = course.subjects.length;
+
+              return (
+                <div
+                  key={course.id}
+                  className="rounded-xl border border-[rgba(107,153,179,0.2)] hover:border-[rgba(107,153,179,0.4)] bg-[#0A2E45]/30 p-5 backdrop-blur-sm transition-all duration-200 flex flex-col justify-between group"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-[#FBEBD0] transition-colors leading-snug line-clamp-2">
+                        {course.title}
+                      </h3>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setEditingCourse({ id: course.id, title: course.title })}
+                          className="p-1.5 rounded text-[#6B99B3] hover:text-white hover:bg-[#020C14]/50 transition-colors"
+                          title="Renomear trilha"
+                          aria-label="Renomear trilha"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeletingCourse(course)}
+                          className="p-1.5 rounded text-[#6B99B3] hover:text-red-400 hover:bg-[#020C14]/50 transition-colors"
+                          title="Excluir trilha"
+                          aria-label="Excluir trilha"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-[#6B99B3] mb-4">
+                      {subjectCount} disciplina{subjectCount !== 1 ? "s" : ""} • {prog.total} tópicos mapeados
+                    </p>
+
+                    {/* BARRA DE PROGRESSO */}
+                    <div className="space-y-1.5 mb-5">
+                      <div className="flex justify-between text-xs text-[#6B99B3] font-semibold">
+                        <span>Progresso de retenção</span>
+                        <span className="text-[#F4A261] font-bold">{prog.percent}%</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-[#020C14]/80 overflow-hidden border border-[rgba(107,153,179,0.15)]">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#C41230] to-[#F4A261] transition-all duration-500 rounded-full"
+                          style={{ width: `${prog.percent}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[11px] text-slate-500">
+                        <span>{prog.done} tópicos concluídos</span>
+                        <span>{prog.total - prog.done} restantes</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AÇÃO DE ACESSO */}
+                  <div className="pt-3 border-t border-[rgba(107,153,179,0.15)]">
+                    <Link
+                      href={`/mentor/${course.id}`}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#0A2E45] hover:bg-[#0F3A53] text-[#FBEBD0] text-xs sm:text-sm font-bold border border-[rgba(107,153,179,0.25)] transition-all group-hover:border-[#F4A261]/60"
+                    >
+                      <span>Acessar Cronograma</span>
+                      <ArrowRight className="w-4 h-4 text-[#F4A261]" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* ESTADO VAZIO ELEGANTE */
+          <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[#0A2E45]/20 p-8 sm:p-10 text-center backdrop-blur-sm">
+            <div className="w-12 h-12 rounded-full bg-[#C41230]/15 flex items-center justify-center mx-auto mb-4 text-[#C41230]">
+              <Compass className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-1">
+              Você ainda não possui trilhas personalizadas
+            </h3>
+            <p className="text-xs sm:text-sm text-[#6B99B3] max-w-md mx-auto mb-6">
+              Comece agora colando seu edital para estruturar suas metas diárias ou selecione um dos cursos prontos abaixo.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={onNavigateToCriar}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-[#C41230] hover:bg-[#6B0000] text-[#FBEBD0] text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Gerar trilhas</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* SEÇÃO DE TEMPLATES (CURSOS PRÉ-CONFIGURADOS) */}
+      <TemplatesSection onSelectTemplate={onSelectTemplate} />
+
+      {/* MODAL: RENOMEAR TRILHA */}
+      {editingCourse && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setEditingCourse(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-[rgba(107,153,179,0.3)] bg-[#0A2E45] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">Renomear Trilha</h3>
+              <button
+                onClick={() => setEditingCourse(null)}
+                className="text-[#6B99B3] hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <input
+              autoFocus
+              className="w-full px-3 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[#020C14] text-white text-sm focus:border-[#C41230] outline-none mb-5"
+              value={editingCourse.title}
+              onChange={(e) => setEditingCourse({ ...editingCourse, title: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && editingCourse.title.trim()) {
+                  updateCourse(editingCourse.id, { title: editingCourse.title.trim() });
+                  setEditingCourse(null);
+                }
+              }}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingCourse(null)}
+                className="px-4 py-2 rounded-lg border border-[rgba(107,153,179,0.3)] text-slate-300 text-xs font-semibold hover:bg-white/5"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (editingCourse.title.trim()) {
+                    updateCourse(editingCourse.id, { title: editingCourse.title.trim() });
+                    setEditingCourse(null);
+                  }
+                }}
+                className="px-4 py-2 rounded-lg bg-[#C41230] hover:bg-[#6B0000] text-[#FBEBD0] text-xs font-bold shadow-[2px_2px_0px_#6B0000]"
+              >
+                Salvar Alteração
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CONFIRMAR EXCLUSÃO */}
+      {deletingCourse && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setDeletingCourse(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-red-800/60 bg-[#0A2E45] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-3 text-red-400">
+              <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+              <h3 className="text-lg font-bold text-white">Excluir Trilha</h3>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-300 mb-5 leading-relaxed">
+              Tem certeza que deseja apagar a trilha <strong>"{deletingCourse.title}"</strong>? Todo o progresso do checklist e dados gerados serão permanentemente excluídos.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeletingCourse(null)}
+                className="px-4 py-2 rounded-lg border border-[rgba(107,153,179,0.3)] text-slate-300 text-xs font-semibold hover:bg-white/5"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteCourse(deletingCourse.id);
+                  setDeletingCourse(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-[2px_2px_0px_#6B0000]"
+              >
+                Sim, excluir trilha
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

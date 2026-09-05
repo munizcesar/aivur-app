@@ -129,27 +129,26 @@ export function FullscreenQuestion({
             const state = getOptionState(opt.id);
             const isEliminated = eliminated.includes(opt.id);
 
-            // Estilização base do card individual da alternativa (Padrão QConcursos)
-            let cardClasses = "w-full flex items-start gap-4 p-4 rounded-xl border transition-all duration-200 text-left relative ";
-            let badgeClasses = "flex-none w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold border transition-colors ";
-            let textClasses = "text-sm md:text-base leading-relaxed mt-1 flex-1 ";
+            let cardClasses = "w-full text-left bg-white border-b border-slate-200 p-4 hover:bg-slate-50 transition-colors grid grid-cols-[auto_1fr] gap-4 items-center relative ";
+            let badgeClasses = "w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-colors ";
+            let textClasses = "text-base text-slate-700 leading-relaxed ";
 
             if (state === 'selected') {
-              cardClasses += "border-[#f68b33] bg-orange-50 dark:bg-[#f68b33]/10 shadow-sm";
-              badgeClasses += "bg-[#f68b33] border-[#f68b33] text-white";
-              textClasses += "text-slate-900 dark:text-slate-100 font-medium";
+              cardClasses += "border-[var(--color-primary)] bg-[var(--color-primary)]/10";
+              badgeClasses += "border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10";
+              textClasses += "font-medium text-slate-900 dark:text-slate-100";
             } else if (state === 'correct') {
-              cardClasses += "border-green-500 bg-green-50 dark:bg-green-900/20 shadow-sm";
+              cardClasses += "border-green-500 bg-green-50 dark:bg-green-900/20";
               badgeClasses += "bg-green-500 border-green-500 text-white";
-              textClasses += "text-slate-900 dark:text-slate-100 font-medium";
+              textClasses += "font-medium text-slate-900 dark:text-slate-100";
             } else if (state === 'incorrect') {
-              cardClasses += "border-red-500 bg-red-50 dark:bg-red-900/20 shadow-sm";
+              cardClasses += "border-red-500 bg-red-50 dark:bg-red-900/20";
               badgeClasses += "bg-red-500 border-red-500 text-white";
-              textClasses += "text-slate-900 dark:text-slate-100 font-medium";
+              textClasses += "font-medium text-slate-900 dark:text-slate-100";
             } else {
-              cardClasses += "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800";
-              badgeClasses += "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300";
-              textClasses += "text-slate-800 dark:text-slate-200";
+              cardClasses += "bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800";
+              badgeClasses += "border-slate-300 text-slate-500 bg-white dark:bg-slate-900";
+              textClasses += "text-slate-700 dark:text-slate-200";
             }
 
             if (isEliminated) {
@@ -166,17 +165,12 @@ export function FullscreenQuestion({
                 disabled={answered}
                 className={cardClasses}
               >
-                {/* Badge da Letra (A, B, C...) com tamanho estrito */}
-                <span 
-                  className={badgeClasses} 
-                  style={{ minWidth: '36px', minHeight: '36px', width: '36px', height: '36px', flexShrink: 0 }}
-                >
+                <div className={badgeClasses}>
                   {opt.id}
-                </span>
-                {/* Texto da alternativa */}
-                <span className={textClasses}>
+                </div>
+                <div className={textClasses}>
                   {opt.text}
-                </span>
+                </div>
               </button>
             );
           })}
@@ -187,7 +181,7 @@ export function FullscreenQuestion({
             <button
               onClick={handleSubmit}
               disabled={!selected}
-              className="w-full mt-6 py-4 rounded-xl font-bold text-base transition-all duration-200 bg-[#f68b33] hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20 disabled:opacity-50"
+              className="w-full mt-6 py-4 rounded-xl font-bold text-base transition-all duration-200 bg-[var(--color-primary)] hover:opacity-90 text-white shadow-lg disabled:opacity-50"
             >
               CONFIRMAR
             </button>
@@ -195,17 +189,17 @@ export function FullscreenQuestion({
 
           {answered && (
             <div className="mt-2 w-full animate-in fade-in duration-300 pb-4">
-              <div className="flex items-center gap-2 text-[#f68b33] font-bold mb-3">
+              <div className="flex items-center gap-2 text-[var(--color-primary)] font-bold mb-3">
                 🎓 Mentor AIVUR
               </div>
-              <div className="p-4 bg-orange-50 dark:bg-[#f68b33]/10 border border-orange-200 dark:border-[#f68b33]/30 rounded-xl text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
+              <div className="p-4 bg-[var(--color-primary)]/5 dark:bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 dark:border-[var(--color-primary)]/30 rounded-xl text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
                 {question.justificativa || (selected === question.correta ? "Resposta correta!" : `Resposta incorreta. Gabarito: ${question.correta}.`)}
               </div>
               
               <button
                 onClick={onNext}
                 disabled={index === total}
-                className="w-full mt-6 py-4 rounded-xl font-bold text-base transition-all duration-200 bg-[#f68b33] hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20 disabled:opacity-50"
+                className="w-full mt-6 py-4 rounded-xl font-bold text-base transition-all duration-200 bg-[var(--color-primary)] hover:opacity-90 text-white shadow-lg disabled:opacity-50"
               >
                 {index < total ? 'PRÓXIMA' : 'FINALIZAR'}
               </button>
@@ -217,7 +211,7 @@ export function FullscreenQuestion({
         <div className="h-24"></div>
       </div>
 
-      <div className="px-4 py-4 shrink-0 shadow-lg flex items-center justify-between bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+      <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-3 flex justify-between items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
         <button
           onClick={onPrev}
           disabled={index === 1}

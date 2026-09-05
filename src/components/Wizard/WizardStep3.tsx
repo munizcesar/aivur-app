@@ -354,8 +354,6 @@ export default function WizardStep3() {
 
   return (
     <>
-  return (
-    <>
       {isMobile ? (
         <FullscreenQuestion
           question={universalQuestion}
@@ -481,23 +479,23 @@ function QuestionCard({
   const data = normalizeQuestion(question);
 
   const baseCardClasses = compact
-    ? "w-full rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-5 shadow-[4px_4px_0_rgba(107,0,0,0.2)] md:px-6 md:py-7"
-    : "w-full rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-6 shadow-[4px_4px_0_rgba(107,0,0,0.2)] md:px-8 md:py-8";
+    ? "w-full rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm overflow-hidden"
+    : "w-full rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm overflow-hidden";
 
   return (
     <article className={baseCardClasses}>
-      <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-        <span className="rounded-[6px] border border-[var(--color-border)] bg-[var(--color-surface-offset)] px-2.5 py-1 text-[var(--color-text)]">
-          Q{idx + 1}
-        </span>
-        <span className="rounded-[6px] border border-[var(--color-border)] px-2.5 py-1">Inedita</span>
+      <div className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm py-2 px-4 flex gap-4 items-center flex-wrap border-b border-[var(--color-border)]">
+        <span className="font-bold">Q{idx + 1}</span>
+        <span>Inédita</span>
         {filters.materia && filters.materia !== "Todas" && (
-          <span className="rounded-[6px] border border-[var(--color-border)] px-2.5 py-1">{filters.materia}</span>
+          <span>{filters.materia}</span>
         )}
         {filters.banca && filters.banca !== "Todas" && (
-          <span className="rounded-[6px] border border-[var(--color-border)] px-2.5 py-1">{filters.banca}</span>
+          <span>{filters.banca}</span>
         )}
       </div>
+      
+      <div className="p-4 md:p-6">
 
       <p className="mb-6 whitespace-pre-wrap text-lg leading-relaxed text-[var(--color-text)] md:text-xl">
         {data.qText}
@@ -635,6 +633,7 @@ function QuestionCard({
           </div>
         </div>
       )}
+      </div>
     </article>
   );
 }
@@ -643,44 +642,40 @@ function OptionButton({ opt, isSelected, isAnswered, correctAnswer, onSelect }: 
   const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
   const isWrong = isAnswered && isSelected && !isRight;
 
-  let container =
-    "w-full text-left rounded-[8px] border px-4 py-4 flex items-start gap-3 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]";
+  let container = "w-full text-left bg-white border-b border-slate-200 p-4 hover:bg-slate-50 transition-colors grid grid-cols-[auto_1fr] gap-4 items-center focus:outline-none";
 
   if (!isAnswered) {
     container += isSelected
-      ? " border-[var(--color-primary)] bg-[var(--color-primary)]/10 dark:bg-[var(--color-primary)]/10 shadow-sm cursor-pointer"
-      : " border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)]/50 hover:bg-[var(--color-primary)]/5 dark:hover:bg-[var(--color-primary)]/5 cursor-pointer";
+      ? " bg-[var(--color-primary)]/5 dark:bg-[var(--color-primary)]/10"
+      : " hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer";
   } else if (isRight) {
-    container += " border-green-500 bg-green-50 dark:bg-green-900/10 cursor-default";
+    container += " bg-green-50 dark:bg-green-900/10 cursor-default";
   } else if (isWrong) {
-    container += " border-red-500 bg-red-50 dark:bg-red-900/10 cursor-default";
+    container += " bg-red-50 dark:bg-red-900/10 cursor-default";
   } else {
-    container += " border-transparent opacity-60 bg-[var(--color-surface)] cursor-default";
+    container += " opacity-60 cursor-default";
   }
 
-  let circle =
-    "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border text-sm font-black transition-all";
+  let circle = "w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all";
 
   if (!isAnswered) {
     circle += isSelected
       ? " border-[var(--color-primary)] bg-[var(--color-primary)] text-white"
-      : " border-slate-300 dark:border-slate-600 bg-[var(--color-surface)] text-slate-500 dark:text-slate-400";
+      : " border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900";
   } else if (isRight) {
     circle += " border-green-500 bg-green-500 text-white";
   } else if (isWrong) {
     circle += " border-red-500 bg-red-500 text-white";
   } else {
-    circle += " border-slate-300 dark:border-slate-700 bg-[var(--color-surface)] text-slate-400";
+    circle += " border-slate-300 dark:border-slate-700 text-slate-400 bg-white dark:bg-slate-900";
   }
 
   return (
     <button className={container} onClick={() => !isAnswered && onSelect()} disabled={isAnswered}>
-      <span className={circle} style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', flex: 'none' }}>{String(opt.key).toUpperCase()}</span>
-      <span className={`flex-1 text-base leading-snug ${isAnswered && (isRight || isWrong) ? "font-semibold text-slate-800 dark:text-slate-100" : "text-[var(--color-text-muted)]"}`}>
+      <div className={circle}>{String(opt.key).toUpperCase()}</div>
+      <div className={`text-base leading-relaxed ${isAnswered && (isRight || isWrong) ? "font-semibold text-slate-800 dark:text-slate-100" : "text-slate-700 dark:text-slate-300"}`}>
         {opt.text}
-      </span>
-      {isAnswered && isRight && <CheckCircle size={22} className="mt-0.5 flex-shrink-0 text-green-500" />}
-      {isAnswered && isWrong && <XCircle size={22} className="mt-0.5 flex-shrink-0 text-red-500" />}
+      </div>
     </button>
   );
 }

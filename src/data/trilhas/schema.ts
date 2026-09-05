@@ -90,11 +90,6 @@ export const TRILHAS_CATALOG: TrilhaConfig[] = [
     type: "edital",
     title: "Guarda Municipal — Hortolândia",
     subtitle: "Edital 2025 · 4 disciplinas mapeadas",
-    badge: {
-      src: "/badges/gm-hortolandia.png",
-      alt: "Brasão do Município de Hortolândia",
-      label: "Guarda Municipal · Hortolândia/SP",
-    },
     disciplinas: [
       {
         id: "port",

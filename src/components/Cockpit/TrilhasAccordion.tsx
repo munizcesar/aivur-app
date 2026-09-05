@@ -33,34 +33,41 @@ export default function TrilhasAccordion({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-6 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+        className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
         aria-expanded={open}
       >
-        {/* Left: title + fraction */}
-        <div className="min-w-0 flex-1 pr-4">
-          <p className="truncate text-base font-semibold text-slate-800">
-            {title}
-          </p>
-          <p className="mt-0.5 text-sm text-slate-500">
-            {done}/{topics.length} tópicos
-          </p>
-        </div>
+        {/* Envolver o flex em uma div resolve bugs de layout dentro de <button> */}
+        <div className="flex w-full items-center justify-between px-6 py-5 gap-4">
+          
+          {/* Left: title + fraction */}
+          <div className="flex flex-col gap-1">
+            <h3 className="text-base font-semibold text-slate-800 m-0 leading-tight">
+              {title}
+            </h3>
+            <p className="text-sm text-slate-500 m-0 leading-tight">
+              {done}/{topics.length} tópicos
+            </p>
+          </div>
 
-        {/* Right: percent + progress bar + chevron */}
-        <div className="flex flex-shrink-0 items-center gap-3">
-          <span className="w-10 text-right text-sm font-bold tabular-nums text-emerald-600">
-            {pct}%
-          </span>
-          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
-            <div
-              className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-              style={{ width: `${pct}%` }}
+          {/* Right: percent + progress bar + chevron */}
+          <div className="flex items-center gap-4 flex-shrink-0">
+            <div className="flex flex-col items-end gap-1.5">
+              <span className="text-sm font-bold tabular-nums text-emerald-600 leading-none">
+                {pct}%
+              </span>
+              <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+            <ChevronDown
+              size={20}
+              className="text-slate-400 transition-transform duration-200 flex-shrink-0"
+              style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
             />
           </div>
-          <ChevronDown
-            className="h-4 w-4 text-slate-400 transition-transform duration-200"
-            style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-          />
         </div>
       </button>
 
@@ -69,10 +76,11 @@ export default function TrilhasAccordion({
         <ul className="divide-y divide-slate-100 border-t border-slate-100 px-6">
           {topics.map((topic) => (
             <li key={topic.id} className="flex items-center gap-3 py-3 text-sm">
+              {/* O `size={18}` trava a dimensão real do SVG contra conflitos globais de CSS */}
               {topic.done ? (
-                <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+                <CheckCircle2 size={18} className="flex-shrink-0 text-emerald-500" />
               ) : (
-                <Circle className="h-4 w-4 flex-shrink-0 text-slate-300" />
+                <Circle size={18} className="flex-shrink-0 text-slate-300" />
               )}
               <span
                 className={

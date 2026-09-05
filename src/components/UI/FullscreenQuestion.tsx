@@ -123,13 +123,13 @@ export function FullscreenQuestion({
           {question.enunciado}
         </p>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {Object.entries(question.alternativas).map(([letra, texto]) => {
             const opt = { id: letra, text: texto };
             const state = getOptionState(opt.id);
             const isEliminated = eliminated.includes(opt.id);
 
-            let cardClasses = "w-full text-left bg-white border-b border-slate-200 p-4 hover:bg-slate-50 transition-colors grid grid-cols-[auto_1fr] gap-4 items-center relative ";
+            let cardClasses = "w-full text-left bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-3 hover:bg-slate-50 transition-colors grid items-center gap-4 relative ";
             let badgeClasses = "w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-colors ";
             let textClasses = "text-base text-slate-700 leading-relaxed ";
 
@@ -164,11 +164,32 @@ export function FullscreenQuestion({
                 onTouchEnd={(e) => handleTouchEnd(e, opt.id)}
                 disabled={answered}
                 className={cardClasses}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "40px minmax(0, 1fr)",
+                  alignItems: "center",
+                  width: "100%",
+                  minHeight: "72px",
+                  marginBottom: "12px",
+                  boxSizing: "border-box",
+                  backgroundColor: state === "correct" ? "#f0fdf4" : state === "incorrect" ? "#fef2f2" : "#ffffff",
+                  color: "#1f2937",
+                }}
               >
-                <div className={badgeClasses}>
+                <div
+                  className={badgeClasses}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    minWidth: "40px",
+                    minHeight: "40px",
+                    flex: "0 0 40px",
+                    boxSizing: "border-box",
+                  }}
+                >
                   {opt.id}
                 </div>
-                <div className={textClasses}>
+                <div className={`${textClasses} text-slate-800`} style={{ color: "#1e293b", minWidth: 0, fontWeight: state === "correct" || state === "incorrect" ? 600 : 500 }}>
                   {opt.text}
                 </div>
               </button>

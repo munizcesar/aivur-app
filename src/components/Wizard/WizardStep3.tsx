@@ -642,7 +642,7 @@ function OptionButton({ opt, isSelected, isAnswered, correctAnswer, onSelect }: 
   const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
   const isWrong = isAnswered && isSelected && !isRight;
 
-  let container = "w-full text-left bg-white border-b border-slate-200 p-4 hover:bg-slate-50 transition-colors grid grid-cols-[auto_1fr] gap-4 items-center focus:outline-none";
+  let container = "w-full text-left bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-3 hover:bg-slate-50 transition-colors grid items-center gap-4 focus:outline-none";
 
   if (!isAnswered) {
     container += isSelected
@@ -671,9 +671,36 @@ function OptionButton({ opt, isSelected, isAnswered, correctAnswer, onSelect }: 
   }
 
   return (
-    <button className={container} onClick={() => !isAnswered && onSelect()} disabled={isAnswered}>
-      <div className={circle}>{String(opt.key).toUpperCase()}</div>
-      <div className={`text-base leading-relaxed ${isAnswered && (isRight || isWrong) ? "font-semibold text-slate-800 dark:text-slate-100" : "text-slate-700 dark:text-slate-300"}`}>
+    <button
+      className={container}
+      onClick={() => !isAnswered && onSelect()}
+      disabled={isAnswered}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "40px minmax(0, 1fr)",
+        alignItems: "center",
+        width: "100%",
+        minHeight: "72px",
+        marginBottom: "12px",
+        boxSizing: "border-box",
+        backgroundColor: isRight ? "#f0fdf4" : isWrong ? "#fef2f2" : "#ffffff",
+        color: "#1f2937",
+      }}
+    >
+      <div
+        className={circle}
+        style={{
+          width: "40px",
+          height: "40px",
+          minWidth: "40px",
+          minHeight: "40px",
+          flex: "0 0 40px",
+          boxSizing: "border-box",
+        }}
+      >
+        {String(opt.key).toUpperCase()}
+      </div>
+      <div className={`text-base text-slate-800 leading-relaxed ${isAnswered && (isRight || isWrong) ? "font-semibold" : "font-medium"}`} style={{ color: "#1e293b", minWidth: 0, fontWeight: isAnswered && (isRight || isWrong) ? 600 : 500 }}>
         {opt.text}
       </div>
     </button>

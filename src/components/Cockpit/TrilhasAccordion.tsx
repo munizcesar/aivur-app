@@ -29,7 +29,7 @@ export default function TrilhasAccordion({
     (topics.length > 0 ? Math.round((done / topics.length) * 100) : 0);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F3A53] shadow-sm transition-all duration-200">
+    <div className="overflow-hidden rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0F3A53] shadow-sm transition-all duration-200">
       {/* ── Header ── */}
       <button
         type="button"
@@ -37,7 +37,7 @@ export default function TrilhasAccordion({
         className="w-full text-left bg-transparent border-none p-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
         aria-expanded={open}
       >
-        <div className="flex w-full items-center justify-between px-6 py-5 gap-4">
+        <div className="flex w-full items-center justify-between px-6 py-4 gap-4">
           
           {/* Left: title + fraction */}
           <div className="flex flex-col gap-1 text-left">

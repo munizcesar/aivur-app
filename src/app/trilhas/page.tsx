@@ -34,22 +34,10 @@ export default function TrilhasPage() {
             </p>
             <Link
               href="/trilhas/novo"
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white !text-white px-5 py-2.5 rounded-lg font-semibold transition-colors text-sm border-none shadow-sm"
-              style={{ textDecoration: "none" }} // Garantia dupla contra global a { color: red }
+              className="inline-flex items-center justify-center px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors gap-2 text-sm shadow-sm"
             >
-              <Plus size={18} />
-              Gerar Trilha com IA
+              <span>+</span> Gerar Trilha com IA
             </Link>
-          </div>
-          
-          {/* Mascote c/ Suporte Light/Dark */}
-          <div className="flex-shrink-0 self-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/aivur/icon-trilhas.png"
-              alt="Mascote AIVUR"
-              className="w-32 h-32 object-contain block drop-shadow-md dark:brightness-125 dark:drop-shadow-[0_4px_12px_rgba(255,255,255,0.1)] transition-all duration-300"
-            />
           </div>
         </div>
 

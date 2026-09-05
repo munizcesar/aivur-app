@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, CheckCircle2, Circle } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, CheckCircle2, Circle, Play, FileText, Target, Layers } from "lucide-react";
 
 interface TrilhasAccordionTopic {
   id: string;
@@ -28,62 +29,124 @@ export default function TrilhasAccordion({
     (topics.length > 0 ? Math.round((done / topics.length) * 100) : 0);
 
   return (
-    <div style={{ overflow: "hidden", borderRadius: "12px", border: "1px solid #e2e8f0", backgroundColor: "#ffffff", boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)" }}>
+    <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F3A53] shadow-sm transition-all duration-200">
       {/* ── Header ── */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        style={{ display: "block", width: "100%", textAlign: "left", cursor: "pointer", background: "transparent", border: "none", padding: 0 }}
+        className="w-full text-left bg-transparent border-none p-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
         aria-expanded={open}
       >
-        <div style={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", gap: "16px" }}>
+        <div className="flex w-full items-center justify-between px-6 py-5 gap-4">
           
           {/* Left: title + fraction */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#1e293b", margin: 0, lineHeight: 1.25 }}>
+          <div className="flex flex-col gap-1 text-left">
+            <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 m-0 leading-tight">
               {title}
             </h3>
-            <p style={{ fontSize: "14px", color: "#64748b", margin: 0, lineHeight: 1.25 }}>
+            <p className="text-sm text-slate-500 dark:text-slate-400 m-0 leading-tight">
               {done}/{topics.length} tópicos
             </p>
           </div>
 
           {/* Right: percent + progress bar + chevron */}
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px" }}>
-              <span style={{ fontSize: "14px", fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "#059669", lineHeight: 1 }}>
+          <div className="flex items-center gap-4 flex-shrink-0">
+            <div className="flex flex-col items-end gap-1.5">
+              <span className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400 leading-none">
                 {pct}%
               </span>
-              <div style={{ height: "6px", width: "96px", overflow: "hidden", borderRadius: "9999px", backgroundColor: "#e2e8f0" }}>
+              <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                 <div
-                  style={{ height: "100%", borderRadius: "9999px", backgroundColor: "#10b981", transition: "all 0.5s ease", width: `${pct}%` }}
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                  style={{ width: `${pct}%` }}
                 />
               </div>
             </div>
             <ChevronDown
               size={20}
-              color="#94a3b8"
-              style={{ flexShrink: 0, transition: "transform 0.2s ease", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+              className="text-slate-400 dark:text-slate-500 flex-shrink-0 transition-transform duration-200"
+              style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
             />
           </div>
         </div>
       </button>
 
-      {/* ── Topics list ── */}
+      {/* ── Topics list com Botões de Ação ── */}
       {open && (
-        <ul style={{ margin: 0, padding: "0 24px", listStyle: "none", borderTop: "1px solid #f1f5f9" }}>
-          {topics.map((topic) => (
-            <li key={topic.id} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 0", fontSize: "14px", borderBottom: "1px solid #f1f5f9" }}>
-              {topic.done ? (
-                <CheckCircle2 size={18} color="#10b981" style={{ flexShrink: 0 }} />
-              ) : (
-                <Circle size={18} color="#cbd5e1" style={{ flexShrink: 0 }} />
-              )}
-              <span style={{ color: topic.done ? "#94a3b8" : "#334155", textDecoration: topic.done ? "line-through" : "none" }}>
-                {topic.label}
-              </span>
-            </li>
-          ))}
+        <ul className="m-0 px-6 pb-2 list-none divide-y divide-slate-100 dark:divide-slate-800/50 border-t border-slate-100 dark:border-slate-800">
+          {topics.map((topic) => {
+            const youtubeQuery = encodeURIComponent(`${topic.label} ${title} para concursos aula`);
+
+            return (
+              <li key={topic.id} className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 py-3.5">
+                
+                {/* Tópico (Esquerda) */}
+                <div className="flex items-start gap-3">
+                  <div className="pt-0.5 flex-shrink-0">
+                    {topic.done ? (
+                      <CheckCircle2 size={18} className="text-emerald-500 dark:text-emerald-400" />
+                    ) : (
+                      <Circle size={18} className="text-slate-300 dark:text-slate-600" />
+                    )}
+                  </div>
+                  <span
+                    className={`text-sm font-medium leading-snug ${
+                      topic.done 
+                        ? "text-slate-400 dark:text-slate-500 line-through" 
+                        : "text-slate-700 dark:text-slate-200"
+                    }`}
+                  >
+                    {topic.label}
+                  </span>
+                </div>
+
+                {/* Botões de Ação / Micro-estudo (Direita) */}
+                <div className="flex flex-wrap items-center gap-2 pl-7 xl:pl-0">
+                  {/* YouTube Shortcut */}
+                  <a
+                    href={`https://www.youtube.com/results?search_query=${youtubeQuery}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-red-100 dark:border-red-900/30 bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+                    title="Pesquisar aula no YouTube"
+                    style={{ textDecoration: "none" }}
+                  >
+                    <Play size={14} className="flex-shrink-0" />
+                    <span className="text-[11px] font-bold tracking-wide">Aula</span>
+                  </a>
+
+                  {/* Resumo + Dicas */}
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                  >
+                    <FileText size={14} className="flex-shrink-0" />
+                    <span className="text-[11px] font-bold tracking-wide">Resumo</span>
+                  </button>
+
+                  {/* Questões */}
+                  <Link
+                    href={`/sala-de-aula?topic=${topic.id}&discipline=${encodeURIComponent(title)}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-blue-100 dark:border-blue-900/30 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/10 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 transition-colors"
+                    style={{ textDecoration: "none" }}
+                  >
+                    <Target size={14} className="flex-shrink-0" />
+                    <span className="text-[11px] font-bold tracking-wide">Questões</span>
+                  </Link>
+
+                  {/* Flashcards */}
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-amber-100 dark:border-amber-900/30 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/10 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400 transition-colors cursor-pointer"
+                  >
+                    <Layers size={14} className="flex-shrink-0" />
+                    <span className="text-[11px] font-bold tracking-wide">Flashcards</span>
+                  </button>
+                </div>
+                
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

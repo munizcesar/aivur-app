@@ -1,3 +1,14 @@
+## 🎯 Backlog Vivo (Fila de Execução)
+*Diretriz Autônoma: Ao concluir uma tarefa desta lista em implementações futuras, você tem permissão e o dever de apagar o item correspondente deste arquivo no mesmo commit.*
+
+**🚨 Alta Prioridade (Quarentena e UI)**
+- [ ] **Módulo de Trilhas:** Remover a rota `/Trilhas` da quarentena, reescrevendo o código legado com a mesma arquitetura modular e performática do Cockpit (zero erros de TypeScript).
+- [ ] **Interface de Trilhas (Accordion):** Refatorar o layout de matérias do edital para formato expansível (Accordion), com barra de progresso em porcentagem usando a paleta Slate/Emerald.
+
+**🛠️ Evolução do Motor de Questões (Cockpit)**
+- [ ] **Formato Certo/Errado:** Implementar o layout e a mecânica de validação para questões do tipo Certo/Errado, mantendo a blindagem do CSS Grid e do respiro lateral.
+- [ ] **Painel de Estatísticas:** Criar os componentes visuais para exibir a performance da sessão no topo do Cockpit (Acertos vs. Erros).
+
 - **Feedback pós-resposta e gabarito comentado** - ✅ CONCLUÍDO. `StudyCockpit.tsx` agora congela alternativas após o envio, destaca a correta com emerald, a escolhida errada com rose e exibe um painel `role="status"` com explicação simulada. O Grid `40px minmax(0, 1fr)`, badge `40x40` e scroll interno foram preservados. Validação real confirmou acerto e erro, desabilitação das opções e contador Zustand atualizado.
 - **Estado assíncrono e skeleton geométrico** - ✅ CONCLUÍDO. `useStudyStore.ts` agora expõe `isLoading` e `fetchQuestions()` com latência mock de 1,5s. Criado `QuestionSkeleton.tsx` com casca branca, Grid `40px minmax(0, 1fr)`, badge `40x40` e altura fixa de `72px`, igual à alternativa real. `StudyCockpit.tsx` dispara o fetch no mount e mostra quatro skeletons durante o carregamento. Diagnósticos específicos passaram; TypeScript geral continua limitado pelos 8 erros preexistentes em `Trilhas`.
 - **Micro-interações premium do Cockpit** - ✅ CONCLUÍDO. Alternativas receberam `transition-all`, feedback `active:scale-[0.99]`, hover com borda/sombra, estado selecionado com ring/shadow e bolinha escalada inline para `1.05`. Tabs receberam transição, estados ativo/inativo e focus ring. Sidebar usa curva cúbica de `300ms`. Grid, dimensões, padding e protocolo zero laranja foram preservados. Validação DOM confirmou todas as propriedades computadas.

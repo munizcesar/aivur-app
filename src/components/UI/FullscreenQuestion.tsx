@@ -129,7 +129,7 @@ export function FullscreenQuestion({
             const state = getOptionState(opt.id);
             const isEliminated = eliminated.includes(opt.id);
 
-            let cardClasses = "w-full text-left bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-3 hover:bg-slate-50 transition-colors grid items-center gap-4 relative ";
+            let cardClasses = "w-full text-left bg-white rounded-xl shadow-sm border border-slate-200 px-5 py-4 mb-3 hover:bg-slate-50 transition-colors grid items-center gap-4 relative ";
             let badgeClasses = "w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-colors ";
             let textClasses = "text-base text-slate-700 leading-relaxed ";
 

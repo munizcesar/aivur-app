@@ -392,7 +392,7 @@ function QuestionList() {
                       type="button"
                       onClick={() => selectAnswer(question.id, option.id)}
                       disabled={answered}
-                      className={`w-full text-left rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 ease-in-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/50 disabled:cursor-default ${
+                      className={`w-full text-left rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition-all duration-200 ease-in-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/50 disabled:cursor-default ${
                         isCorrect
                           ? "border-emerald-500 bg-emerald-50 text-emerald-900"
                           : isWrong
@@ -406,6 +406,7 @@ function QuestionList() {
                         gridTemplateColumns: "40px minmax(0, 1fr)",
                         alignItems: "center",
                         gap: "16px",
+                        padding: "16px 20px",
                         minHeight: "72px",
                         boxSizing: "border-box",
                         backgroundColor: isCorrect

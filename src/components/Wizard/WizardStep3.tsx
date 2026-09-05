@@ -642,7 +642,7 @@ function OptionButton({ opt, isSelected, isAnswered, correctAnswer, onSelect }: 
   const isRight = String(opt.key).toLowerCase() === String(correctAnswer).toLowerCase();
   const isWrong = isAnswered && isSelected && !isRight;
 
-  let container = "w-full text-left bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-3 hover:bg-slate-50 transition-colors grid items-center gap-4 focus:outline-none";
+  let container = "w-full text-left bg-white rounded-xl shadow-sm border border-slate-200 px-5 py-4 mb-3 hover:bg-slate-50 transition-colors grid items-center gap-4 focus:outline-none";
 
   if (!isAnswered) {
     container += isSelected

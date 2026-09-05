@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "src/components/Cockpit/**/*.ts",
+    "src/components/Cockpit/**/*.tsx",
+    "src/components/UI/**/*.tsx",
+    "src/store/**/*.ts",
+    "src/mocks/**/*.ts",
+    "src/app/sala-de-aula/**/*.tsx",
+    "src/app/trilhas/**/*.tsx"
+  ],
+  "exclude": ["node_modules"]
+}

@@ -416,6 +416,8 @@ function QuestionList() {
                           ? "#ecfdf5"
                           : isWrong
                             ? "#fff1f2"
+                            : isInactive
+                              ? "#ffffff"
                             : isSelected
                               ? "color-mix(in srgb, var(--color-primary) 5%, white)"
                               : "#ffffff",

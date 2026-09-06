@@ -20,6 +20,7 @@ import studyPathMock, {
 import { useStudyStore, type StudyTab } from "@/store/useStudyStore";
 import QuestionList from "@/components/Cockpit/QuestionList";
 import { useHydrated } from "@/hooks/useHydrated";
+import TrilhasAccordion from "@/components/Cockpit/TrilhasAccordion";
 
 const tabs: { key: StudyTab; label: string; icon: typeof BookOpen }[] = [
   { key: "resumo", label: "Resumo Express", icon: BookOpen },
@@ -108,108 +109,74 @@ function CockpitContent() {
   // rehydrates so server HTML === first client render.
   if (!hydrated) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#020c14] text-[#fbead0]">
+      <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800">
         Carregando Cockpit...
       </div>
     );
   }
 
   return (
-    <section className="flex h-screen flex-col overflow-hidden bg-[#020c14] md:h-[calc(100vh-77px)]">
-      <div className="flex h-14 flex-none items-center justify-between border-b border-white/10 px-4 md:hidden">
-        <div className="flex items-center gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-            AIVUR
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setIsSidebarOpen(true)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-[#fbead0] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
-          aria-label="Abrir trilha do edital"
-        >
-          <Menu size={19} aria-hidden="true" />
-        </button>
-      </div>
+    <div className="flex h-screen overflow-hidden bg-slate-50">
+      {/* Botão Hambúrguer Mobile */}
+      <button
+        type="button"
+        onClick={() => setIsSidebarOpen(true)}
+        className="md:hidden fixed top-4 left-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
+        aria-label="Abrir trilha do edital"
+      >
+        <Menu size={20} aria-hidden="true" />
+      </button>
 
-      <div className="flex-1 overflow-hidden">
-        <div className="flex h-full max-w-[1920px] mx-auto">
-          <div
-            className={`fixed inset-0 z-40 bg-[#020c14]/80 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
-              isSidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
-            }`}
-            aria-hidden="true"
-            onClick={() => setIsSidebarOpen(false)}
-          />
+      {/* Backdrop Mobile */}
+      <div
+        className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+          isSidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        aria-hidden="true"
+        onClick={() => setIsSidebarOpen(false)}
+      />
 
-          <aside
-            className={`fixed inset-y-0 left-0 z-50 w-[min(86vw,320px)] -translate-x-full border-r border-white/10 bg-[#0a2e45] px-4 py-5 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:sticky md:top-[77px] md:z-20 md:block md:h-[calc(100vh-77px)] md:w-72 md:flex-none md:translate-x-0 md:overflow-y-auto md:px-5 md:py-6 ${
-              isSidebarOpen ? "translate-x-0" : ""
-            }`}
-            style={{ width: "288px", flex: "0 0 288px" }}
-          >
-            <div className="mb-6 flex items-center justify-between md:block">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-                  Trilha do edital
-                </p>
-                <h2 className="mt-2 text-lg font-bold text-[#fbead0]">Plano de estudos</h2>
-              </div>
-              <button
-                type="button"
-                aria-label="Fechar trilha do edital"
-                onClick={() => setIsSidebarOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-[#fbead0] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] md:hidden"
-              >
-                <X size={19} aria-hidden="true" />
-              </button>
+      {/* Sidebar (Trilhas) */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-80 shrink-0 border-r border-slate-200 bg-white overflow-y-auto transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:static md:translate-x-0 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--color-primary)]">
+                Modo Flow
+              </p>
+              <h2 className="mt-1 text-xl font-extrabold text-slate-800">Trilhas</h2>
             </div>
+            <button
+              type="button"
+              aria-label="Fechar trilha"
+              onClick={() => setIsSidebarOpen(false)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 md:hidden"
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
+          </div>
 
-            <nav aria-label="Módulos da trilha" className="space-y-2">
-              {studyPathMock.modulos.map((module, index) => {
-                const isActive = index === activeModuleIndex;
-                return (
-                  <button
-                    key={module.id}
-                    type="button"
-                    aria-current={isActive ? "page" : undefined}
-                    onClick={() => selectModule(module.id)}
-                    className={`w-full rounded-xl border p-3 text-left transition-colors ${
-                      isActive
-                        ? "border-[var(--color-primary)]/60 bg-[var(--color-primary)]/10"
-                        : "border-white/10 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.06]"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span
-                        className={`mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-lg text-xs font-bold ${
-                          isActive ? "bg-[var(--color-primary)] text-[#071d2d]" : "bg-white/10 text-[#9bb3c0]"
-                        }`}
-                      >
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-semibold leading-snug text-[#fbead0]">
-                          {module.titulo}
-                        </span>
-                        <span className="mt-1 block text-xs leading-relaxed text-[#9bb3c0]">
-                          {module.subtitulo}
-                        </span>
-                      </span>
-                      <ChevronRight
-                        size={16}
-                        className={`mt-1 flex-none ${isActive ? "text-[var(--color-primary)]" : "text-[#6b99b3]"}`}
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <ModuleProgress module={module} />
-                  </button>
-                );
-              })}
-            </nav>
-          </aside>
-
-          <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-6 md:px-8 md:py-8">
+          <div className="space-y-4">
+            {studyPathMock.modulos.map((module) => (
+              <TrilhasAccordion
+                key={module.id}
+                title={module.titulo}
+                progressPercent={module.progresso}
+                topics={module.subtópicos.map((t) => ({
+                  id: t.id,
+                  label: t.titulo,
+                  done: t.status === "completed",
+                }))}
+              />
+            ))}
+          </div>
+        </div>
+      </aside>
+          <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#020c14] px-4 py-6 md:px-8 md:py-8">
             <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col">
               <div className="mb-6 flex items-end justify-between gap-4">
                 <div>
@@ -304,15 +271,13 @@ function CockpitContent() {
               </div>
             </div>
           </main>
-        </div>
-      </div>
-    </section>
+    </div>
   );
 }
 
 export default function StudyCockpit() {
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#020c14] text-[#fbead0]">Carregando Cockpit...</div>}>
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800">Carregando Cockpit...</div>}>
       <CockpitContent />
     </Suspense>
   );

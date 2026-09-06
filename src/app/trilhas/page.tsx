@@ -44,7 +44,7 @@ export default function TrilhasPage() {
             <div style={{ flex: '0 0 auto', display: 'flex', justifyContent: 'flex-end' }}>
               {/*eslint-disable-next-line @next/next/no-img-element*/}
               <img 
-                src="/images/aivur/icon-trilhas.png" 
+                src="/images/aivur/trilhas.png" 
                 alt="Trilhas de Estudo" 
                 style={{ width: '220px', height: 'auto', objectFit: 'contain', background: 'transparent', filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.3))' }} 
               />

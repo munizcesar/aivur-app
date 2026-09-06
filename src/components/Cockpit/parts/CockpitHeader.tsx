@@ -1,5 +1,4 @@
 import { CheckCircle2 } from "lucide-react";
-import studyPathMock from "@/mocks/studyPathMock";
 import { useStudyStore } from "@/store/useStudyStore";
 
 export default function CockpitHeader() {
@@ -7,12 +6,13 @@ export default function CockpitHeader() {
   const currentTopicId = useStudyStore((state) => state.currentTopicId);
   const completedTopicIds = useStudyStore((state) => state.completedTopicIds);
   const toggleTopicCompletion = useStudyStore((state) => state.toggleTopicCompletion);
+  const modules = useStudyStore((state) => state.modules);
 
   const activeModuleIndex = Math.max(
     0,
-    studyPathMock.modulos.findIndex((module) => module.id === activeModuleId)
+    modules.findIndex((module) => module.id === activeModuleId)
   );
-  const activeModule = studyPathMock.modulos[activeModuleIndex];
+  const activeModule = modules[activeModuleIndex];
 
   return (
     <div className="mb-6 flex items-end justify-between gap-4">

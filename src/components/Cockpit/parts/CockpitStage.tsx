@@ -1,5 +1,5 @@
 import { BookOpen, CheckCircle2, Circle, Layers3, LockKeyhole } from "lucide-react";
-import studyPathMock, { type StudyTopicStatus } from "@/mocks/studyPathMock";
+import type { StudyTopicStatus } from "@/mocks/studyPathMock";
 import { useStudyStore } from "@/store/useStudyStore";
 import QuestionsTab from "@/components/Cockpit/parts/QuestionsTab";
 import VideoPlayerHub from "@/components/Cockpit/VideoPlayerHub";
@@ -22,12 +22,13 @@ export default function CockpitStage() {
   const activeModuleId = useStudyStore((state) => state.activeModuleId);
   const currentTopicId = useStudyStore((state) => state.currentTopicId);
   const activeTab = useStudyStore((state) => state.activeTab);
+  const modules = useStudyStore((state) => state.modules);
 
   const activeModuleIndex = Math.max(
     0,
-    studyPathMock.modulos.findIndex((module) => module.id === activeModuleId)
+    modules.findIndex((module) => module.id === activeModuleId)
   );
-  const activeModule = studyPathMock.modulos[activeModuleIndex];
+  const activeModule = modules[activeModuleIndex];
   
   const activeTopicTitle = activeModule?.subtópicos.find((t) => t.id === currentTopicId)?.titulo;
 

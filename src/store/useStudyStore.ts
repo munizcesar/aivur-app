@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { studyService } from "@/services/api";
+import type { StudyModule } from "@/mocks/studyPathMock";
 
 export type StudyTab = "video" | "resumo" | "flashcards" | "questoes";
 
@@ -16,13 +18,15 @@ interface StudyStore {
   activeTab: StudyTab;
   isSidebarOpen: boolean;
   isLoading: boolean;
+  error: string | null;
+  modules: StudyModule[];
   progressData: StudyProgressData;
   completedTopicIds: string[];
   setActiveModule: (id: string) => void;
   setCurrentTopic: (id: string) => void;
   setActiveTab: (tab: StudyTab) => void;
   setIsSidebarOpen: (isOpen: boolean) => void;
-  fetchQuestions: () => void;
+  loadStudyPath: () => Promise<void>;
   registerAnswer: (questionId: string, isCorrect: boolean) => void;
   toggleTopicCompletion: (topicId: string) => void;
 }
@@ -42,6 +46,8 @@ export const useStudyStore = create<StudyStore>()(
       activeTab: "resumo",
       isSidebarOpen: false,
       isLoading: true,
+      error: null,
+      modules: [],
       progressData: initialProgress,
       completedTopicIds: [],
 
@@ -49,9 +55,14 @@ export const useStudyStore = create<StudyStore>()(
       setCurrentTopic: (id) => set({ currentTopicId: id }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setIsSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
-      fetchQuestions: () => {
-        set({ isLoading: true });
-        setTimeout(() => set({ isLoading: false }), 1500);
+      loadStudyPath: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const data = await studyService.fetchStudyPath();
+          set({ modules: data, isLoading: false });
+        } catch (err: any) {
+          set({ error: err.message || "Erro ao carregar dados", isLoading: false });
+        }
       },
       registerAnswer: (questionId, isCorrect) =>
         set((state) => {

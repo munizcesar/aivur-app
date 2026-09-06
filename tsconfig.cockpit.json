@@ -10,5 +10,5 @@
     "src/app/sala-de-aula/**/*.tsx",
     "src/app/trilhas/**/*.tsx"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", ".next"]
 }

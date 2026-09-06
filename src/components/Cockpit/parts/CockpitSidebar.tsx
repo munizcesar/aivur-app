@@ -1,11 +1,11 @@
 import { X } from "lucide-react";
-import studyPathMock from "@/mocks/studyPathMock";
 import { useStudyStore } from "@/store/useStudyStore";
 import TrilhasAccordion from "@/components/Cockpit/TrilhasAccordion";
 
 export default function CockpitSidebar() {
   const isSidebarOpen = useStudyStore((state) => state.isSidebarOpen);
   const setIsSidebarOpen = useStudyStore((state) => state.setIsSidebarOpen);
+  const modules = useStudyStore((state) => state.modules);
 
   return (
     <>
@@ -43,7 +43,7 @@ export default function CockpitSidebar() {
           </div>
 
           <div className="space-y-4">
-            {studyPathMock.modulos.map((module) => (
+            {modules.map((module) => (
               <TrilhasAccordion
                 key={module.id}
                 title={module.titulo}

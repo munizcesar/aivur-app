@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QuestionSkeleton from "@/components/UI/QuestionSkeleton";
 import QuestionCard from "@/components/Cockpit/QuestionCard";
 import CockpitStats from "@/components/Cockpit/CockpitStats";
@@ -11,8 +11,13 @@ export default function QuestionList() {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string | null>>({});
   const [answeredQuestions, setAnsweredQuestions] = useState<Record<string, boolean>>({});
   const isLoading = useStudyStore((state) => state.isLoading);
+  const fetchQuestions = useStudyStore((state) => state.fetchQuestions);
   const registerAnswer = useStudyStore((state) => state.registerAnswer);
   const answeredCount = useStudyStore((state) => state.progressData.answered);
+
+  useEffect(() => {
+    fetchQuestions();
+  }, [fetchQuestions]);
 
   const selectAnswer = (questionId: string, optionId: string) => {
     if (answeredQuestions[questionId]) return;

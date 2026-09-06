@@ -14,12 +14,14 @@ interface StudyStore {
   activeModuleId: string | null;
   currentTopicId: string | null;
   activeTab: StudyTab;
+  isSidebarOpen: boolean;
   isLoading: boolean;
   progressData: StudyProgressData;
   completedTopicIds: string[];
   setActiveModule: (id: string) => void;
   setCurrentTopic: (id: string) => void;
   setActiveTab: (tab: StudyTab) => void;
+  setIsSidebarOpen: (isOpen: boolean) => void;
   fetchQuestions: () => void;
   registerAnswer: (questionId: string, isCorrect: boolean) => void;
   toggleTopicCompletion: (topicId: string) => void;
@@ -38,6 +40,7 @@ export const useStudyStore = create<StudyStore>()(
       activeModuleId: null,
       currentTopicId: null,
       activeTab: "resumo",
+      isSidebarOpen: false,
       isLoading: true,
       progressData: initialProgress,
       completedTopicIds: [],
@@ -45,6 +48,7 @@ export const useStudyStore = create<StudyStore>()(
       setActiveModule: (id) => set({ activeModuleId: id }),
       setCurrentTopic: (id) => set({ currentTopicId: id }),
       setActiveTab: (tab) => set({ activeTab: tab }),
+      setIsSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
       fetchQuestions: () => {
         set({ isLoading: true });
         setTimeout(() => set({ isLoading: false }), 1500);

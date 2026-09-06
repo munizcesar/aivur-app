@@ -116,17 +116,18 @@ export default function TrilhasAccordion({
                   </a>
 
                   {/* Resumo + Dicas */}
-                  <button
-                    type="button"
+                  <Link
+                    href={`/sala-de-aula?topic=${topic.id}&discipline=${encodeURIComponent(title)}&tab=resumo`}
                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                    style={{ textDecoration: "none" }}
                   >
                     <FileText size={14} className="flex-shrink-0" />
                     <span className="text-[11px] font-bold tracking-wide">Resumo</span>
-                  </button>
+                  </Link>
 
                   {/* Questões */}
                   <Link
-                    href={`/sala-de-aula?topic=${topic.id}&discipline=${encodeURIComponent(title)}`}
+                    href={`/sala-de-aula?topic=${topic.id}&discipline=${encodeURIComponent(title)}&tab=questoes`}
                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-blue-100 dark:border-blue-900/30 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/10 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 transition-colors"
                     style={{ textDecoration: "none" }}
                   >
@@ -135,13 +136,14 @@ export default function TrilhasAccordion({
                   </Link>
 
                   {/* Flashcards */}
-                  <button
-                    type="button"
+                  <Link
+                    href={`/sala-de-aula?topic=${topic.id}&discipline=${encodeURIComponent(title)}&tab=flashcards`}
                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-amber-100 dark:border-amber-900/30 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/10 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400 transition-colors cursor-pointer"
+                    style={{ textDecoration: "none" }}
                   >
                     <Layers size={14} className="flex-shrink-0" />
                     <span className="text-[11px] font-bold tracking-wide">Flashcards</span>
-                  </button>
+                  </Link>
                 </div>
                 
               </li>

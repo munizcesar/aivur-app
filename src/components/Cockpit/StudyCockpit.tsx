@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   BookOpen,
   CheckCircle2,
@@ -53,7 +54,8 @@ function ModuleProgress({ module }: { module: StudyModule }) {
   );
 }
 
-export default function StudyCockpit() {
+function CockpitContent() {
+  const searchParams = useSearchParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const activeModuleId = useStudyStore((state) => state.activeModuleId);
   const activeTab = useStudyStore((state) => state.activeTab);
@@ -65,64 +67,59 @@ export default function StudyCockpit() {
     fetchQuestions();
   }, [fetchQuestions]);
 
+  // Sync searchParams with Zustand on mount
+  useEffect(() => {
+    const tabParam = searchParams.get("tab") as StudyTab;
+    const topicParam = searchParams.get("topic");
+
+    if (tabParam && ["resumo", "flashcards", "questoes"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    
+    if (topicParam) {
+      // Find which module contains this topic (if using mock structure)
+      const targetModule = studyPathMock.modulos.find((m) => 
+        m.subtópicos.some((t) => t.id === topicParam)
+      );
+      if (targetModule) {
+        setActiveModule(targetModule.id);
+      }
+    }
+  }, [searchParams, setActiveTab, setActiveModule]);
+
   const activeModuleIndex = Math.max(
     0,
     studyPathMock.modulos.findIndex((module) => module.id === activeModuleId),
   );
   const activeModule = studyPathMock.modulos[activeModuleIndex];
 
-  const selectModule = (id: string) => {
-    setActiveModule(id);
+  const selectModule = (moduleId: string) => {
+    setActiveModule(moduleId);
     setIsSidebarOpen(false);
   };
 
   return (
-    <section className="h-screen min-h-screen overflow-hidden bg-[#071d2d] text-[#fbead0]">
-      <div className="flex h-full min-h-0 w-full flex-col">
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0a2e45]/95 px-4 py-4 backdrop-blur-md md:px-6">
-          <div className="mx-auto flex w-full max-w-[1440px] items-center gap-3">
-            <button
-              type="button"
-              aria-label="Abrir trilha do edital"
-              aria-expanded={isSidebarOpen}
-              onClick={() => setIsSidebarOpen(true)}
-              className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-white/15 text-[#fbead0] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] md:hidden"
-            >
-              <Menu size={20} aria-hidden="true" />
-            </button>
+    <section className="flex h-screen flex-col overflow-hidden bg-[#020c14] md:h-[calc(100vh-77px)]">
+      <div className="flex h-14 flex-none items-center justify-between border-b border-white/10 px-4 md:hidden">
+        <div className="flex items-center gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+            AIVUR
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(true)}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-[#fbead0] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+          aria-label="Abrir trilha do edital"
+        >
+          <Menu size={19} aria-hidden="true" />
+        </button>
+      </div>
 
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9bb3c0]">
-                {studyPathMock.titulo_curso}
-              </p>
-              <div className="mt-1 flex items-center gap-3">
-                <h1 className="truncate text-lg font-bold text-[#fbead0] md:text-xl">
-                  {activeModule.titulo}
-                </h1>
-                <span className="hidden text-xs text-[#9bb3c0] sm:inline">
-                  Módulo {activeModuleIndex + 1} de {studyPathMock.modulos.length}
-                </span>
-              </div>
-            </div>
-
-            <div className="hidden w-48 flex-none sm:block md:w-64">
-              <div className="mb-1 flex items-center justify-between text-[11px] font-semibold text-[#9bb3c0]">
-                <span>Progresso geral</span>
-                <span className="text-[#fbead0]">{studyPathMock.progresso_geral}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-[var(--color-primary)] transition-[width] duration-300"
-                  style={{ width: `${studyPathMock.progresso_geral}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div className="mx-auto flex min-h-0 w-full max-w-[1440px] flex-1">
+      <div className="flex-1 overflow-hidden">
+        <div className="flex h-full max-w-[1920px] mx-auto">
           <div
-            className={`fixed inset-0 z-40 bg-black/60 transition-opacity md:hidden ${
+            className={`fixed inset-0 z-40 bg-[#020c14]/80 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
               isSidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
             aria-hidden="true"
@@ -244,8 +241,18 @@ export default function StudyCockpit() {
                 ) : (
                   <div
                     aria-label={`Área reservada para ${activeTab === "resumo" ? "Resumo Express" : "Flashcards"}`}
-                    className="mt-6 min-h-[420px] rounded-2xl border border-dashed border-white/15 bg-white/[0.02]"
-                  />
+                    className="mt-6 flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center"
+                  >
+                     <div className="mb-4 rounded-full bg-white/5 p-4 text-[#6b99b3]">
+                        {activeTab === "resumo" ? <BookOpen size={32} /> : <Layers3 size={32} />}
+                     </div>
+                     <h3 className="mb-2 text-xl font-bold text-[#fbead0]">
+                       {activeTab === "resumo" ? "Resumo Express" : "Flashcards de Revisão"}
+                     </h3>
+                     <p className="max-w-md text-sm text-[#9bb3c0]">
+                       Você está visualizando o módulo correspondente ao tópico selecionado na sua trilha. O motor de {activeTab} carregará o conteúdo inteligente aqui.
+                     </p>
+                  </div>
                 )}
 
                 <div className="mt-8 border-t border-white/10 pt-5">
@@ -284,5 +291,13 @@ export default function StudyCockpit() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function StudyCockpit() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#020c14] text-[#fbead0]">Carregando Cockpit...</div>}>
+      <CockpitContent />
+    </Suspense>
   );
 }

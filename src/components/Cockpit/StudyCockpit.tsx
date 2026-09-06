@@ -12,6 +12,7 @@ import {
   LockKeyhole,
   Menu,
   X,
+  Play,
 } from "lucide-react";
 import studyPathMock, {
   type StudyModule,
@@ -21,8 +22,10 @@ import { useStudyStore, type StudyTab } from "@/store/useStudyStore";
 import QuestionList from "@/components/Cockpit/QuestionList";
 import { useHydrated } from "@/hooks/useHydrated";
 import TrilhasAccordion from "@/components/Cockpit/TrilhasAccordion";
+import VideoPlayerHub from "@/components/Cockpit/VideoPlayerHub";
 
 const tabs: { key: StudyTab; label: string; icon: typeof BookOpen }[] = [
+  { key: "video", label: "Aula", icon: Play },
   { key: "resumo", label: "Resumo Express", icon: BookOpen },
   { key: "flashcards", label: "Flashcards", icon: Layers3 },
   { key: "questoes", label: "Questões", icon: ListChecks },
@@ -77,7 +80,7 @@ function CockpitContent() {
     const tabParam = searchParams.get("tab") as StudyTab;
     const topicParam = searchParams.get("topic");
 
-    if (tabParam && ["resumo", "flashcards", "questoes"].includes(tabParam)) {
+    if (tabParam && ["video", "resumo", "flashcards", "questoes"].includes(tabParam)) {
       setActiveTab(tabParam);
     }
 
@@ -97,6 +100,8 @@ function CockpitContent() {
     studyPathMock.modulos.findIndex((module) => module.id === activeModuleId),
   );
   const activeModule = studyPathMock.modulos[activeModuleIndex];
+  
+  const activeTopicTitle = activeModule?.subtópicos.find((t) => t.id === currentTopicId)?.titulo;
 
   const selectModule = (moduleId: string) => {
     setActiveModule(moduleId);
@@ -228,6 +233,8 @@ function CockpitContent() {
               >
                 {activeTab === "questoes" ? (
                   <QuestionList />
+                ) : activeTab === "video" ? (
+                  <VideoPlayerHub topicTitle={activeTopicTitle} />
                 ) : (
                   <div
                     aria-label={`Área reservada para ${activeTab === "resumo" ? "Resumo Express" : "Flashcards"}`}

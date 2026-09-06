@@ -98,9 +98,9 @@ export default function QuestionsTab() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto mt-6 pb-10">
+    <div className="w-full max-w-3xl mx-auto bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 my-4">
       {/* Cabeçalho da Questão */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
         <span className="text-sm font-bold tracking-wider text-slate-500 uppercase">
           Questão {currentIndex + 1} de {mockQuestions.length}
         </span>
@@ -110,7 +110,7 @@ export default function QuestionsTab() {
       </div>
 
       {/* Enunciado */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-6">
+      <div className="mb-6">
         <p className="text-lg text-slate-800 font-medium leading-relaxed">
           {question.enunciado}
         </p>
@@ -122,26 +122,29 @@ export default function QuestionsTab() {
           const isSelected = selectedOption === idx;
           const isCorrect = opt.isCorreta;
 
-          let buttonClass = "w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer flex gap-4 items-start";
-          let letterClass = "w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 text-slate-600 font-bold shrink-0";
+          let buttonClass = "w-full flex items-center gap-4 p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all text-left active:scale-[0.98]";
+          let letterClass = "flex-none shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg bg-slate-100 text-slate-600";
           let icon = null;
+          let textClass = "flex-1 mt-0.5 text-base text-slate-700";
 
           if (isAnswered) {
             buttonClass += " pointer-events-none"; // Trava após resposta
             
             if (isCorrect) {
-              buttonClass = "w-full text-left p-4 rounded-xl flex gap-4 items-start transition-all pointer-events-none bg-emerald-50 border border-emerald-500 text-emerald-900 ring-1 ring-emerald-500";
-              letterClass = "w-8 h-8 rounded-full flex items-center justify-center bg-emerald-500 text-white font-bold shrink-0";
-              icon = <CheckCircle2 size={20} className="text-emerald-600 shrink-0 mt-1" />;
+              buttonClass = "w-full flex items-center gap-4 p-4 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-900 ring-1 ring-emerald-500 transition-all pointer-events-none text-left";
+              letterClass = "flex-none shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg bg-emerald-500 text-white";
+              textClass = "flex-1 mt-0.5 text-base text-emerald-900 font-medium";
+              icon = <CheckCircle2 size={24} className="text-emerald-600 shrink-0" />;
             } else if (isSelected && !isCorrect) {
-              buttonClass = "w-full text-left p-4 rounded-xl flex gap-4 items-start transition-all pointer-events-none bg-rose-50 border border-rose-500 text-rose-900";
-              letterClass = "w-8 h-8 rounded-full flex items-center justify-center bg-rose-500 text-white font-bold shrink-0";
-              icon = <XCircle size={20} className="text-rose-600 shrink-0 mt-1" />;
+              buttonClass = "w-full flex items-center gap-4 p-4 rounded-xl border border-rose-500 bg-rose-50 text-rose-900 transition-all pointer-events-none text-left";
+              letterClass = "flex-none shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg bg-rose-500 text-white";
+              textClass = "flex-1 mt-0.5 text-base text-rose-900 font-medium";
+              icon = <XCircle size={24} className="text-rose-600 shrink-0" />;
             } else {
-              buttonClass = "w-full text-left p-4 rounded-xl border border-slate-200 bg-white opacity-50 flex gap-4 items-start pointer-events-none";
+              buttonClass = "w-full flex items-center gap-4 p-4 rounded-xl border border-slate-200 bg-white opacity-50 transition-all pointer-events-none text-left";
             }
           } else if (isSelected) {
-            buttonClass = "w-full text-left p-4 rounded-xl border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500 flex gap-4 items-start";
+            buttonClass = "w-full flex items-center gap-4 p-4 rounded-xl border border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500 transition-all text-left";
           }
 
           return (
@@ -154,7 +157,7 @@ export default function QuestionsTab() {
               disabled={isAnswered}
             >
               <div className={letterClass}>{letters[idx]}</div>
-              <span className="flex-1 mt-1 text-base">{opt.texto}</span>
+              <span className={textClass}>{opt.texto}</span>
               {icon}
             </button>
           );
@@ -177,7 +180,7 @@ export default function QuestionsTab() {
           <div className="mt-5 flex justify-end">
             <button
               onClick={handleNext}
-              className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm font-semibold transition-all active:scale-95"
+              className="mt-4 flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-all active:scale-95"
             >
               Próxima Questão
               <ChevronRight size={18} />

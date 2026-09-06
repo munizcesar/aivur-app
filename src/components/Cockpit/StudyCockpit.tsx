@@ -116,17 +116,8 @@ function CockpitContent() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
-      {/* Botão Hambúrguer Mobile */}
-      <button
-        type="button"
-        onClick={() => setIsSidebarOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
-        aria-label="Abrir trilha do edital"
-      >
-        <Menu size={20} aria-hidden="true" />
-      </button>
-
+    <div className="flex h-screen w-full bg-slate-50 text-slate-800 overflow-hidden font-sans">
+      
       {/* Backdrop Mobile */}
       <div
         className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
@@ -136,9 +127,9 @@ function CockpitContent() {
         onClick={() => setIsSidebarOpen(false)}
       />
 
-      {/* Sidebar (Trilhas) */}
+      {/* 1. SIDEBAR (TRILHAS) - FIXA NA ESQUERDA, EXATAMENTE 320px */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-80 shrink-0 border-r border-slate-200 bg-white overflow-y-auto transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-80 shrink-0 bg-white border-r border-slate-200 overflow-y-auto shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:static md:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -176,17 +167,33 @@ function CockpitContent() {
           </div>
         </div>
       </aside>
-          <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#020c14] px-4 py-6 md:px-8 md:py-8">
+
+      {/* 2. DRAWER MOBILE - BOTÃO HAMBÚRGUER */}
+      <div className="md:hidden fixed top-4 left-4 z-50">
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(true)}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
+          aria-label="Abrir trilha do edital"
+        >
+          <Menu size={20} aria-hidden="true" />
+        </button>
+      </div>
+
+      {/* 3. PALCO CENTRAL (COCKPIT) - OCUPA O RESTO DO ESPAÇO */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden relative z-0">
+        {currentTopicId ? (
+          <div className="flex-1 overflow-y-auto bg-[#020c14] px-4 py-6 md:px-8 md:py-8">
             <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col">
               <div className="mb-6 flex items-end justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
                     Conteúdo do módulo
                   </p>
-                  <h2 className="mt-2 text-2xl font-bold text-[#fbead0]">{activeModule.titulo}</h2>
+                  <h2 className="mt-2 text-2xl font-bold text-[#fbead0]">{activeModule?.titulo}</h2>
                 </div>
                 <span className="hidden rounded-full border border-white/15 px-3 py-1 text-xs text-[#9bb3c0] sm:inline-flex">
-                  {activeModule.progresso}% concluído
+                  {activeModule?.progresso}% concluído
                 </span>
               </div>
 
@@ -216,7 +223,7 @@ function CockpitContent() {
               </div>
 
               <div
-                className="flex-1 overflow-y-auto pb-32 custom-scrollbar"
+                className="flex-1 overflow-y-auto pb-32 custom-scrollbar mt-6"
                 style={{ paddingBottom: "128px" }}
               >
                 {activeTab === "questoes" ? (
@@ -224,7 +231,7 @@ function CockpitContent() {
                 ) : (
                   <div
                     aria-label={`Área reservada para ${activeTab === "resumo" ? "Resumo Express" : "Flashcards"}`}
-                    className="mt-6 flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center"
+                    className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center"
                   >
                      <div className="mb-4 rounded-full bg-white/5 p-4 text-[#6b99b3]">
                         {activeTab === "resumo" ? <BookOpen size={32} /> : <Layers3 size={32} />}
@@ -243,7 +250,7 @@ function CockpitContent() {
                   Tópicos deste módulo
                 </p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  {activeModule.subtópicos.map((topic) => (
+                  {activeModule?.subtópicos.map((topic) => (
                     <div
                       key={topic.id}
                       className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3"
@@ -270,7 +277,17 @@ function CockpitContent() {
                 </div>
               </div>
             </div>
-          </main>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center bg-slate-50">
+            <div className="text-center p-8 max-w-md">
+              <h2 className="text-xl font-bold text-slate-700 mb-2">Pronto para evoluir?</h2>
+              <p className="text-slate-500">Selecione um tópico no edital ao lado para carregar as questões e focar no seu progresso.</p>
+            </div>
+          </div>
+        )}
+      </main>
+
     </div>
   );
 }

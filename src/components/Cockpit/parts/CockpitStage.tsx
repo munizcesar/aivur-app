@@ -3,6 +3,7 @@ import studyPathMock, { type StudyTopicStatus } from "@/mocks/studyPathMock";
 import { useStudyStore } from "@/store/useStudyStore";
 import QuestionList from "@/components/Cockpit/QuestionList";
 import VideoPlayerHub from "@/components/Cockpit/VideoPlayerHub";
+import FlashcardsTab from "@/components/Cockpit/parts/FlashcardsTab";
 
 const statusLabel: Record<StudyTopicStatus, string> = {
   completed: "Concluído",
@@ -38,16 +39,18 @@ export default function CockpitStage() {
         <QuestionList />
       ) : activeTab === "video" ? (
         <VideoPlayerHub topicTitle={activeTopicTitle} />
+      ) : activeTab === "flashcards" ? (
+        <FlashcardsTab />
       ) : (
         <div
           aria-label={`Área reservada para ${activeTab === "resumo" ? "Resumo Express" : "Flashcards"}`}
           className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center"
         >
            <div className="mb-4 rounded-full bg-white/5 p-4 text-[#6b99b3]">
-              {activeTab === "resumo" ? <BookOpen size={32} /> : <Layers3 size={32} />}
+              <BookOpen size={32} />
            </div>
            <h3 className="mb-2 text-xl font-bold text-[#fbead0]">
-             {activeTab === "resumo" ? "Resumo Express" : "Flashcards de Revisão"}
+             Resumo Express
            </h3>
            <p className="max-w-md text-sm text-[#9bb3c0]">
              Você está visualizando o módulo correspondente ao tópico selecionado na sua trilha. O motor de {activeTab} carregará o conteúdo inteligente aqui.

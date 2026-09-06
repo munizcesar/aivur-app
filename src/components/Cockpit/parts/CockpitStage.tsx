@@ -1,7 +1,7 @@
 import { BookOpen, CheckCircle2, Circle, Layers3, LockKeyhole } from "lucide-react";
 import studyPathMock, { type StudyTopicStatus } from "@/mocks/studyPathMock";
 import { useStudyStore } from "@/store/useStudyStore";
-import QuestionList from "@/components/Cockpit/QuestionList";
+import QuestionsTab from "@/components/Cockpit/parts/QuestionsTab";
 import VideoPlayerHub from "@/components/Cockpit/VideoPlayerHub";
 import FlashcardsTab from "@/components/Cockpit/parts/FlashcardsTab";
 
@@ -36,7 +36,7 @@ export default function CockpitStage() {
       style={{ paddingBottom: "128px" }}
     >
       {activeTab === "questoes" ? (
-        <QuestionList />
+        <QuestionsTab />
       ) : activeTab === "video" ? (
         <VideoPlayerHub topicTitle={activeTopicTitle} />
       ) : activeTab === "flashcards" ? (

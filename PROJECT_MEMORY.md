@@ -45,6 +45,7 @@
 - **Desacoplamento Arquitetural (Smart Components)**: O Orquestrador `StudyCockpit.tsx` foi purgado de _Prop Drilling_ e estados locais massivos. A Sidebar (`CockpitSidebar`), Header, Navigation, Stage e MobileTrigger foram extraídos para o diretório `parts/`. O Zustand agora atua como a espinha dorsal global controlando nativamente a UI Transiente (ex: `isSidebarOpen`).
 - **Arena de Flashcards (Active Recall 3D)**: Substituição do Empty State por um mini-app interativo na aba de Flashcards. Implementado motor de física 3D em CSS (`perspective`, `transform-style: preserve-3d`, `rotateY`) e painel de repetição espaçada simulada (botões Errei, Bom, Fácil) orquestrado por um mock de dados e estados de flip e avanço automático.
 - **Simulador de Questões (Focus Mode)**: Aba de Questões evoluída para uma experiência "Uma por Vez", eliminando a fadiga de _scroll_ infinito. Alternativas tornaram-se botões altamente táteis com validação visual imediata (Emerald vs Rose) e bloqueio de _pointer-events_ anti-clique-duplo. O painel de Resolução (Gabarito Comentado) surge dinamicamente via animações CSS suaves.
+- **Leitor Premium de Resumos (Notion-like)**: Aba de Resumos finalizada com foco absoluto em legibilidade (`ResumeTab.tsx`). Fundo branco protegido isolado do Stage, tipografia hierárquica pesada (`slate-900` para títulos, `slate-700` para corpo) e `Highlights` (`indigo-50`). Integrada ao store global via _Call to Action_ no rodapé ("Marcar como Lido" / "Resumo Concluído") fechando o ciclo de gamificação.
 
 ## 4. Backlog Vivo
 

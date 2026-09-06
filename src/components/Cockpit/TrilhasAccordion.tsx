@@ -111,9 +111,9 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("video");
                   }}
-                  className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-200 rounded shadow-sm text-xs text-slate-500 hover:text-rose-600 hover:border-rose-200 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:translate-y-0 transition-all duration-200 cursor-pointer"
                 >
-                  <Play className="w-3 h-3"/> Aula
+                  <Play className="w-3.5 h-3.5"/> Aula
                 </button>
                 <button 
                   onClick={(e) => {
@@ -121,9 +121,9 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("resumo");
                   }}
-                  className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-200 rounded shadow-sm text-xs text-slate-500 hover:text-emerald-600 hover:border-emerald-200 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:translate-y-0 transition-all duration-200 cursor-pointer"
                 >
-                  <FileText className="w-3 h-3"/> Resumo
+                  <FileText className="w-3.5 h-3.5"/> Resumo
                 </button>
                 <button 
                   onClick={(e) => {
@@ -131,9 +131,9 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("questoes");
                   }}
-                  className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-200 rounded shadow-sm text-xs text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:translate-y-0 transition-all duration-200 cursor-pointer"
                 >
-                  <Target className="w-3 h-3"/> Questões
+                  <Target className="w-3.5 h-3.5"/> Questões
                 </button>
               </div>
             </div>

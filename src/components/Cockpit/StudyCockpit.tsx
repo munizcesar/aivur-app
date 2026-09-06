@@ -206,11 +206,11 @@ function CockpitContent() {
                   {currentTopicId && (
                     <button
                       onClick={() => toggleTopicCompletion(currentTopicId)}
-                      className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition-colors ${
+                      className={
                         completedTopicIds.includes(currentTopicId)
-                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                          : "border-white/15 text-[#9bb3c0] hover:bg-white/5"
-                      }`}
+                          ? "flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg shadow-inner text-sm font-semibold text-emerald-700 hover:bg-emerald-100 active:scale-95 transition-all duration-200"
+                          : "flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg shadow-sm text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 active:scale-95 transition-all duration-200"
+                      }
                     >
                       <CheckCircle2 size={14} />
                       {completedTopicIds.includes(currentTopicId) ? "Tópico Concluído" : "Concluir Tópico"}

@@ -1,155 +1,144 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ChevronDown, CheckCircle2, Circle, Play, FileText, Target, Layers } from "lucide-react";
+import { ChevronDown, CheckCircle, Play, FileText, Target } from "lucide-react";
+import { useStudyStore } from "@/store/useStudyStore";
 
-interface TrilhasAccordionTopic {
+export interface TrilhasAccordionTopic {
   id: string;
-  label: string;
+  label?: string;
+  name?: string;
   done?: boolean;
 }
 
-interface TrilhasAccordionProps {
-  title: string;
-  topics: TrilhasAccordionTopic[];
+export interface TrilhasAccordionProps {
+  title?: string;
+  topics?: TrilhasAccordionTopic[];
+  discipline?: {
+    id?: string;
+    title?: string;
+    name?: string;
+    topics: TrilhasAccordionTopic[];
+  };
   progressPercent?: number;
+  defaultOpen?: boolean;
 }
 
-export default function TrilhasAccordion({
-  title,
-  topics,
-  progressPercent,
-}: TrilhasAccordionProps) {
-  const [open, setOpen] = useState(false);
+export default function TrilhasAccordion(props: TrilhasAccordionProps) {
+  const [open, setOpen] = useState(props.defaultOpen ?? false);
+  const setCurrentTopic = useStudyStore((state) => state.setCurrentTopic);
+  const setActiveTab = useStudyStore((state) => state.setActiveTab);
+  const completedTopicIds = useStudyStore((state) => state.completedTopicIds);
 
-  const done = topics.filter((t) => t.done).length;
+  const title =
+    props.title ??
+    props.discipline?.title ??
+    props.discipline?.name ??
+    "Disciplina";
+  const rawTopics = props.topics ?? props.discipline?.topics ?? [];
+
+  const discipline = {
+    title,
+    topics: rawTopics.map((t) => ({
+      ...t,
+      name: t.name ?? t.label ?? "",
+    })),
+  };
+
+  const realDone = discipline.topics.filter((t) => completedTopicIds.includes(t.id)).length;
   const pct =
-    progressPercent ??
-    (topics.length > 0 ? Math.round((done / topics.length) * 100) : 0);
+    discipline.topics.length > 0
+      ? Math.round((realDone / discipline.topics.length) * 100)
+      : 0;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] shadow-sm transition-all duration-200">
-      {/* ── Header ── */}
+    <div className="w-full">
+      {/* ── Cabeçalho da Matéria (Botão Principal) ── */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full text-left bg-[#0A2E45] border-none p-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 hover:bg-[#0c3651] transition-colors"
+        className="w-full flex justify-between items-center p-4 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors mb-2 text-slate-800"
         aria-expanded={open}
       >
-        <div className="flex w-full items-center justify-between px-6 py-5 gap-4">
-          
-          {/* Left: title + fraction */}
-          <div className="flex flex-col gap-1 text-left flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-[#FBEBD0] m-0 leading-tight truncate">
-              {title}
-            </h3>
-            <p className="text-sm text-[#6B99B3] m-0 leading-tight">
-              {done}/{topics.length} tópicos
-            </p>
+        <div className="flex flex-col text-left flex-1 min-w-0 pr-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-semibold text-sm truncate">
+              {discipline.title}
+            </span>
+            <span className="text-xs font-bold tabular-nums text-emerald-600 shrink-0">
+              {pct}%
+            </span>
           </div>
-
-          {/* Right: percent + progress bar + chevron */}
-          <div className="flex items-center gap-5 flex-shrink-0">
-            <div className="flex flex-col items-end gap-2">
-              <span className="text-[13px] font-bold tabular-nums text-emerald-400 leading-none">
-                {pct}%
-              </span>
-              <div className="h-1.5 w-28 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-            <ChevronDown
-              size={20}
-              className="text-[#6B99B3] flex-shrink-0 transition-transform duration-200"
-              style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+          {/* Barra de Progresso */}
+          <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+              style={{ width: `${pct}%` }}
             />
           </div>
         </div>
+        <ChevronDown
+          className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
-      {/* ── Topics list com Botões de Ação ── */}
+      {/* ── Subtópico Expandido (Proteção contra Overflow) ── */}
       {open && (
-        <ul className="m-0 px-6 pb-4 list-none divide-y divide-white/5 border-t border-white/10 bg-[#0A2E45]">
-          {topics.map((topic) => {
-            const youtubeQuery = encodeURIComponent(`${topic.label} ${title} para concursos aula`);
-
-            return (
-              <li key={topic.id} className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 py-4">
-                
-                {/* Tópico (Esquerda) */}
-                <div className="flex items-start gap-3 flex-1 min-w-0 lg:pr-6">
-                  <div className="pt-0.5 flex-shrink-0">
-                    {topic.done ? (
-                      <CheckCircle2 size={18} className="text-emerald-400" />
-                    ) : (
-                      <Circle size={18} className="text-[#6B99B3]/50" />
-                    )}
-                  </div>
-                  <span
-                    className={`text-[15px] leading-snug break-words ${
-                      topic.done 
-                        ? "text-[#6B99B3] line-through" 
-                        : "text-[#DCE8ED] font-medium"
-                    }`}
-                  >
-                    {topic.label}
-                  </span>
-                </div>
-
-                {/* Botões de Ação / Micro-estudo (Direita - Grade fixa) */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pl-7 lg:pl-0 flex-shrink-0 lg:w-[440px]">
-                  {/* YouTube Shortcut */}
-                  <a
-                    href={`https://www.youtube.com/results?search_query=${youtubeQuery}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex w-full justify-center items-center gap-1.5 px-2 py-1.5 rounded border border-red-900/30 bg-red-900/10 hover:bg-red-900/20 text-red-400 transition-colors"
-                    title="Pesquisar aula no YouTube"
-                    style={{ textDecoration: "none" }}
-                  >
-                    <Play size={14} className="flex-shrink-0" />
-                    <span className="text-[11px] font-bold tracking-wide">Aula</span>
-                  </a>
-
-                  {/* Resumo + Dicas */}
-                  <Link
-                    href={`/sala-de-aula?topic=${topic.id}&discipline=${encodeURIComponent(title)}&tab=resumo`}
-                    className="inline-flex w-full justify-center items-center gap-1.5 px-2 py-1.5 rounded border border-white/10 bg-white/5 hover:bg-white/10 text-[#DCE8ED] transition-colors cursor-pointer"
-                    style={{ textDecoration: "none" }}
-                  >
-                    <FileText size={14} className="flex-shrink-0" />
-                    <span className="text-[11px] font-bold tracking-wide">Resumo</span>
-                  </Link>
-
-                  {/* Questões */}
-                  <Link
-                    href={`/sala-de-aula?topic=${topic.id}&discipline=${encodeURIComponent(title)}&tab=questoes`}
-                    className="inline-flex w-full justify-center items-center gap-1.5 px-2 py-1.5 rounded border border-blue-900/30 bg-blue-900/10 hover:bg-blue-900/20 text-blue-400 transition-colors"
-                    style={{ textDecoration: "none" }}
-                  >
-                    <Target size={14} className="flex-shrink-0" />
-                    <span className="text-[11px] font-bold tracking-wide">Questões</span>
-                  </Link>
-
-                  {/* Flashcards */}
-                  <Link
-                    href={`/sala-de-aula?topic=${topic.id}&discipline=${encodeURIComponent(title)}&tab=flashcards`}
-                    className="inline-flex w-full justify-center items-center gap-1.5 px-2 py-1.5 rounded border border-amber-900/30 bg-amber-900/10 hover:bg-amber-900/20 text-amber-400 transition-colors cursor-pointer"
-                    style={{ textDecoration: "none" }}
-                  >
-                    <Layers size={14} className="flex-shrink-0" />
-                    <span className="text-[11px] font-bold tracking-wide">Flashcards</span>
-                  </Link>
-                </div>
-                
-              </li>
-            );
-          })}
-        </ul>
+        <div className="flex flex-col bg-slate-50 border-x border-b border-slate-200 rounded-b-lg mb-4 text-sm text-slate-700">
+          {discipline.topics.map((topic, idx) => (
+            <div 
+              key={idx} 
+              className="p-3 hover:bg-slate-100 border-b border-slate-200/60 last:border-0 cursor-pointer transition-colors"
+              onClick={() => setCurrentTopic(topic.id)}
+            >
+              {/* Título do Tópico */}
+              <div className="flex items-start gap-2 mb-2">
+                <CheckCircle 
+                  className={`w-4 h-4 shrink-0 mt-0.5 transition-colors ${
+                    completedTopicIds.includes(topic.id) ? "text-emerald-500" : "text-slate-300"
+                  }`}
+                />
+                <span className="font-medium leading-snug line-clamp-2">{topic.name}</span>
+              </div>
+              
+              {/* Pílulas de Ação com Flex-Wrap (ESSENCIAL PARA NÃO VAZAR) */}
+              <div className="flex flex-wrap gap-2 pl-6">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentTopic(topic.id);
+                    setActiveTab("video");
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-200 rounded shadow-sm text-xs text-slate-500 hover:text-rose-600 hover:border-rose-200 transition-colors"
+                >
+                  <Play className="w-3 h-3"/> Aula
+                </button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentTopic(topic.id);
+                    setActiveTab("resumo");
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-200 rounded shadow-sm text-xs text-slate-500 hover:text-emerald-600 hover:border-emerald-200 transition-colors"
+                >
+                  <FileText className="w-3 h-3"/> Resumo
+                </button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentTopic(topic.id);
+                    setActiveTab("questoes");
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-200 rounded shadow-sm text-xs text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-colors"
+                >
+                  <Target className="w-3 h-3"/> Questões
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

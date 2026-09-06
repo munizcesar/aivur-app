@@ -70,6 +70,8 @@ function CockpitContent() {
   const setActiveModule = useStudyStore((state) => state.setActiveModule);
   const setCurrentTopic = useStudyStore((state) => state.setCurrentTopic);
   const setActiveTab = useStudyStore((state) => state.setActiveTab);
+  const completedTopicIds = useStudyStore((state) => state.completedTopicIds);
+  const toggleTopicCompletion = useStudyStore((state) => state.toggleTopicCompletion);
 
   useEffect(() => {
     fetchQuestions();
@@ -197,9 +199,24 @@ function CockpitContent() {
                   </p>
                   <h2 className="mt-2 text-2xl font-bold text-[#fbead0]">{activeModule?.titulo}</h2>
                 </div>
-                <span className="hidden rounded-full border border-white/15 px-3 py-1 text-xs text-[#9bb3c0] sm:inline-flex">
-                  {activeModule?.progresso}% concluído
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="hidden rounded-full border border-white/15 px-3 py-1 text-xs text-[#9bb3c0] sm:inline-flex">
+                    {activeModule?.progresso}% concluído
+                  </span>
+                  {currentTopicId && (
+                    <button
+                      onClick={() => toggleTopicCompletion(currentTopicId)}
+                      className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition-colors ${
+                        completedTopicIds.includes(currentTopicId)
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                          : "border-white/15 text-[#9bb3c0] hover:bg-white/5"
+                      }`}
+                    >
+                      <CheckCircle2 size={14} />
+                      {completedTopicIds.includes(currentTopicId) ? "Tópico Concluído" : "Concluir Tópico"}
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="border-b border-white/10" role="tablist" aria-label="Conteúdo do módulo">

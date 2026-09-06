@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-export type StudyTab = "resumo" | "flashcards" | "questoes";
+export type StudyTab = "video" | "resumo" | "flashcards" | "questoes";
 
 export interface StudyProgressData {
   answered: number;
@@ -16,11 +16,13 @@ interface StudyStore {
   activeTab: StudyTab;
   isLoading: boolean;
   progressData: StudyProgressData;
+  completedTopicIds: string[];
   setActiveModule: (id: string) => void;
   setCurrentTopic: (id: string) => void;
   setActiveTab: (tab: StudyTab) => void;
   fetchQuestions: () => void;
   registerAnswer: (questionId: string, isCorrect: boolean) => void;
+  toggleTopicCompletion: (topicId: string) => void;
 }
 
 const initialProgress: StudyProgressData = {
@@ -38,6 +40,7 @@ export const useStudyStore = create<StudyStore>()(
       activeTab: "resumo",
       isLoading: true,
       progressData: initialProgress,
+      completedTopicIds: [],
 
       setActiveModule: (id) => set({ activeModuleId: id }),
       setCurrentTopic: (id) => set({ currentTopicId: id }),
@@ -75,6 +78,12 @@ export const useStudyStore = create<StudyStore>()(
             },
           };
         }),
+      toggleTopicCompletion: (topicId) =>
+        set((state) => ({
+          completedTopicIds: state.completedTopicIds.includes(topicId)
+            ? state.completedTopicIds.filter((id) => id !== topicId)
+            : [...state.completedTopicIds, topicId],
+        })),
     }),
     {
       name: "aivur-study-store",
@@ -85,6 +94,7 @@ export const useStudyStore = create<StudyStore>()(
         currentTopicId: state.currentTopicId,
         activeTab: state.activeTab,
         progressData: state.progressData,
+        completedTopicIds: state.completedTopicIds,
       }),
     }
   )

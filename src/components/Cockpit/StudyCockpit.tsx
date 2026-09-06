@@ -19,6 +19,7 @@ import studyPathMock, {
 } from "@/mocks/studyPathMock";
 import { useStudyStore, type StudyTab } from "@/store/useStudyStore";
 import QuestionList from "@/components/Cockpit/QuestionList";
+import { useHydrated } from "@/hooks/useHydrated";
 
 const tabs: { key: StudyTab; label: string; icon: typeof BookOpen }[] = [
   { key: "resumo", label: "Resumo Express", icon: BookOpen },
@@ -56,18 +57,21 @@ function ModuleProgress({ module }: { module: StudyModule }) {
 
 function CockpitContent() {
   const searchParams = useSearchParams();
+  const hydrated = useHydrated();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const activeModuleId = useStudyStore((state) => state.activeModuleId);
+  const currentTopicId = useStudyStore((state) => state.currentTopicId);
   const activeTab = useStudyStore((state) => state.activeTab);
   const fetchQuestions = useStudyStore((state) => state.fetchQuestions);
   const setActiveModule = useStudyStore((state) => state.setActiveModule);
+  const setCurrentTopic = useStudyStore((state) => state.setCurrentTopic);
   const setActiveTab = useStudyStore((state) => state.setActiveTab);
 
   useEffect(() => {
     fetchQuestions();
   }, [fetchQuestions]);
 
-  // Sync searchParams with Zustand on mount
+  // Sync searchParams with Zustand on mount — URL params win over persisted state
   useEffect(() => {
     const tabParam = searchParams.get("tab") as StudyTab;
     const topicParam = searchParams.get("topic");
@@ -75,17 +79,17 @@ function CockpitContent() {
     if (tabParam && ["resumo", "flashcards", "questoes"].includes(tabParam)) {
       setActiveTab(tabParam);
     }
-    
+
     if (topicParam) {
-      // Find which module contains this topic (if using mock structure)
-      const targetModule = studyPathMock.modulos.find((m) => 
+      setCurrentTopic(topicParam);
+      const targetModule = studyPathMock.modulos.find((m) =>
         m.subtópicos.some((t) => t.id === topicParam)
       );
       if (targetModule) {
         setActiveModule(targetModule.id);
       }
     }
-  }, [searchParams, setActiveTab, setActiveModule]);
+  }, [searchParams, setActiveTab, setActiveModule, setCurrentTopic]);
 
   const activeModuleIndex = Math.max(
     0,
@@ -97,6 +101,18 @@ function CockpitContent() {
     setActiveModule(moduleId);
     setIsSidebarOpen(false);
   };
+
+  // ── Hydration Guard ─────────────────────────────────────────────────────────
+  // Prevents Next.js SSR Hydration Mismatch: persisted state from localStorage
+  // is unavailable on the server. We return a skeleton until the client
+  // rehydrates so server HTML === first client render.
+  if (!hydrated) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#020c14] text-[#fbead0]">
+        Carregando Cockpit...
+      </div>
+    );
+  }
 
   return (
     <section className="flex h-screen flex-col overflow-hidden bg-[#020c14] md:h-[calc(100vh-77px)]">

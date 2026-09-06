@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export type StudyTab = "resumo" | "flashcards" | "questoes";
 
@@ -11,10 +12,12 @@ export interface StudyProgressData {
 
 interface StudyStore {
   activeModuleId: string | null;
+  currentTopicId: string | null;
   activeTab: StudyTab;
   isLoading: boolean;
   progressData: StudyProgressData;
   setActiveModule: (id: string) => void;
+  setCurrentTopic: (id: string) => void;
   setActiveTab: (tab: StudyTab) => void;
   fetchQuestions: () => void;
   registerAnswer: (questionId: string, isCorrect: boolean) => void;
@@ -27,45 +30,62 @@ const initialProgress: StudyProgressData = {
   answers: {},
 };
 
-export const useStudyStore = create<StudyStore>((set) => ({
-  activeModuleId: null,
-  activeTab: "resumo",
-  isLoading: true,
-  progressData: initialProgress,
+export const useStudyStore = create<StudyStore>()(
+  persist(
+    (set) => ({
+      activeModuleId: null,
+      currentTopicId: null,
+      activeTab: "resumo",
+      isLoading: true,
+      progressData: initialProgress,
 
-  setActiveModule: (id) => set({ activeModuleId: id }),
-  setActiveTab: (tab) => set({ activeTab: tab }),
-  fetchQuestions: () => {
-    set({ isLoading: true });
-    setTimeout(() => set({ isLoading: false }), 1500);
-  },
-  registerAnswer: (questionId, isCorrect) =>
-    set((state) => {
-      const previousAnswer = state.progressData.answers[questionId];
-      const answers = { ...state.progressData.answers, [questionId]: isCorrect };
+      setActiveModule: (id) => set({ activeModuleId: id }),
+      setCurrentTopic: (id) => set({ currentTopicId: id }),
+      setActiveTab: (tab) => set({ activeTab: tab }),
+      fetchQuestions: () => {
+        set({ isLoading: true });
+        setTimeout(() => set({ isLoading: false }), 1500);
+      },
+      registerAnswer: (questionId, isCorrect) =>
+        set((state) => {
+          const previousAnswer = state.progressData.answers[questionId];
+          const answers = { ...state.progressData.answers, [questionId]: isCorrect };
 
-      if (previousAnswer === isCorrect) {
-        return { progressData: { ...state.progressData, answers } };
-      }
+          if (previousAnswer === isCorrect) {
+            return { progressData: { ...state.progressData, answers } };
+          }
 
-      if (previousAnswer !== undefined) {
-        return {
-          progressData: {
-            answered: state.progressData.answered,
-            correct: state.progressData.correct + (isCorrect ? 1 : -1),
-            incorrect: state.progressData.incorrect + (isCorrect ? -1 : 1),
-            answers,
-          },
-        };
-      }
+          if (previousAnswer !== undefined) {
+            return {
+              progressData: {
+                answered: state.progressData.answered,
+                correct: state.progressData.correct + (isCorrect ? 1 : -1),
+                incorrect: state.progressData.incorrect + (isCorrect ? -1 : 1),
+                answers,
+              },
+            };
+          }
 
-      return {
-        progressData: {
-          answered: state.progressData.answered + 1,
-          correct: state.progressData.correct + (isCorrect ? 1 : 0),
-          incorrect: state.progressData.incorrect + (isCorrect ? 0 : 1),
-          answers,
-        },
-      };
+          return {
+            progressData: {
+              answered: state.progressData.answered + 1,
+              correct: state.progressData.correct + (isCorrect ? 1 : 0),
+              incorrect: state.progressData.incorrect + (isCorrect ? 0 : 1),
+              answers,
+            },
+          };
+        }),
     }),
-}));
+    {
+      name: "aivur-study-store",
+      storage: createJSONStorage(() => localStorage),
+      // Only persist navigation state — never isLoading (transient)
+      partialize: (state) => ({
+        activeModuleId: state.activeModuleId,
+        currentTopicId: state.currentTopicId,
+        activeTab: state.activeTab,
+        progressData: state.progressData,
+      }),
+    }
+  )
+);

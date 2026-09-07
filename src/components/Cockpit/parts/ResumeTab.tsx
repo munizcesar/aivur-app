@@ -60,7 +60,7 @@ export default function ResumeTab() {
       
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3 text-slate-500 text-sm">
-          <BookOpen size={20} />
+          <BookOpen size={20} className="shrink-0 flex-none" />
           <span>Leitura estimada: 3 min</span>
         </div>
         
@@ -68,7 +68,7 @@ export default function ResumeTab() {
           <button
             type="button"
             onClick={() => toggleTopicCompletion(currentTopicId)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all active:scale-[0.98] ${
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all active:scale-[0.98] cursor-pointer relative z-10 ${
               isCompleted
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-500 shadow-sm ring-1 ring-emerald-500"
                 : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
@@ -76,7 +76,7 @@ export default function ResumeTab() {
           >
             {isCompleted ? (
               <>
-                <CheckCircle2 size={20} />
+                <CheckCircle2 size={20} className="shrink-0 flex-none" />
                 Resumo Concluído
               </>
             ) : (

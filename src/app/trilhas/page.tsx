@@ -23,7 +23,7 @@ export default function TrilhasPage() {
     <>
       <Header />
       <main style={{ flex: 1, padding: "2rem 0", minHeight: "85vh", backgroundColor: "var(--color-bg, #020C14)" }}>
-        <div className="container">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-8 overflow-x-hidden">
           
           {/* ── Hero Section (Ref. Caderno de Questões) ── */}
           <div style={{ display: 'flex', flexWrap: 'wrap-reverse', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', marginBottom: '3rem' }}>
@@ -34,10 +34,12 @@ export default function TrilhasPage() {
               <p className="text-slate-400 text-lg mb-6 max-w-xl">
                 Evolua pelo edital com disciplina. Marque tópicos concluídos e acompanhe sua taxa de retenção em tempo real.
               </p>
-              <button className="mt-6 flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-95 w-fit relative z-10 cursor-pointer">
-                <Sparkles className="w-5 h-5 shrink-0 flex-none"/>
-                <span className="whitespace-nowrap">Gerar Trilha com IA</span>
-              </button>
+              <div className="mt-4 flex flex-wrap items-center">
+                <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-95 cursor-pointer relative z-10">
+                  <Sparkles size={18} className="shrink-0 flex-none"/>
+                  <span>Gerar Trilha com IA</span>
+                </button>
+              </div>
             </div>
             <div style={{ flex: '0 0 auto', display: 'flex', justifyContent: 'flex-end' }}>
               {/*eslint-disable-next-line @next/next/no-img-element*/}

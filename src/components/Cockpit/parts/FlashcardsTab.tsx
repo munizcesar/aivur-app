@@ -57,9 +57,9 @@ export default function FlashcardsTab() {
         </p>
         <button
           onClick={handleReset}
-          className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow font-medium transition-colors active:scale-95"
+          className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow font-medium transition-colors active:scale-95 cursor-pointer relative z-10"
         >
-          <RotateCcw className="w-5 h-5 shrink-0 flex-none" />
+          <RotateCcw size={20} className="shrink-0 flex-none" />
           Revisar Novamente
         </button>
       </div>
@@ -108,9 +108,9 @@ export default function FlashcardsTab() {
             e.stopPropagation();
             handleFeedback("errei");
           }}
-          className="flex items-center gap-2 px-6 py-2.5 bg-white border border-rose-200 rounded-lg shadow-sm text-sm font-semibold text-rose-600 hover:bg-rose-50 hover:border-rose-300 active:scale-95 transition-all duration-200"
+          className="flex items-center gap-2 px-6 py-2.5 bg-white border border-rose-200 rounded-lg shadow-sm text-sm font-semibold text-rose-600 hover:bg-rose-50 hover:border-rose-300 active:scale-95 cursor-pointer relative z-10 transition-all duration-200"
         >
-          <XCircle className="w-6 h-6 shrink-0 flex-none" />
+          <XCircle size={24} className="shrink-0 flex-none" />
           Errei (1m)
         </button>
 
@@ -119,9 +119,9 @@ export default function FlashcardsTab() {
             e.stopPropagation();
             handleFeedback("bom");
           }}
-          className="flex items-center gap-2 px-6 py-2.5 bg-white border border-indigo-200 rounded-lg shadow-sm text-sm font-semibold text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 active:scale-95 transition-all duration-200"
+          className="flex items-center gap-2 px-6 py-2.5 bg-white border border-indigo-200 rounded-lg shadow-sm text-sm font-semibold text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 active:scale-95 cursor-pointer relative z-10 transition-all duration-200"
         >
-          <ThumbsUp className="w-6 h-6 shrink-0 flex-none" />
+          <ThumbsUp size={24} className="shrink-0 flex-none" />
           Bom (10m)
         </button>
 
@@ -130,9 +130,9 @@ export default function FlashcardsTab() {
             e.stopPropagation();
             handleFeedback("facil");
           }}
-          className="flex items-center gap-2 px-6 py-2.5 bg-white border border-emerald-200 rounded-lg shadow-sm text-sm font-semibold text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 active:scale-95 transition-all duration-200"
+          className="flex items-center gap-2 px-6 py-2.5 bg-white border border-emerald-200 rounded-lg shadow-sm text-sm font-semibold text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 active:scale-95 cursor-pointer relative z-10 transition-all duration-200"
         >
-          <CheckCircle2 className="w-6 h-6 shrink-0 flex-none" />
+          <CheckCircle2 size={24} className="shrink-0 flex-none" />
           Fácil (4d)
         </button>
       </div>

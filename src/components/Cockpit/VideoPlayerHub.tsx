@@ -69,7 +69,7 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
       {/* Grade de Alternativas */}
       <div className="w-full">
         <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          <PlayCircle className="w-5 h-5 shrink-0 flex-none text-emerald-600" />
+          <PlayCircle size={20} className="shrink-0 flex-none text-emerald-600" />
           Outras Abordagens / Professores
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -80,7 +80,7 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
                 key={video.id}
                 type="button"
                 onClick={() => setActiveVideoId(video.id)}
-                className={`flex flex-col text-left group overflow-hidden rounded-lg border transition-all duration-200 active:scale-95 ${
+                className={`flex flex-col text-left group overflow-hidden rounded-lg border transition-all duration-200 active:scale-95 cursor-pointer relative z-10 ${
                 isActive 
                   ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500" 
                   : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
@@ -95,9 +95,9 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
                     loading="lazy"
                   />
                   {isActive && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
                       <div className="bg-emerald-600 text-white text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                        <PlayCircle className="w-3.5 h-3.5" /> Reproduzindo
+                        <PlayCircle size={14} className="shrink-0 flex-none" /> Reproduzindo
                       </div>
                     </div>
                   )}
@@ -107,7 +107,7 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
                     {video.title}
                   </h4>
                   <p className="text-xs text-slate-500 flex items-center gap-1">
-                    <User className="w-3.5 h-3.5 shrink-0 flex-none" /> {video.channel}
+                    <User size={14} className="shrink-0 flex-none" /> {video.channel}
                   </p>
                 </div>
               </button>

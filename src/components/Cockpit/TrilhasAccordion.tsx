@@ -52,12 +52,12 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
       : 0;
 
   return (
-    <div className="w-full">
+    <div className="w-full overflow-x-hidden">
       {/* ── Cabeçalho da Matéria (Botão Principal) ── */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex justify-between items-center p-4 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors mb-2 text-slate-800"
+        className="w-full flex justify-between items-center p-4 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all duration-200 mb-2 text-slate-800 active:scale-95 cursor-pointer relative z-10"
         aria-expanded={open}
       >
         <div className="flex flex-col text-left flex-1 min-w-0 pr-3">
@@ -78,7 +78,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
           </div>
         </div>
         <ChevronDown
-          size={16}
+          size={20}
           className={`shrink-0 flex-none text-slate-400 transition-transform duration-200 ${
             open ? "rotate-180" : ""
           }`}
@@ -99,7 +99,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                 <div className="flex-none shrink-0 w-12 h-12 rounded-full flex items-center justify-center bg-slate-100">
                   <CheckCircle 
                     size={24}
-                    className={`shrink-0 flex-none transition-colors ${
+                    className={`w-6 h-6 shrink-0 flex-none transition-colors ${
                       completedTopicIds.includes(topic.id) ? "text-emerald-500" : "text-slate-400"
                     }`}
                   />
@@ -115,7 +115,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("video");
                   }}
-                  className="shrink-0 w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
+                  className="shrink-0 w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 cursor-pointer relative z-10 transition-all duration-200"
                 >
                   <Play size={16} className="shrink-0 flex-none"/> Aula
                 </button>
@@ -125,7 +125,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("resumo");
                   }}
-                  className="shrink-0 w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
+                  className="shrink-0 w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 cursor-pointer relative z-10 transition-all duration-200"
                 >
                   <FileText size={16} className="shrink-0 flex-none"/> Resumo
                 </button>
@@ -135,7 +135,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("questoes");
                   }}
-                  className="shrink-0 w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
+                  className="shrink-0 w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 cursor-pointer relative z-10 transition-all duration-200"
                 >
                   <Target size={16} className="shrink-0 flex-none"/> Questões
                 </button>

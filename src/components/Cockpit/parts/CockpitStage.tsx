@@ -13,9 +13,9 @@ const statusLabel: Record<StudyTopicStatus, string> = {
 };
 
 function getStatusIcon(status: StudyTopicStatus) {
-  if (status === "completed") return <CheckCircle2 size={17} aria-hidden="true" />;
-  if (status === "locked") return <LockKeyhole size={16} aria-hidden="true" />;
-  return <Circle size={16} aria-hidden="true" />;
+  if (status === "completed") return <CheckCircle2 size={17} aria-hidden="true" className="shrink-0 flex-none" />;
+  if (status === "locked") return <LockKeyhole size={16} aria-hidden="true" className="shrink-0 flex-none" />;
+  return <Circle size={16} aria-hidden="true" className="shrink-0 flex-none" />;
 }
 
 export default function CockpitStage() {

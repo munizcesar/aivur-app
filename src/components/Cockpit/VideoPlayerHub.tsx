@@ -17,7 +17,7 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
 
   // Query de busca contextual para concursos
   const searchQuery = encodeURIComponent(
-    `${topicTitle ?? ""} ${subjectName ?? "direito"}`
+    `"${topicTitle ?? ""}" ${subjectName ?? "direito"} concurso`
   );
 
   useEffect(() => {

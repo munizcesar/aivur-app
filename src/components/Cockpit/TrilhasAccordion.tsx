@@ -47,12 +47,13 @@ export interface TrilhasAccordionProps {
   defaultOpen?: boolean;
   /** Índice da disciplina no catálogo (0-based) — serializable, resolve o ícone localmente */
   disciplineIndex?: number;
+  moduleId: string; // Adicionado para identificar a disciplina no store global
 }
 
 export default function TrilhasAccordion(props: TrilhasAccordionProps) {
   const router = useRouter();
   const [open, setOpen] = useState(props.defaultOpen ?? false);
-  const setCurrentTopic = useStudyStore((state) => state.setCurrentTopic);
+  const selectTopic = useStudyStore((state) => state.selectTopic);
   const setActiveTab = useStudyStore((state) => state.setActiveTab);
   const completedTopicIds = useStudyStore((state) => state.completedTopicIds);
 
@@ -165,7 +166,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLDivElement).style.backgroundColor = "#0B1929";
                 }}
-                onClick={() => setCurrentTopic(topic.id)}
+                onClick={() => selectTopic(props.moduleId, topic.id)}
               >
                 {/* Status icon + topic name */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -191,7 +192,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setCurrentTopic(topic.id);
+                      selectTopic(props.moduleId, topic.id);
                       setActiveTab("video");
                       router.push("/sala-de-aula");
                     }}
@@ -217,7 +218,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setCurrentTopic(topic.id);
+                      selectTopic(props.moduleId, topic.id);
                       setActiveTab("resumo");
                       router.push("/sala-de-aula");
                     }}
@@ -243,7 +244,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setCurrentTopic(topic.id);
+                      selectTopic(props.moduleId, topic.id);
                       setActiveTab("questoes");
                       router.push("/sala-de-aula");
                     }}

@@ -66,7 +66,7 @@ export default function TrilhasPage() {
               </div>
 
               {/* ── Direita: mascote integrado ao flex ── */}
-              <div className="flex justify-center shrink-0 w-full md:w-auto">
+              <div className="flex justify-center shrink-0 w-full md:w-auto -ml-4 md:-ml-8">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/aivur/trilhas.png"
@@ -97,6 +97,7 @@ export default function TrilhasPage() {
             {disciplinas.map((disc, idx) => (
                 <TrilhasAccordion
                   key={disc.id}
+                  moduleId={disc.id}
                   title={disc.title}
                   topics={disc.topics}
                   disciplineIndex={idx}

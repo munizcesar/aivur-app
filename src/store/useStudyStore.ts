@@ -23,7 +23,7 @@ interface StudyStore {
   progressData: StudyProgressData;
   completedTopicIds: string[];
   setActiveModule: (id: string) => void;
-  setCurrentTopic: (id: string) => void;
+  selectTopic: (moduleId: string, topicId: string) => void;
   setActiveTab: (tab: StudyTab) => void;
   setIsSidebarOpen: (isOpen: boolean) => void;
   loadStudyPath: () => Promise<void>;
@@ -52,7 +52,7 @@ export const useStudyStore = create<StudyStore>()(
       completedTopicIds: [],
 
       setActiveModule: (id) => set({ activeModuleId: id }),
-      setCurrentTopic: (id) => set({ currentTopicId: id }),
+      selectTopic: (moduleId, topicId) => set({ activeModuleId: moduleId, currentTopicId: topicId }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setIsSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
       loadStudyPath: async () => {

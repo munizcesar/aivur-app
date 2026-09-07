@@ -15,8 +15,7 @@ function CockpitContent() {
   const searchParams = useSearchParams();
   const hydrated = useHydrated();
   const currentTopicId = useStudyStore((state) => state.currentTopicId);
-  const setActiveModule = useStudyStore((state) => state.setActiveModule);
-  const setCurrentTopic = useStudyStore((state) => state.setCurrentTopic);
+  const selectTopic = useStudyStore((state) => state.selectTopic);
   const setActiveTab = useStudyStore((state) => state.setActiveTab);
   const loadStudyPath = useStudyStore((state) => state.loadStudyPath);
   const isLoading = useStudyStore((state) => state.isLoading);
@@ -39,15 +38,14 @@ function CockpitContent() {
     }
 
     if (topicParam) {
-      setCurrentTopic(topicParam);
       const targetModule = modules.find((m) =>
         m.subtópicos.some((t) => t.id === topicParam)
       );
       if (targetModule) {
-        setActiveModule(targetModule.id);
+        selectTopic(targetModule.id, topicParam);
       }
     }
-  }, [searchParams, setActiveTab, setActiveModule, setCurrentTopic, isLoading, modules]);
+  }, [searchParams, setActiveTab, selectTopic, isLoading, modules]);
 
   // ── Hydration Guard ─────────────────────────────────────────────────────────
   if (!hydrated) {

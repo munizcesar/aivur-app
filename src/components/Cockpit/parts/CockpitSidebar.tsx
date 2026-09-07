@@ -47,6 +47,7 @@ export default function CockpitSidebar() {
             {modules.map((module, idx) => (
               <TrilhasAccordion
                 key={module.id}
+                moduleId={module.id}
                 title={module.titulo}
                 disciplineIndex={idx}
                 progressPercent={module.progresso}

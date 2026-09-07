@@ -57,9 +57,9 @@ export default function FlashcardsTab() {
         </p>
         <button
           onClick={handleReset}
-          className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow font-medium transition-colors"
+          className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow font-medium transition-colors active:scale-95"
         >
-          <RotateCcw size={16} />
+          <RotateCcw className="w-5 h-5 shrink-0 flex-none" />
           Revisar Novamente
         </button>
       </div>
@@ -110,7 +110,7 @@ export default function FlashcardsTab() {
           }}
           className="flex items-center gap-2 px-6 py-2.5 bg-white border border-rose-200 rounded-lg shadow-sm text-sm font-semibold text-rose-600 hover:bg-rose-50 hover:border-rose-300 active:scale-95 transition-all duration-200"
         >
-          <XCircle size={18} />
+          <XCircle className="w-6 h-6 shrink-0 flex-none" />
           Errei (1m)
         </button>
 
@@ -121,7 +121,7 @@ export default function FlashcardsTab() {
           }}
           className="flex items-center gap-2 px-6 py-2.5 bg-white border border-indigo-200 rounded-lg shadow-sm text-sm font-semibold text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 active:scale-95 transition-all duration-200"
         >
-          <ThumbsUp size={18} />
+          <ThumbsUp className="w-6 h-6 shrink-0 flex-none" />
           Bom (10m)
         </button>
 
@@ -132,7 +132,7 @@ export default function FlashcardsTab() {
           }}
           className="flex items-center gap-2 px-6 py-2.5 bg-white border border-emerald-200 rounded-lg shadow-sm text-sm font-semibold text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 active:scale-95 transition-all duration-200"
         >
-          <CheckCircle2 size={18} />
+          <CheckCircle2 className="w-6 h-6 shrink-0 flex-none" />
           Fácil (4d)
         </button>
       </div>

@@ -95,14 +95,14 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
             >
               {/* Título do Tópico com Ícone Defensivo */}
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="flex-none shrink-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-slate-200/50">
+                <div className="flex-none shrink-0 w-12 h-12 rounded-full flex items-center justify-center bg-slate-100">
                   <CheckCircle 
-                    className={`w-5 h-5 shrink-0 transition-colors ${
+                    className={`w-6 h-6 shrink-0 flex-none transition-colors ${
                       completedTopicIds.includes(topic.id) ? "text-emerald-500" : "text-slate-400"
                     }`}
                   />
                 </div>
-                <span className="font-medium leading-snug line-clamp-2 truncate">{topic.name}</span>
+                <span className="font-medium leading-snug line-clamp-2 min-w-0 flex-1">{topic.name}</span>
               </div>
               
               {/* Pílulas de Ação com Flex-Wrap Defensivo */}

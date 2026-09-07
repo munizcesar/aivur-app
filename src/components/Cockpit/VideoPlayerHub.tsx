@@ -5,11 +5,17 @@ import { PlayCircle, User } from "lucide-react";
 
 interface VideoPlayerHubProps {
   topicTitle?: string;
+  subjectName?: string;
 }
 
-export default function VideoPlayerHub({ topicTitle }: VideoPlayerHubProps) {
+export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerHubProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [activeVideoId, setActiveVideoId] = useState("dQw4w9WgXcQ");
+
+  // Query de busca contextual para concursos
+  const searchQuery = encodeURIComponent(
+    `concurso publico ${subjectName ?? "direito"} ${topicTitle ?? ""}`
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -46,9 +52,9 @@ export default function VideoPlayerHub({ topicTitle }: VideoPlayerHubProps) {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto p-6 space-y-6">
+    <div className="w-full max-w-5xl mx-auto bg-white rounded-2xl p-6 shadow-sm border border-slate-200 my-4">
       {/* Player Principal */}
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full mb-6">
         <div className="aspect-video w-full bg-slate-900 rounded-lg overflow-hidden shadow-sm relative">
           <iframe
             className="absolute top-0 left-0 w-full h-full"
@@ -61,9 +67,9 @@ export default function VideoPlayerHub({ topicTitle }: VideoPlayerHubProps) {
       </div>
 
       {/* Grade de Alternativas */}
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full">
         <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          <PlayCircle className="w-4 h-4 text-emerald-600" />
+          <PlayCircle className="w-5 h-5 shrink-0 flex-none text-emerald-600" />
           Outras Abordagens / Professores
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -74,11 +80,11 @@ export default function VideoPlayerHub({ topicTitle }: VideoPlayerHubProps) {
                 key={video.id}
                 type="button"
                 onClick={() => setActiveVideoId(video.id)}
-                className={`flex flex-col text-left group overflow-hidden rounded-lg border transition-all duration-200 ${
-                  isActive 
-                    ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500" 
-                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
-                }`}
+                className={`flex flex-col text-left group overflow-hidden rounded-lg border transition-all duration-200 active:scale-95 ${
+                isActive 
+                  ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500" 
+                  : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
+              }`}
               >
                 <div className="relative aspect-video w-full bg-slate-100 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -101,7 +107,7 @@ export default function VideoPlayerHub({ topicTitle }: VideoPlayerHubProps) {
                     {video.title}
                   </h4>
                   <p className="text-xs text-slate-500 flex items-center gap-1">
-                    <User className="w-3 h-3" /> {video.channel}
+                    <User className="w-3.5 h-3.5 shrink-0 flex-none" /> {video.channel}
                   </p>
                 </div>
               </button>
@@ -109,6 +115,5 @@ export default function VideoPlayerHub({ topicTitle }: VideoPlayerHubProps) {
           })}
         </div>
       </div>
-    </div>
   );
 }

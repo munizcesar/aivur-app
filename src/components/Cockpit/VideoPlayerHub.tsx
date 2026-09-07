@@ -115,5 +115,6 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
           })}
         </div>
       </div>
+    </div>
   );
 }

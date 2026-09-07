@@ -34,14 +34,10 @@ export default function TrilhasPage() {
               <p className="text-slate-400 text-lg mb-6 max-w-xl">
                 Evolua pelo edital com disciplina. Marque tópicos concluídos e acompanhe sua taxa de retenção em tempo real.
               </p>
-              <Link
-                href="/trilhas/novo"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg shadow-sm hover:shadow active:scale-95 transition-all mt-4 w-fit"
-                style={{ textDecoration: "none" }}
-              >
-                <Sparkles size={20} className="shrink-0 flex-none" />
-                Gerar Trilha com IA
-              </Link>
+              <button className="mt-6 flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-95 w-fit relative z-10 cursor-pointer">
+                <Sparkles className="w-5 h-5 shrink-0 flex-none"/>
+                <span className="whitespace-nowrap">Gerar Trilha com IA</span>
+              </button>
             </div>
             <div style={{ flex: '0 0 auto', display: 'flex', justifyContent: 'flex-end' }}>
               {/*eslint-disable-next-line @next/next/no-img-element*/}

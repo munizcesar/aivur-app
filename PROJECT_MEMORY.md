@@ -48,6 +48,13 @@
 - **Leitor Premium de Resumos (Notion-like)**: Aba de Resumos finalizada com foco absoluto em legibilidade (`ResumeTab.tsx`). Fundo branco protegido isolado do Stage, tipografia hierárquica pesada (`slate-900` para títulos, `slate-700` para corpo) e `Highlights` (`indigo-50`). Integrada ao store global via _Call to Action_ no rodapé ("Marcar como Lido" / "Resumo Concluído") fechando o ciclo de gamificação.
 - **Motor Serverless & Data Fetching**: Evolução do arquitetural Client-only para BFF (Backend-for-Frontend). Criada API Route (`/api/study-path`) para isolar os dados estáticos (`studyPathMock.ts`) atuando como banco de dados. Implementado Service Layer (`studyService.ts`) e Cérebro Assíncrono no Zustand (`loadStudyPath` com estado de `isLoading` não persistido). O Orquestrador `StudyCockpit` foi blindado com um _Skeleton Loading_ Premium (proteção total contra CLS) injetado durante a janela de busca assíncrona.
 
-## 4. Backlog Vivo
+## 4. Regra de Titânio (Lucide + Flexbox)
+
+- **NUNCA** usar `className="w-N h-N"` junto com `size={N}` em ícones Lucide. O `size` nativo injeta `width`/`height` direto no SVG; as classes Tailwind criam conflito de especificidade que o browser resolve para o maior valor, causando ícones gigantes.
+- Padrão correto: `<Icon size={20} className="shrink-0 flex-none" />` (sem `w-N h-N`).
+- `shrink-0 flex-none` é obrigatório em qualquer ícone dentro de container `flex` para evitar distorção elástica.
+- Correção aplicada em: `page.tsx`, `TrilhasAccordion.tsx`, `VideoPlayerHub.tsx`, `CockpitStage.tsx`, `FlashcardsTab.tsx`, `QuestionsTab.tsx`, `ResumeTab.tsx` — commit `e6e24e3` na `main`.
+
+## 5. Backlog Vivo
 
 1. Adicionar Testes Unitários para a Persistência de Zustand.

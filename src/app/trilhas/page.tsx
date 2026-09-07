@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import SideDrawer from "@/components/SideDrawer/SideDrawer";
 import TrilhasAccordion from "@/components/Cockpit/TrilhasAccordion";
-import { Sparkles } from "lucide-react";
+import TrilhaSelector from "@/components/Cockpit/parts/TrilhaSelector";
 import { TRILHAS_CATALOG } from "@/data/trilhas/schema";
 
 export const metadata: Metadata = {
@@ -13,83 +13,98 @@ export const metadata: Metadata = {
     "Evolua pelo edital com trilhas personalizadas. Acompanhe seu progresso por disciplina e tópico.",
 };
 
+// ── Contraste WCAG AA verificado sobre #0B1929 (todos ≥ 4.5:1) ─────────────
+// Mapeamento fica no Client Component (TrilhasAccordion) — não serializar funções.
+
 const TRILHA_ATIVA = TRILHAS_CATALOG[0];
 
 export default function TrilhasPage() {
-  const { title, subtitle, disciplinas } = TRILHA_ATIVA;
-  const badge = TRILHA_ATIVA.type === "edital" ? TRILHA_ATIVA.badge : null;
+  const { disciplinas } = TRILHA_ATIVA;
 
   return (
     <>
       <Header />
-      <main style={{ flex: 1, padding: "2rem 0", minHeight: "85vh", backgroundColor: "var(--color-bg, #020C14)" }}>
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-8 overflow-x-hidden">
-          
-          {/* ── Hero Section (Ref. Caderno de Questões) ── */}
-          <div style={{ display: 'flex', flexWrap: 'wrap-reverse', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', marginBottom: '3rem' }}>
-            <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--elite-cream, #FBEBD0)', marginBottom: '0.75rem', letterSpacing: '-0.02em' }} className="font-semibold tracking-tight">
-                Suas Trilhas de Estudo
-              </h1>
-              <p className="text-slate-400 text-lg mb-6 max-w-xl">
-                Evolua pelo edital com disciplina. Marque tópicos concluídos e acompanhe sua taxa de retenção em tempo real.
-              </p>
-              <div className="mt-4 flex flex-wrap items-center">
-                <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-95 cursor-pointer relative z-10">
-                  <Sparkles size={18} className="shrink-0 flex-none"/>
+      <main style={{ flex: 1, minHeight: "85vh", backgroundColor: "#020C14" }}>
+
+        {/* ══════════════════════════════════════════════════════════════
+            HERO BANNER — full-width, gradient, grid 2 colunas
+        ══════════════════════════════════════════════════════════════ */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, #020C14 50%, #0B1929 100%)",
+            borderBottom: "1px solid rgba(201, 168, 76, 0.18)",
+          }}
+          className="w-full px-4 md:px-8 pt-10 pb-8 md:pt-14 md:pb-10 relative z-40"
+        >
+          <div className="max-w-7xl mx-auto">
+
+            {/* Flex: copy esquerda + mascote direita (Mascote acima no mobile) */}
+            <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-6 md:gap-10">
+
+              {/* ── Esquerda: copy ── */}
+              <div className="flex flex-col items-center text-center md:items-start md:text-left flex-1 min-w-0">
+                {/* Super-label */}
+                <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-3 py-1 text-[11px] font-bold tracking-widest text-[#C9A84C] uppercase select-none">
+                  ✦ Plano de Estudos
+                </span>
+
+                <h1
+                  className="font-black tracking-tight text-[#FBEBD0] leading-tight mb-3"
+                  style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
+                >
+                  Suas Trilhas<br className="hidden sm:block" /> de Estudo
+                </h1>
+
+                <p className="text-slate-400 text-base md:text-lg max-w-lg mb-6 leading-relaxed">
+                  Evolua pelo edital com disciplina. Marque tópicos concluídos e acompanhe sua taxa de retenção em tempo real.
+                </p>
+
+                <button className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-95 cursor-pointer relative z-10 w-fit">
+                  <Sparkles size={18} className="shrink-0 flex-none" />
                   <span>Gerar Trilha com IA</span>
                 </button>
               </div>
-            </div>
-            <div style={{ flex: '0 0 auto', display: 'flex', justifyContent: 'flex-end' }}>
-              {/*eslint-disable-next-line @next/next/no-img-element*/}
-              <img 
-                src="/images/aivur/trilhas.png" 
-                alt="Trilhas de Estudo" 
-                style={{ width: '220px', height: 'auto', objectFit: 'contain', background: 'transparent', filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.3))' }} 
-              />
-            </div>
-          </div>
 
-          {/* ── Cabeçalho da Seção de Listagem ── */}
-          <section aria-label="Lista de trilhas de estudo" className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between gap-4 mb-6">
-              <div className="flex items-center gap-4 min-w-0">
-                {badge && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={badge.src}
-                    alt={badge.alt}
-                    className="w-10 h-10 object-contain flex-shrink-0 dark:brightness-110"
-                  />
-                )}
-                <div className="min-w-0">
-                  <h2 className="text-xl font-bold text-[#FBEBD0] truncate m-0">
-                    {title}
-                  </h2>
-                  <p className="mt-1 text-sm text-[#6B99B3] m-0 font-medium">
-                    {subtitle}
-                  </p>
-                </div>
+              {/* ── Direita: mascote integrado ao flex ── */}
+              <div className="flex justify-center shrink-0 w-full md:w-auto">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/aivur/trilhas.png"
+                  alt="Mascote AIVUR — Trilhas de Estudo"
+                  width={280}
+                  height={280}
+                  style={{
+                    width: "clamp(180px, 25vw, 280px)",
+                    height: "auto",
+                    objectFit: "contain",
+                    filter: "drop-shadow(0 20px 35px rgba(0,0,0,0.55))",
+                  }}
+                />
               </div>
-              <span className="flex-shrink-0 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-[#6B99B3]">
-                {disciplinas.length} disciplina{disciplinas.length !== 1 ? "s" : ""}
-              </span>
             </div>
 
-            {/* ── Accordions ── */}
-            <div className="flex flex-col gap-4">
-              {disciplinas.map((disc) => (
+            {/* ── TRILHA ATIVA BAR (Agora Interativa com Dropdown) ── */}
+            <TrilhaSelector activeTrilhaId={TRILHA_ATIVA.id} />
+
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════
+            GRADE DE DISCIPLINAS — coluna única, full-width
+        ══════════════════════════════════════════════════════════════ */}
+        <div className="w-full max-w-5xl mx-auto mt-8 px-4 md:px-0">
+          <div className="flex flex-col gap-3">
+            {disciplinas.map((disc, idx) => (
                 <TrilhasAccordion
                   key={disc.id}
                   title={disc.title}
                   topics={disc.topics}
+                  disciplineIndex={idx}
                 />
-              ))}
-            </div>
-          </section>
-
+            ))}
+          </div>
         </div>
+
       </main>
       <Footer />
       <SideDrawer />

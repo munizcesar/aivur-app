@@ -28,10 +28,11 @@ export default function Footer() {
               <span className={styles.footerLogo}>
                 <Image 
                   src={mounted && theme === 'dark' ? '/assets/logo-aivur-dark.png' : '/assets/logo-aivur-light.png'} 
-                  alt="AIVUR Logo" 
-                  width={100} 
-                  height={28} 
-                  style={{ width: "100px", height: "auto" }} 
+                  alt="AIVUR" 
+                  width={140} 
+                  height={40} 
+                  style={{ width: "auto", height: "auto" }} 
+                  priority
                 />
               </span>
               <button 

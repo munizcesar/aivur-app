@@ -37,18 +37,20 @@ export default function Header() {
               <Image 
                 src="/assets/logo-aivur-light.png"
                 alt="AIVUR Logo" 
-                width={180} 
-                height={50} 
+                width={140} 
+                height={40}
+                style={{ width: "auto", height: "auto" }}
                 priority
-                className={`${styles.logoIcon} ${styles.logoLight}`}
+                className={styles.logoLight}
               />
               <Image 
                 src="/assets/logo-aivur-dark.png"
                 alt="AIVUR Logo" 
-                width={180} 
-                height={50} 
+                width={140} 
+                height={40}
+                style={{ width: "auto", height: "auto" }}
                 priority
-                className={`${styles.logoIcon} ${styles.logoDark}`}
+                className={styles.logoDark}
               />
             </Link>
           </div>

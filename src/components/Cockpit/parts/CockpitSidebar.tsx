@@ -3,29 +3,21 @@ import { useStudyStore } from "@/store/useStudyStore";
 import TrilhasAccordion from "@/components/Cockpit/TrilhasAccordion";
 
 export default function CockpitSidebar() {
-  const isSidebarOpen = useStudyStore((state) => state.isSidebarOpen);
-  const setIsSidebarOpen = useStudyStore((state) => state.setIsSidebarOpen);
+  const isMobileDrawerOpen = useStudyStore((state) => state.isMobileDrawerOpen);
+  const toggleMobileDrawer = useStudyStore((state) => state.toggleMobileDrawer);
   const modules = useStudyStore((state) => state.modules);
 
   return (
-    <>
-      {/* Backdrop Mobile */}
-      <div
-        className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
-          isSidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
-        aria-hidden="true"
-        onClick={() => setIsSidebarOpen(false)}
-      />
-
-      {/* 1. SIDEBAR (TRILHAS) - FIXA NA ESQUERDA, EXATAMENTE 320px */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-80 shrink-0 border-r overflow-y-auto shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:static md:translate-x-0 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        style={{ backgroundColor: "#020C14", borderColor: "rgba(201, 168, 76, 0.15)" }}
-      >
-        <div className="p-6">
+    <aside
+      className={`
+        fixed inset-y-0 right-0 z-50 flex h-screen w-full flex-col
+        bg-[#091422] border-l border-[#C9A84C]/20
+        transform transition-transform duration-300 md:w-96
+        lg:relative lg:inset-auto lg:h-screen lg:w-full lg:translate-x-0 lg:shrink-0 lg:flex-none lg:border-l
+        ${ isMobileDrawerOpen ? 'translate-x-0' : 'translate-x-full' }
+      `}
+    >
+        <div className="flex h-full min-w-0 flex-col p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-[#C9A84C]">
@@ -36,14 +28,14 @@ export default function CockpitSidebar() {
             <button
               type="button"
               aria-label="Fechar trilha"
-              onClick={() => setIsSidebarOpen(false)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/5 md:hidden"
+              onClick={toggleMobileDrawer}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/5 lg:hidden"
             >
               <X size={20} aria-hidden="true" />
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-6">
             {modules.map((module, idx) => (
               <TrilhasAccordion
                 key={module.id}
@@ -61,6 +53,5 @@ export default function CockpitSidebar() {
           </div>
         </div>
       </aside>
-    </>
   );
 }

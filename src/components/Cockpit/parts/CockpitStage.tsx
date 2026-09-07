@@ -34,7 +34,7 @@ export default function CockpitStage() {
 
   return (
     <div
-      className="flex-1 overflow-y-auto pb-32 custom-scrollbar mt-6"
+      className="mt-6 flex-1 min-w-0 overflow-y-auto pb-32 custom-scrollbar w-full"
       style={{ paddingBottom: "128px" }}
     >
       {activeTab === "questoes" ? (

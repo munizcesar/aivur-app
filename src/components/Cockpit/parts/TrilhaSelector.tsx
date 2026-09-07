@@ -37,11 +37,10 @@ export default function TrilhaSelector({ activeTrilhaId }: TrilhaSelectorProps) 
       >
         <div className="flex items-center gap-3 min-w-0">
           {badge ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={badge.src} alt={badge.alt} width={36} height={36} className="w-9 h-9 object-contain shrink-0" />
+            <img src={badge.src} alt={badge.alt} width={56} height={56} className="w-14 h-14 object-contain shrink-0" />
           ) : (
-            <div className="w-9 h-9 rounded-full bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center justify-center shrink-0">
-              <GraduationCap size={18} className="text-[#C9A84C]" />
+            <div className="w-14 h-14 rounded-full bg-[#122338] flex items-center justify-center shrink-0 border border-[#C9A84C]/20">
+              <GraduationCap size={24} className="text-[#C9A84C]" />
             </div>
           )}
           

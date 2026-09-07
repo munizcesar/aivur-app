@@ -15,14 +15,14 @@ export default function CockpitHeader() {
   const activeModule = modules[activeModuleIndex];
 
   return (
-    <div className="mb-6 flex items-end justify-between gap-4">
-      <div>
+    <div className="mb-6 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="min-w-0">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
           Conteúdo do módulo
         </p>
-        <h2 className="mt-2 text-2xl font-bold text-[#fbead0]">{activeModule?.titulo}</h2>
+        <h2 className="mt-2 break-words text-2xl font-bold text-[#fbead0]">{activeModule?.titulo}</h2>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 sm:justify-end">
         <span className="hidden rounded-full border border-white/15 px-3 py-1 text-xs text-[#9bb3c0] sm:inline-flex">
           {activeModule?.progresso}% concluído
         </span>

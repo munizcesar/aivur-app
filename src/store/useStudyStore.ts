@@ -17,6 +17,7 @@ interface StudyStore {
   currentTopicId: string | null;
   activeTab: StudyTab;
   isSidebarOpen: boolean;
+  isMobileDrawerOpen: boolean;
   isLoading: boolean;
   error: string | null;
   modules: StudyModule[];
@@ -26,6 +27,7 @@ interface StudyStore {
   selectTopic: (moduleId: string, topicId: string) => void;
   setActiveTab: (tab: StudyTab) => void;
   setIsSidebarOpen: (isOpen: boolean) => void;
+  toggleMobileDrawer: () => void;
   loadStudyPath: () => Promise<void>;
   registerAnswer: (questionId: string, isCorrect: boolean) => void;
   toggleTopicCompletion: (topicId: string) => void;
@@ -45,6 +47,7 @@ export const useStudyStore = create<StudyStore>()(
       currentTopicId: null,
       activeTab: "resumo",
       isSidebarOpen: false,
+      isMobileDrawerOpen: false,
       isLoading: true,
       error: null,
       modules: [],
@@ -52,9 +55,10 @@ export const useStudyStore = create<StudyStore>()(
       completedTopicIds: [],
 
       setActiveModule: (id) => set({ activeModuleId: id }),
-      selectTopic: (moduleId, topicId) => set({ activeModuleId: moduleId, currentTopicId: topicId }),
+      selectTopic: (moduleId, topicId) => set({ activeModuleId: moduleId, currentTopicId: topicId, isMobileDrawerOpen: false }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setIsSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
+      toggleMobileDrawer: () => set((state) => ({ isMobileDrawerOpen: !state.isMobileDrawerOpen })),
       loadStudyPath: async () => {
         set({ isLoading: true, error: null });
         try {

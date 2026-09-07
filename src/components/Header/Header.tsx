@@ -33,24 +33,15 @@ export default function Header() {
       <div className="container">
         <div className={styles.headerInner}>
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            <Link href="/" className={`${styles.logo} transition-transform duration-150 active:scale-95`} aria-label="AIVUR - Voltar ao inicio">
-              <Image 
-                src="/assets/logo-aivur-light.png"
-                alt="AIVUR Logo" 
-                width={140} 
+            <Link className="flex items-center shrink-0" href="/trilhas">
+              <Image
+                alt="AIVUR"
+                src={mounted && theme === "light" ? "/assets/logo-aivur-light.png" : "/assets/logo-aivur-dark.png"}
+                width={120}
                 height={40}
-                style={{ width: "auto", height: "auto" }}
                 priority
-                className={styles.logoLight}
-              />
-              <Image 
-                src="/assets/logo-aivur-dark.png"
-                alt="AIVUR Logo" 
-                width={140} 
-                height={40}
-                style={{ width: "auto", height: "auto" }}
-                priority
-                className={styles.logoDark}
+                style={{ height: 40, width: "auto", maxWidth: 120 }}
+                className="object-contain"
               />
             </Link>
           </div>

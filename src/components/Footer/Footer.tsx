@@ -1,18 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useTheme } from "next-themes";
+import Link from "next/link";
 import styles from "./Footer.module.css";
 
+
 export default function Footer() {
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const openAdminIngest = () => {
     // Custom event to trigger admin modal in the future
     const event = new CustomEvent("openAdminModal");
@@ -20,21 +13,14 @@ export default function Footer() {
   };
 
   return (
-    <footer className={styles.siteFooter}>
+    <footer className={`${styles.siteFooter} bg-[#091422]`}>
       <div className="container">
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
             <div className={styles.logoRow}>
-              <span className={styles.footerLogo}>
-                <Image 
-                  src={mounted && theme === 'dark' ? '/assets/logo-aivur-dark.png' : '/assets/logo-aivur-light.png'} 
-                  alt="AIVUR" 
-                  width={140} 
-                  height={40} 
-                  style={{ width: "auto", height: "auto" }} 
-                  priority
-                />
-              </span>
+              <Link className="flex items-center shrink-0" href="/trilhas">
+                <Image alt="AIVUR" src="/assets/logo-aivur-dark.png" width={102} height={34} priority style={{ height: 34, width: 'auto', maxWidth: 102 }} className="object-contain" />
+              </Link>
               <button 
                 onClick={openAdminIngest} 
                 className={styles.adminButton}

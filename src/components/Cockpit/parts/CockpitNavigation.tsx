@@ -13,8 +13,8 @@ export default function CockpitNavigation() {
   const setActiveTab = useStudyStore((state) => state.setActiveTab);
 
   return (
-    <div className="border-b border-white/10" role="tablist" aria-label="Conteúdo do módulo">
-      <div className="flex gap-5 overflow-x-auto">
+    <div className="w-full min-w-0 border-b border-white/10" role="tablist" aria-label="Conteúdo do módulo">
+      <div className="flex min-w-0 gap-5 overflow-x-auto">
         {tabs.map(({ key, label, icon: Icon }) => {
           const isActive = key === activeTab;
           return (

@@ -78,7 +78,8 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
           </div>
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+          size={16}
+          className={`shrink-0 flex-none text-slate-400 transition-transform duration-200 ${
             open ? "rotate-180" : ""
           }`}
         />
@@ -97,7 +98,8 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="flex-none shrink-0 w-12 h-12 rounded-full flex items-center justify-center bg-slate-100">
                   <CheckCircle 
-                    className={`w-6 h-6 shrink-0 flex-none transition-colors ${
+                    size={24}
+                    className={`shrink-0 flex-none transition-colors ${
                       completedTopicIds.includes(topic.id) ? "text-emerald-500" : "text-slate-400"
                     }`}
                   />
@@ -113,9 +115,9 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("video");
                   }}
-                  className="w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
+                  className="shrink-0 w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
                 >
-                  <Play className="w-3.5 h-3.5 shrink-0"/> Aula
+                  <Play size={16} className="shrink-0 flex-none"/> Aula
                 </button>
                 <button 
                   onClick={(e) => {
@@ -123,9 +125,9 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("resumo");
                   }}
-                  className="w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
+                  className="shrink-0 w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
                 >
-                  <FileText className="w-3.5 h-3.5 shrink-0"/> Resumo
+                  <FileText size={16} className="shrink-0 flex-none"/> Resumo
                 </button>
                 <button 
                   onClick={(e) => {
@@ -133,9 +135,9 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("questoes");
                   }}
-                  className="w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
+                  className="shrink-0 w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
                 >
-                  <Target className="w-3.5 h-3.5 shrink-0"/> Questões
+                  <Target size={16} className="shrink-0 flex-none"/> Questões
                 </button>
               </div>
             </div>

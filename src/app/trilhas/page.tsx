@@ -36,10 +36,10 @@ export default function TrilhasPage() {
               </p>
               <Link
                 href="/trilhas/novo"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg shadow-sm hover:shadow active:scale-95 transition-all mt-4 w-fit"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg shadow-sm hover:shadow active:scale-95 transition-all mt-4 w-fit"
                 style={{ textDecoration: "none" }}
               >
-                <Sparkles className="w-5 h-5 shrink-0 flex-none" />
+                <Sparkles size={20} className="shrink-0 flex-none" />
                 Gerar Trilha com IA
               </Link>
             </div>

@@ -90,30 +90,32 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
           {discipline.topics.map((topic, idx) => (
             <div 
               key={idx} 
-              className="p-3 hover:bg-slate-100 border-b border-slate-200/60 last:border-0 cursor-pointer transition-colors"
+              className="flex flex-col md:flex-row md:items-center gap-4 w-full border-b border-slate-700/50 py-4 px-4 hover:bg-slate-100/50 cursor-pointer transition-colors last:border-0"
               onClick={() => setCurrentTopic(topic.id)}
             >
-              {/* Título do Tópico */}
-              <div className="flex items-start gap-2 mb-2">
-                <CheckCircle 
-                  className={`w-4 h-4 shrink-0 mt-0.5 transition-colors ${
-                    completedTopicIds.includes(topic.id) ? "text-emerald-500" : "text-slate-300"
-                  }`}
-                />
-                <span className="font-medium leading-snug line-clamp-2">{topic.name}</span>
+              {/* Título do Tópico com Ícone Defensivo */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex-none shrink-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-slate-200/50">
+                  <CheckCircle 
+                    className={`w-5 h-5 shrink-0 transition-colors ${
+                      completedTopicIds.includes(topic.id) ? "text-emerald-500" : "text-slate-400"
+                    }`}
+                  />
+                </div>
+                <span className="font-medium leading-snug line-clamp-2 truncate">{topic.name}</span>
               </div>
               
-              {/* Pílulas de Ação com Flex-Wrap (ESSENCIAL PARA NÃO VAZAR) */}
-              <div className="flex flex-wrap gap-2 pl-6">
+              {/* Pílulas de Ação com Flex-Wrap Defensivo */}
+              <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-3 md:mt-0 shrink-0">
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
                     setCurrentTopic(topic.id);
                     setActiveTab("video");
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:translate-y-0 transition-all duration-200 cursor-pointer"
+                  className="w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
                 >
-                  <Play className="w-3.5 h-3.5"/> Aula
+                  <Play className="w-3.5 h-3.5 shrink-0"/> Aula
                 </button>
                 <button 
                   onClick={(e) => {
@@ -121,9 +123,9 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("resumo");
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:translate-y-0 transition-all duration-200 cursor-pointer"
+                  className="w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
                 >
-                  <FileText className="w-3.5 h-3.5"/> Resumo
+                  <FileText className="w-3.5 h-3.5 shrink-0"/> Resumo
                 </button>
                 <button 
                   onClick={(e) => {
@@ -131,9 +133,9 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                     setCurrentTopic(topic.id);
                     setActiveTab("questoes");
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:translate-y-0 transition-all duration-200 cursor-pointer"
+                  className="w-auto flex-none flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm text-xs font-medium text-slate-600 hover:-translate-y-0.5 hover:shadow hover:text-indigo-600 hover:border-indigo-200 active:scale-95 transition-all duration-200 cursor-pointer"
                 >
-                  <Target className="w-3.5 h-3.5"/> Questões
+                  <Target className="w-3.5 h-3.5 shrink-0"/> Questões
                 </button>
               </div>
             </div>

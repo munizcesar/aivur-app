@@ -4,6 +4,7 @@ import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import SideDrawer from "@/components/SideDrawer/SideDrawer";
 import TrilhasAccordion from "@/components/Cockpit/TrilhasAccordion";
+import { Sparkles } from "lucide-react";
 import { TRILHAS_CATALOG } from "@/data/trilhas/schema";
 
 export const metadata: Metadata = {
@@ -35,10 +36,11 @@ export default function TrilhasPage() {
               </p>
               <Link
                 href="/trilhas/novo"
-                className="inline-flex items-center justify-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors gap-2 text-sm shadow-md"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg shadow-sm hover:shadow active:scale-95 transition-all mt-4 w-fit"
                 style={{ textDecoration: "none" }}
               >
-                <span>+</span> Gerar Trilha com IA
+                <Sparkles className="w-4 h-4 shrink-0" />
+                Gerar Trilha com IA
               </Link>
             </div>
             <div style={{ flex: '0 0 auto', display: 'flex', justifyContent: 'flex-end' }}>

@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import {
   ArrowLeft,
   BarChart3,
@@ -19,6 +19,7 @@ import {
   Tag,
   X,
 } from "lucide-react";
+import { useStudyStore } from "@/store/useStudyStore";
 
 interface Option {
   texto: string;
@@ -37,43 +38,6 @@ interface Question {
   alternativas: Option[];
   comentario: string;
 }
-
-const mockQuestions: Question[] = [
-  {
-    id: "q-1",
-    codigo: "VUNESP-2024-001",
-    banca: "VUNESP",
-    ano: "2024",
-    orgao: "TJ-SP",
-    prova: "Analista Judiciário",
-    tags: ["Direito Administrativo", "Agentes públicos", "Investidura"],
-    enunciado: "De acordo com a Lei nº 8.112/1990, a investidura em cargo público ocorrerá com a:",
-    alternativas: [
-      { texto: "Nomeação.", isCorreta: false },
-      { texto: "Posse.", isCorreta: true },
-      { texto: "Homologação do concurso.", isCorreta: false },
-      { texto: "Aprovação em estágio probatório.", isCorreta: false },
-    ],
-    comentario: "A investidura em cargo público ocorre com a posse (Art. 7º da Lei 8.112/90). A nomeação é apenas o provimento, e o exercício é o efetivo desempenho das atribuições.",
-  },
-  {
-    id: "q-2",
-    codigo: "CESPE-2023-018",
-    banca: "CESPE/CEBRASPE",
-    ano: "2023",
-    orgao: "INSS",
-    prova: "Técnico do Seguro Social",
-    tags: ["Direito Administrativo", "Princípios", "Administração pública"],
-    enunciado: "O princípio administrativo que impõe ao agente público o dever de buscar os melhores resultados com o menor custo possível é o princípio da:",
-    alternativas: [
-      { texto: "Legalidade.", isCorreta: false },
-      { texto: "Impessoalidade.", isCorreta: false },
-      { texto: "Publicidade.", isCorreta: false },
-      { texto: "Eficiência.", isCorreta: true },
-    ],
-    comentario: "O princípio da eficiência exige que a atividade administrativa seja exercida com presteza, perfeição e rendimento funcional.",
-  },
-];
 
 const letters = ["A", "B", "C", "D", "E"];
 type AnswerState = { selected: number; submitted: boolean };
@@ -205,7 +169,57 @@ export default function QuestionsTab() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, AnswerState>>({});
   const [pending, setPending] = useState<Record<string, number | undefined>>({});
-  const question = mockQuestions[currentIndex];
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const activeModuleId = useStudyStore((state) => state.activeModuleId);
+  const currentTopicId = useStudyStore((state) => state.currentTopicId);
+  const registerAnswer = useStudyStore((state) => state.registerAnswer);
+  const modules = useStudyStore((state) => state.modules);
+  const activeModule = modules.find((module) => module.id === activeModuleId);
+  const topic = activeModule?.subtópicos.find((item) => item.id === currentTopicId);
+  const question = questions[currentIndex];
+
+  useEffect(() => {
+    const selectedTopic = topic as NonNullable<typeof topic>;
+    if (!selectedTopic) return;
+    let cancelled = false;
+    async function loadQuestions() {
+      setIsLoading(true);
+      setError(null);
+      setCurrentIndex(0);
+      setAnswers({});
+      setPending({});
+      try {
+        const response = await fetch("/api/mentor/questoes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ label: selectedTopic.titulo, subject: activeModule?.titulo }),
+        });
+        const data = await response.json() as { questoes?: Array<{ id: string; enunciado: string; alternativas: Record<string, string>; correta: string; justificativa: string }>; error?: string };
+        if (!response.ok) throw new Error(data.error || "Não foi possível gerar questões.");
+        const mapped = (data.questoes ?? []).map((item, index): Question => ({
+          id: item.id,
+          codigo: `IA-${index + 1}`,
+          banca: "Gerada com IA",
+          ano: new Date().getFullYear().toString(),
+          orgao: activeModule?.titulo ?? "AIVUR",
+          prova: selectedTopic.titulo,
+          tags: [activeModule?.titulo ?? "Geral", selectedTopic.titulo],
+          enunciado: item.enunciado,
+          alternativas: Object.entries(item.alternativas).map(([key, texto]) => ({ texto: `${key}) ${texto}`, isCorreta: key === item.correta })),
+          comentario: item.justificativa,
+        }));
+        if (!cancelled) setQuestions(mapped);
+      } catch (requestError) {
+        if (!cancelled) setError(requestError instanceof Error ? requestError.message : "Erro ao gerar questões.");
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+    loadQuestions();
+    return () => { cancelled = true; };
+  }, [topic, activeModule?.titulo]);
 
   const selectOption = (questionId: string, optionIndex: number) => {
     if (answers[questionId]?.submitted) return;
@@ -216,6 +230,8 @@ export default function QuestionsTab() {
     const selected = pending[questionId];
     if (selected === undefined) return;
     setAnswers((current) => ({ ...current, [questionId]: { selected, submitted: true } }));
+    const submittedQuestion = questions.find((item) => item.id === questionId);
+    registerAnswer(questionId, Boolean(submittedQuestion?.alternativas[selected]?.isCorreta));
   };
 
   const reset = () => {
@@ -224,20 +240,23 @@ export default function QuestionsTab() {
     setPending({});
   };
 
+  if (isLoading) return <div className="mt-6 flex min-h-[320px] items-center justify-center gap-3 text-slate-500"><span className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-500" />Gerando questões com contexto do tópico...</div>;
+  if (error || questions.length === 0 || !question) return <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-6 text-center text-sm text-rose-700">{error ?? "Nenhuma questão foi gerada para este tópico."}</div>;
+
   return (
     <section style={{ "--spacing": "0.25rem" } as CSSProperties} className="mt-4 w-full min-w-0 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-[var(--shadow-sm)] lg:mt-6 lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none">
       <div className="hidden lg:block">
         <div className="flex items-center justify-between border-b border-[var(--color-divider)] pb-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-primary)]">Banco de questões</p><h3 className="mt-1 text-xl font-black text-[var(--color-text)]">Questões de Direito Administrativo</h3></div><button type="button" className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-3 py-2 text-sm font-semibold text-[var(--color-text-muted)] hover:bg-[var(--color-surface-offset)]"><Filter size={16} className="shrink-0 flex-none" />Filtros</button></div>
-        <div>{mockQuestions.map((item, index) => <DesktopQuestion key={item.id} question={item} index={index + 1} answer={answers[item.id]} pending={pending[item.id]} onSelect={(optionIndex) => selectOption(item.id, optionIndex)} onSubmit={() => submitAnswer(item.id)} />)}</div>
+        <div>{questions.map((item, index) => <DesktopQuestion key={item.id} question={item} index={index + 1} answer={answers[item.id]} pending={pending[item.id]} onSelect={(optionIndex) => selectOption(item.id, optionIndex)} onSubmit={() => submitAnswer(item.id)} />)}</div>
       </div>
 
       <div className="lg:hidden">
-        <MobileQuestionHeader question={question} index={currentIndex + 1} total={mockQuestions.length} />
+        <MobileQuestionHeader question={question} index={currentIndex + 1} total={questions.length} />
         <div className="px-4 pb-24 pt-4"><Metadata question={question} compact /><p className="mt-5 text-base font-medium leading-7 text-[var(--color-text)]">{question.enunciado}</p><div className="mt-5 grid gap-3">{question.alternativas.map((option, index) => <AnswerOption key={option.texto} option={option} index={index} answer={answers[question.id] ?? (pending[question.id] === undefined ? undefined : { selected: pending[question.id] as number, submitted: false })} mobile onSelect={() => selectOption(question.id, index)} />)}</div>{answers[question.id]?.submitted && <QuestionResult question={question} />}</div>
         <nav className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between border-t border-[var(--color-divider)] bg-[var(--color-surface)]/95 px-3 py-3 shadow-[0_-4px_12px_rgba(10,46,69,0.08)] backdrop-blur lg:hidden">
           <button type="button" disabled={currentIndex === 0} onClick={() => setCurrentIndex((value) => Math.max(0, value - 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-text-muted)] disabled:opacity-40"><ChevronLeft size={17} className="shrink-0 flex-none" />Anterior</button>
           <button type="button" className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)]"><FileText size={15} className="shrink-0 flex-none" />Ir para questão</button>
-          <button type="button" disabled={currentIndex === mockQuestions.length - 1} onClick={() => setCurrentIndex((value) => Math.min(mockQuestions.length - 1, value + 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-primary)] disabled:opacity-40">Próximo<ChevronRight size={17} className="shrink-0 flex-none" /></button>
+          <button type="button" disabled={currentIndex === questions.length - 1} onClick={() => setCurrentIndex((value) => Math.min(questions.length - 1, value + 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-primary)] disabled:opacity-40">Próximo<ChevronRight size={17} className="shrink-0 flex-none" /></button>
         </nav>
       </div>
     </section>

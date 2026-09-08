@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { extractCleanJson } from '@/lib/ai-protocols';
+import { extractCleanJson, getDomainRules } from '@/lib/ai-protocols';
 
 export const runtime = 'edge';
 
@@ -157,7 +157,30 @@ Schema esperado do JSON:
   ]
 }`;
 
-    const prompt = sourceType === "edital" ? promptEdital : promptLivre;
+    // Recupera contexto semântico já indexado antes da inferência. O texto enviado
+    // pelo aluno continua sendo a fonte principal; o RAG apenas acrescenta contexto
+    // verificável quando o ambiente possui os bindings ativos.
+    let ragContext = "";
+    try {
+      const ragUrl = new URL(`/api/rag/search?q=${encodeURIComponent(title)}`, req.url);
+      const ragResponse = await fetch(ragUrl);
+      if (ragResponse.ok) {
+        const ragData = await ragResponse.json() as { results?: Array<{ text?: string }> };
+        ragContext = (ragData.results ?? [])
+          .map((result, index) => `[Contexto indexado ${index + 1}]:\n${(result.text ?? "").slice(0, 2500)}`)
+          .filter(Boolean)
+          .join("\n\n");
+      }
+    } catch {
+      // Ambientes locais sem bindings RAG seguem usando o conteúdo fornecido.
+    }
+
+    const prompt = `${sourceType === "edital" ? promptEdital : promptLivre}
+
+=== PROTOCOLO DE CONFIABILIDADE ===
+${getDomainRules(title)}
+
+${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
 
     const messages = [
       { role: "system", content: "You are a JSON assistant. Output valid JSON only." },

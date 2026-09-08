@@ -56,6 +56,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
   const selectTopic = useStudyStore((state) => state.selectTopic);
   const setActiveTab = useStudyStore((state) => state.setActiveTab);
   const completedTopicIds = useStudyStore((state) => state.completedTopicIds);
+  const toggleTopicCompletion = useStudyStore((state) => state.toggleTopicCompletion);
 
   const title =
     props.title ??
@@ -171,9 +172,29 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                 {/* Status icon + topic name */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {isDone ? (
-                    <CheckCircle2 size={18} className="shrink-0 flex-none text-emerald-400" />
+                    <button
+                      type="button"
+                      aria-label={`Desmarcar ${topic.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTopicCompletion(topic.id);
+                      }}
+                      className="shrink-0 rounded-full text-emerald-400 transition-transform hover:scale-110"
+                    >
+                      <CheckCircle2 size={18} className="shrink-0 flex-none" />
+                    </button>
                   ) : (
-                    <Circle size={18} className="shrink-0 flex-none text-slate-600" />
+                    <button
+                      type="button"
+                      aria-label={`Marcar ${topic.name} como concluído`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTopicCompletion(topic.id);
+                      }}
+                      className="shrink-0 rounded-full text-slate-600 transition-colors hover:text-emerald-400"
+                    >
+                      <Circle size={18} className="shrink-0 flex-none" />
+                    </button>
                   )}
                   <span
                     className={`text-sm leading-snug line-clamp-2 min-w-0 flex-1 ${

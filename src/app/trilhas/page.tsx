@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Sparkles, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import SideDrawer from "@/components/SideDrawer/SideDrawer";
@@ -34,10 +35,10 @@ export default function TrilhasPage() {
                   Evolua pelo edital com disciplina. Marque tópicos concluídos e acompanhe sua taxa de retenção em tempo real.
                 </p>
                 <div className={styles.heroActions}>
-                  <button className={styles.primaryAction} type="button">
+                  <Link className={styles.primaryAction} href="/trilhas/novo">
                     <Sparkles size={18} aria-hidden="true" />
                     Gerar trilha com IA
-                  </button>
+                  </Link>
                 </div>
               </div>
 

@@ -8,10 +8,17 @@ interface VideoPlayerHubProps {
   subjectName?: string;
 }
 
+interface VideoResult {
+  videoId: string;
+  title: string;
+  thumbnail: string;
+  channelTitle: string;
+}
+
 export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerHubProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [activeVideoId, setActiveVideoId] = useState("");
-  const [videos, setVideos] = useState<any[]>([]); // Will leave as is or update later, since it's any[] in state
+  const [videos, setVideos] = useState<VideoResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -35,7 +42,7 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
       
       try {
         const res = await fetch(`/api/youtube-search?query=${searchQuery}`);
-        const data = await res.json() as { items?: any[], error?: string };
+        const data = await res.json() as { items?: VideoResult[], error?: string };
         
         if (isCancelled) return;
 
@@ -78,7 +85,7 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto bg-white rounded-2xl p-6 shadow-sm border border-slate-200 my-4">
+      <div className="my-4 mx-auto w-full max-w-5xl rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-[#0b1d2b] sm:p-6">
       {/* Player Principal */}
       <div className="w-full mb-6">
         {isLoading ? (
@@ -119,7 +126,7 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
                 </div>
               </div>
             ))
-          ) : videos.slice(1, 4).map((video) => {
+          ) : videos.filter((video) => video.videoId !== activeVideoId).slice(0, 3).map((video) => {
             const isActive = video.videoId === activeVideoId;
             return (
               <button
@@ -128,8 +135,8 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
                 onClick={() => setActiveVideoId(video.videoId)}
                 className={`flex flex-col text-left group overflow-hidden rounded-lg border transition-all duration-200 active:scale-95 cursor-pointer relative z-10 ${
                 isActive 
-                  ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500" 
-                  : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
+                ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500 dark:bg-emerald-950/30"
+                : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm dark:border-slate-700 dark:bg-[#102a3d]"
               }`}
               >
                 <div className="relative aspect-video w-full bg-slate-100 overflow-hidden">
@@ -149,8 +156,8 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
                   )}
                 </div>
                 <div className="p-3">
-                  <h4 className="font-medium text-sm text-slate-800 line-clamp-2 leading-snug mb-1.5" dangerouslySetInnerHTML={{ __html: video.title }} />
-                  <p className="text-xs text-slate-500 flex items-center gap-1">
+                  <h4 className="mb-1.5 line-clamp-2 text-sm font-medium leading-snug text-slate-800 dark:text-slate-100" dangerouslySetInnerHTML={{ __html: video.title }} />
+                  <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                     <User size={14} className="shrink-0 flex-none" /> {video.channelTitle}
                   </p>
                 </div>

@@ -42,7 +42,7 @@ export default function CockpitStage() {
       ) : activeTab === "video" ? (
         <VideoPlayerHub topicTitle={activeTopicTitle} subjectName={activeModule?.titulo} />
       ) : activeTab === "flashcards" ? (
-        <FlashcardsTab />
+        <FlashcardsTab topicTitle={activeTopicTitle} subjectName={activeModule?.titulo} />
       ) : activeTab === "resumo" ? (
         <ResumeTab />
       ) : (

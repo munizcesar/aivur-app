@@ -1,141 +1,82 @@
-import { useState } from "react";
-import { XCircle, ThumbsUp, CheckCircle2, RotateCcw } from "lucide-react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { XCircle, ThumbsUp, CheckCircle2, RotateCcw, Loader2 } from "lucide-react";
 
 interface Flashcard {
   id: string;
-  pergunta: string;
-  resposta: string;
+  front: string;
+  back: string;
 }
 
-const mockFlashcards: Flashcard[] = [
-  {
-    id: "fc-1",
-    pergunta: "O que é o princípio da Anterioridade Tributária?",
-    resposta: "Nenhum tributo será cobrado no mesmo exercício financeiro em que haja sido publicada a lei que os instituiu ou aumentou.",
-  },
-  {
-    id: "fc-2",
-    pergunta: "Quais são os elementos constitutivos do Estado?",
-    resposta: "Povo, Território e Governo Soberano.",
-  },
-  {
-    id: "fc-3",
-    pergunta: "O que caracteriza o dolo eventual no Direito Penal?",
-    resposta: "Quando o agente, embora não querendo diretamente o resultado, assume o risco de produzi-lo.",
-  }
-];
+interface FlashcardsTabProps {
+  topicTitle?: string;
+  subjectName?: string;
+}
 
-export default function FlashcardsTab() {
+export default function FlashcardsTab({ topicTitle, subjectName }: FlashcardsTabProps) {
+  const [cards, setCards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const card = mockFlashcards[currentIndex];
-  const isFinished = currentIndex >= mockFlashcards.length;
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCards() {
+      setIsLoading(true);
+      setError(null);
+      setCurrentIndex(0);
+      setIsFlipped(false);
+      try {
+        const response = await fetch("/api/mentor/flashcards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ label: topicTitle ?? "Tópico atual", subject: subjectName ?? "Geral" }),
+        });
+        const data = await response.json() as { flashcards?: Flashcard[]; error?: string };
+        if (!response.ok) throw new Error(data.error || "Não foi possível gerar os flashcards.");
+        if (!cancelled) setCards(data.flashcards ?? []);
+      } catch (requestError) {
+        if (!cancelled) setError(requestError instanceof Error ? requestError.message : "Erro ao carregar flashcards.");
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+    loadCards();
+    return () => { cancelled = true; };
+  }, [topicTitle, subjectName]);
 
-  const handleFeedback = (feedback: "errei" | "bom" | "facil") => {
-    // Aqui no futuro será injetada a lógica de repetição espaçada no backend
+  const card = cards[currentIndex];
+  const isFinished = !isLoading && cards.length > 0 && currentIndex >= cards.length;
+  const advance = () => {
     setIsFlipped(false);
-    setTimeout(() => {
-      setCurrentIndex((prev) => prev + 1);
-    }, 150); // Aguarda o card voltar para frente antes de trocar o texto
+    window.setTimeout(() => setCurrentIndex((previous) => previous + 1), 150);
   };
 
-  const handleReset = () => {
-    setCurrentIndex(0);
-    setIsFlipped(false);
-  };
-
+  if (isLoading) {
+    return <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 text-slate-400"><Loader2 size={28} className="animate-spin text-emerald-400" /><span>Gerando flashcards com contexto do tópico...</span></div>;
+  }
+  if (error || cards.length === 0) {
+    return <div className="mx-auto mt-8 flex min-h-[260px] max-w-2xl flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center text-slate-300"><p>{error ?? "Nenhum flashcard foi gerado para este tópico."}</p><p className="text-xs text-slate-500">Tente novamente após selecionar outro tópico.</p></div>;
+  }
   if (isFinished) {
-    return (
-      <div className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center mt-8">
-        <div className="mb-4 rounded-full bg-emerald-500/10 p-4 text-emerald-400">
-          <CheckCircle2 size={40} />
-        </div>
-        <h3 className="mb-2 text-2xl font-bold text-[#fbead0]">Sessão Concluída!</h3>
-        <p className="max-w-md text-sm text-[#9bb3c0] mb-6">
-          Você revisou todos os flashcards programados para hoje neste tópico.
-        </p>
-        <button
-          onClick={handleReset}
-          className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow font-medium transition-colors active:scale-95 cursor-pointer relative z-10"
-        >
-          <RotateCcw size={20} className="shrink-0 flex-none" />
-          Revisar Novamente
-        </button>
-      </div>
-    );
+    return <div className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center"><div className="mb-4 rounded-full bg-emerald-500/10 p-4 text-emerald-400"><CheckCircle2 size={40} className="shrink-0 flex-none" /></div><h3 className="mb-2 text-2xl font-bold text-[#fbead0]">Sessão concluída</h3><p className="mb-6 max-w-md text-sm text-[#9bb3c0]">Você revisou todos os flashcards gerados para este tópico.</p><button onClick={() => setCurrentIndex(0)} className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2 font-medium text-white transition-colors hover:bg-emerald-700"><RotateCcw size={20} className="shrink-0 flex-none" />Revisar novamente</button></div>;
   }
 
-  return (
-    <div className="w-full flex flex-col items-center pb-10">
-      {/* Container do Card 3D */}
-      <div 
-        className="w-full max-w-2xl mx-auto h-[400px] perspective-[1000px] cursor-pointer group mt-8"
-        onClick={() => !isFlipped && setIsFlipped(true)}
-      >
-        <div 
-          className={`relative w-full h-full transition-transform duration-500 ease-out [transform-style:preserve-3d] ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`}
-        >
-          {/* Face Frontal (Pergunta) */}
-          <div className="absolute inset-0 w-full h-full bg-white border border-slate-200 rounded-2xl shadow-sm [backface-visibility:hidden] flex flex-col items-center justify-center p-8 text-center group-hover:shadow-md transition-shadow">
-            <span className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-6">
-              Pergunta {currentIndex + 1} de {mockFlashcards.length}
-            </span>
-            <h3 className="text-2xl font-medium text-slate-800 leading-snug">
-              {card.pergunta}
-            </h3>
-            <p className="absolute bottom-6 text-sm font-medium text-slate-400">
-              Clique para revelar a resposta
-            </p>
-          </div>
-
-          {/* Face Traseira (Resposta) */}
-          <div className="absolute inset-0 w-full h-full bg-slate-50 border border-slate-200 rounded-2xl shadow-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex flex-col items-center justify-center p-8 text-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-6">
-              Resposta
-            </span>
-            <h3 className="text-xl font-medium text-slate-800 leading-relaxed">
-              {card.resposta}
-            </h3>
-          </div>
+  return <div className="flex w-full flex-col items-center pb-10">
+    <div className="group mt-8 h-[min(400px,65vw)] min-h-[300px] w-full max-w-2xl cursor-pointer [perspective:1000px]" onClick={() => !isFlipped && setIsFlipped(true)}>
+      <div className={`relative h-full w-full transition-transform duration-500 [transform-style:preserve-3d] ${isFlipped ? "[transform:rotateY(180deg)]" : ""}`}>
+        <div className="absolute inset-0 flex h-full w-full flex-col items-center justify-center rounded-2xl border border-slate-700 bg-[#102a3d] p-8 text-center shadow-xl [backface-visibility:hidden]">
+          <span className="mb-6 text-xs font-bold uppercase tracking-widest text-emerald-400">Pergunta {currentIndex + 1} de {cards.length}</span><h3 className="text-2xl font-medium leading-snug text-slate-100">{card.front}</h3><p className="absolute bottom-6 text-sm font-medium text-slate-400">Clique para revelar a resposta</p>
         </div>
-      </div>
-
-      {/* Painel de Feedback (Repetição Espaçada) */}
-      <div className={`mt-8 flex items-center justify-center gap-4 transition-all duration-300 ${isFlipped ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleFeedback("errei");
-          }}
-          className="flex items-center gap-2 px-6 py-2.5 bg-white border border-rose-200 rounded-lg shadow-sm text-sm font-semibold text-rose-600 hover:bg-rose-50 hover:border-rose-300 active:scale-95 cursor-pointer relative z-10 transition-all duration-200"
-        >
-          <XCircle size={24} className="shrink-0 flex-none" />
-          Errei (1m)
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleFeedback("bom");
-          }}
-          className="flex items-center gap-2 px-6 py-2.5 bg-white border border-indigo-200 rounded-lg shadow-sm text-sm font-semibold text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 active:scale-95 cursor-pointer relative z-10 transition-all duration-200"
-        >
-          <ThumbsUp size={24} className="shrink-0 flex-none" />
-          Bom (10m)
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleFeedback("facil");
-          }}
-          className="flex items-center gap-2 px-6 py-2.5 bg-white border border-emerald-200 rounded-lg shadow-sm text-sm font-semibold text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 active:scale-95 cursor-pointer relative z-10 transition-all duration-200"
-        >
-          <CheckCircle2 size={24} className="shrink-0 flex-none" />
-          Fácil (4d)
-        </button>
+        <div className="absolute inset-0 flex h-full w-full flex-col items-center justify-center rounded-2xl border border-emerald-500/30 bg-[#0b1d2b] p-8 text-center [backface-visibility:hidden] [transform:rotateY(180deg)]"><span className="mb-6 text-xs font-bold uppercase tracking-widest text-emerald-400">Resposta</span><h3 className="text-xl font-medium leading-relaxed text-slate-100">{card.back}</h3></div>
       </div>
     </div>
-  );
+    <div className={`mt-8 flex flex-wrap items-center justify-center gap-3 transition-all duration-300 ${isFlipped ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"}`}>
+      <button onClick={(event) => { event.stopPropagation(); advance(); }} className="flex items-center gap-2 rounded-lg border border-rose-400/30 bg-rose-500/10 px-5 py-2.5 text-sm font-semibold text-rose-300 transition-all hover:bg-rose-500/20"><XCircle size={22} className="shrink-0 flex-none" />Errei</button>
+      <button onClick={(event) => { event.stopPropagation(); advance(); }} className="flex items-center gap-2 rounded-lg border border-slate-400/30 bg-slate-500/10 px-5 py-2.5 text-sm font-semibold text-slate-200 transition-all hover:bg-slate-500/20"><ThumbsUp size={22} className="shrink-0 flex-none" />Bom</button>
+      <button onClick={(event) => { event.stopPropagation(); advance(); }} className="flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-5 py-2.5 text-sm font-semibold text-emerald-300 transition-all hover:bg-emerald-500/20"><CheckCircle2 size={22} className="shrink-0 flex-none" />Fácil</button>
+    </div>
+  </div>;
 }

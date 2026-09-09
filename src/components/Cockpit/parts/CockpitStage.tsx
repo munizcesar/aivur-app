@@ -37,17 +37,18 @@ export default function CockpitStage() {
       className="mt-6 flex-1 min-w-0 overflow-y-auto pb-32 custom-scrollbar w-full"
       style={{ paddingBottom: "128px" }}
     >
-      {activeTab === "questoes" ? (
+      <div className={activeTab === "questoes" ? "block h-full" : "hidden"}>
         <QuestionsTab />
-      ) : activeTab === "video" ? (
+      </div>
+      <div className={activeTab === "video" ? "block h-full" : "hidden"}>
         <VideoPlayerHub topicTitle={activeTopicTitle} subjectName={activeModule?.titulo} />
-      ) : activeTab === "flashcards" ? (
+      </div>
+      <div className={activeTab === "flashcards" ? "block h-full" : "hidden"}>
         <FlashcardsTab topicTitle={activeTopicTitle} subjectName={activeModule?.titulo} />
-      ) : activeTab === "resumo" ? (
+      </div>
+      <div className={activeTab === "resumo" ? "block h-full" : "hidden"}>
         <ResumeTab />
-      ) : (
-        <div className="flex-1" />
-      )}
+      </div>
 
       <div className="mt-8 border-t border-white/10 pt-5">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#6b99b3]">

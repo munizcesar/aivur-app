@@ -24,10 +24,10 @@ export default function CockpitNavigation() {
               role="tab"
               aria-selected={isActive}
               onClick={() => setActiveTab(key)}
-              className={`inline-flex flex-none items-center gap-2 rounded-lg border-b-2 px-1 pb-3 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/50 ${
+              className={`inline-flex flex-none items-center gap-2 rounded-lg border-b-2 px-1 pb-3 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/50 ${
                 isActive
-                  ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
-                  : "border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                  ? "bg-[#122338] border-b-2 border-[#C9A84C] text-[#C9A84C]"
+                  : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
               }`}
             >
               <Icon size={17} aria-hidden="true" />

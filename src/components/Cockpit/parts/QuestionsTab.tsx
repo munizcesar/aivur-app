@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
+import Link from "next/link";
 import {
   ArrowLeft,
   BarChart3,
@@ -150,11 +151,19 @@ function DesktopQuestion({ question, index, answer, pending, onSelect, onSubmit 
 }
 
 function MobileQuestionHeader({ question, index, total }: { question: Question; index: number; total: number }) {
+  const activeModuleId = useStudyStore((state) => state.activeModuleId);
+  const currentTopicId = useStudyStore((state) => state.currentTopicId);
+  const modules = useStudyStore((state) => state.modules);
+  const setActiveTab = useStudyStore((state) => state.setActiveTab);
+  
+  const activeModule = modules.find((m) => m.id === activeModuleId);
+  const topic = activeModule?.subtópicos.find((t) => t.id === currentTopicId);
+
   return (
     <header className="border-b border-[var(--color-divider)] bg-[var(--color-surface)] px-4 pb-3 pt-3">
       <div className="flex items-start justify-between gap-3">
-        <button type="button" aria-label="Voltar" className="mt-0.5 rounded-md p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-offset)]"><ArrowLeft size={20} className="shrink-0 flex-none" /></button>
-        <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-[var(--color-text)]">Questão {question.codigo}</p><p className="mt-0.5 truncate text-xs text-[var(--color-text-muted)]">Direito Administrativo</p></div>
+        <button type="button" onClick={() => setActiveTab('resumo')} aria-label="Voltar" className="mt-0.5 rounded-md p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-offset)]"><ArrowLeft size={20} className="shrink-0 flex-none" /></button>
+        <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-[var(--color-text)]">{topic?.titulo ?? "Questão " + question.codigo}</p><p className="mt-0.5 truncate text-xs text-[var(--color-text-muted)]">{activeModule?.titulo ?? "Geral"} &middot; Questão {index} de {total}</p></div>
         <button type="button" aria-label="Filtrar questões" className="rounded-md p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-offset)]"><Filter size={19} className="shrink-0 flex-none" /></button>
       </div>
       <div className="mt-4 flex items-end justify-between gap-3">
@@ -176,6 +185,7 @@ export default function QuestionsTab() {
   const currentTopicId = useStudyStore((state) => state.currentTopicId);
   const registerAnswer = useStudyStore((state) => state.registerAnswer);
   const modules = useStudyStore((state) => state.modules);
+  const setActiveTab = useStudyStore((state) => state.setActiveTab);
   const activeModule = modules.find((module) => module.id === activeModuleId);
   const topic = activeModule?.subtópicos.find((item) => item.id === currentTopicId);
   const question = questions[currentIndex];
@@ -246,7 +256,7 @@ export default function QuestionsTab() {
   return (
     <section style={{ "--spacing": "0.25rem" } as CSSProperties} className="mt-4 w-full min-w-0 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-[var(--shadow-sm)] lg:mt-6 lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none">
       <div className="hidden lg:block">
-        <div className="flex items-center justify-between border-b border-[var(--color-divider)] pb-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-primary)]">Banco de questões</p><h3 className="mt-1 text-xl font-black text-[var(--color-text)]">Questões de Direito Administrativo</h3></div><button type="button" className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-3 py-2 text-sm font-semibold text-[var(--color-text-muted)] hover:bg-[var(--color-surface-offset)]"><Filter size={16} className="shrink-0 flex-none" />Filtros</button></div>
+        <div className="flex items-center justify-between border-b border-[var(--color-divider)] pb-4"><div><p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-primary)]"><button type="button" onClick={() => setActiveTab('resumo')} className="mr-2 p-1 hover:bg-white/10 rounded-md"><ArrowLeft size={16} /></button><Link href="/trilhas" className="hover:underline">{activeModule?.titulo}</Link> <span className="text-[var(--color-text-muted)]">&gt;</span> <button type="button" onClick={() => setActiveTab('resumo')} className="hover:underline">{topic?.titulo}</button> <span className="text-[var(--color-text-muted)]">&gt;</span> <span className="text-[var(--color-text)]">Questões</span></p><h3 className="mt-1 text-xl font-black text-[var(--color-text)]">Questão {currentIndex + 1} de {questions.length}</h3></div><div className="flex gap-2"><button type="button" disabled={currentIndex === 0} onClick={() => setCurrentIndex((value) => Math.max(0, value - 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-text-muted)] disabled:opacity-40"><ChevronLeft size={17} className="shrink-0 flex-none" />Anterior</button><button type="button" disabled={currentIndex === questions.length - 1} onClick={() => setCurrentIndex((value) => Math.min(questions.length - 1, value + 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-text-muted)] disabled:opacity-40">Próxima<ChevronRight size={17} className="shrink-0 flex-none" /></button></div></div>
         <div>{questions.map((item, index) => <DesktopQuestion key={item.id} question={item} index={index + 1} answer={answers[item.id]} pending={pending[item.id]} onSelect={(optionIndex) => selectOption(item.id, optionIndex)} onSubmit={() => submitAnswer(item.id)} />)}</div>
       </div>
 
@@ -256,7 +266,7 @@ export default function QuestionsTab() {
         <nav className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between border-t border-[var(--color-divider)] bg-[var(--color-surface)]/95 px-3 py-3 shadow-[0_-4px_12px_rgba(10,46,69,0.08)] backdrop-blur lg:hidden">
           <button type="button" disabled={currentIndex === 0} onClick={() => setCurrentIndex((value) => Math.max(0, value - 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-text-muted)] disabled:opacity-40"><ChevronLeft size={17} className="shrink-0 flex-none" />Anterior</button>
           <button type="button" className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)]"><FileText size={15} className="shrink-0 flex-none" />Ir para questão</button>
-          <button type="button" disabled={currentIndex === questions.length - 1} onClick={() => setCurrentIndex((value) => Math.min(questions.length - 1, value + 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-primary)] disabled:opacity-40">Próximo<ChevronRight size={17} className="shrink-0 flex-none" /></button>
+          <button type="button" disabled={currentIndex === questions.length - 1} onClick={() => setCurrentIndex((value) => Math.min(questions.length - 1, value + 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-primary)] disabled:opacity-40">Próxima<ChevronRight size={17} className="shrink-0 flex-none" /></button>
         </nav>
       </div>
     </section>

@@ -9,6 +9,7 @@ import {
 import styles from "./SideDrawer.module.css";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function SideDrawer() {
   const isDrawerOpen = useQuizStore((state) => state.isDrawerOpen);
@@ -76,8 +77,8 @@ export default function SideDrawer() {
       >
         <div className={styles.drawerHeader}>
           <div className={styles.drawerHeaderLeft}>
-            <span className={styles.drawerLogo}>
-              <GraduationCap width={22} height={22} />
+            <span className={styles.drawerLogo} aria-hidden="true">
+              <Image src="/logo-aivur.png" alt="" width={28} height={28} />
             </span>
             <span className={`${styles.drawerTitle} font-semibold tracking-tight`}>Painel de Estudo</span>
           </div>

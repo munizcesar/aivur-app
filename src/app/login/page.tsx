@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import styles from "./login.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,28 +61,37 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
+    <div className={styles.page}>
+      <div className={styles.card}>
+        <div className={styles.brand}>
+          <div className={styles.emblemFrame} aria-hidden="true">
+            <Image className={styles.emblem} src="/logo-aivur.png" alt="" width={1024} height={1024} priority />
+          </div>
+          <div className={styles.brandName}>AIVUR</div>
+          <div className={styles.brandTagline}>Inteligência que evolui resultados</div>
+        </div>
+
+        <h2 className={styles.title}>
           Acesso Multi-dispositivo
         </h2>
+        <p className={styles.subtitle}>Entre no seu ambiente de estudos e continue sua evolução.</p>
         
         {sent ? (
           <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+            <div className={`${styles.successIcon} w-16 h-16 rounded-full flex items-center justify-center mx-auto text-3xl`}>
               ✓
             </div>
             <p className="text-gray-600 dark:text-gray-300">
               Enviamos um Magic Link para <strong>{email}</strong>.
             </p>
             {simulatedToken && (
-              <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2">
+              <div className={`${styles.simulationBox} mt-4 p-4 border rounded-lg`}>
+                <p className={`${styles.simulationText} text-sm mb-2`}>
                   [Modo Simulação Ativo] Como não configuramos provedor de e-mail ainda, clique abaixo para simular o acesso:
                 </p>
                 <a 
                   href={`/auth/callback?token=${simulatedToken}`}
-                  className="text-blue-600 hover:underline font-bold"
+                  className={`${styles.simulationLink} hover:underline font-bold`}
                 >
                   Simular Clique no E-mail
                 </a>
@@ -90,7 +101,7 @@ export default function LoginPage() {
         ) : (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="email" className="loginLabel block text-sm font-medium mb-1">
                 E-mail de Sincronização
               </label>
               <input
@@ -99,19 +110,19 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="loginInput w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 text-white"
                 placeholder="seu@email.com"
               />
             </div>
             
             {error && (
-              <p className="text-red-500 text-sm">{error}</p>
+              <p className={`${styles.error} text-sm`}>{error}</p>
             )}
             
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow disabled:opacity-50 transition-colors"
+              className="loginButton w-full py-2 px-4 text-white font-semibold rounded-lg shadow disabled:opacity-50 transition-colors"
             >
               {loading ? "Enviando..." : "Receber Link de Acesso"}
             </button>
@@ -119,16 +130,17 @@ export default function LoginPage() {
         )}
 
         {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="loginDivider mt-8 pt-4 border-t">
             <button
               onClick={handleDevLogin}
               disabled={loading}
-              className="w-full py-2 px-4 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-lg shadow transition-colors"
+              className="loginDevButton w-full py-2 px-4 font-semibold rounded-lg shadow transition-colors"
             >
               🚀 Login Rápido (Dev)
             </button>
           </div>
         )}
+        <p className={styles.footerNote}>Ambiente seguro para sua jornada de aprovação.</p>
       </div>
     </div>
   );

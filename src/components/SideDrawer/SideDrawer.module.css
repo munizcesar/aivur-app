@@ -48,13 +48,23 @@
 }
 
 .drawerLogo {
-  color: var(--color-primary);
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: oklch(from var(--color-primary) l c h / 0.1);
+  background: linear-gradient(145deg, rgba(27, 74, 109, 0.72), rgba(4, 20, 32, 0.9));
+  border: 1px solid rgba(201, 168, 76, 0.38);
   border-radius: var(--radius-md);
-  padding: 6px;
+  overflow: hidden;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.18);
+}
+
+.drawerLogo img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  transform: scale(1.12);
 }
 
 .drawerTitle {

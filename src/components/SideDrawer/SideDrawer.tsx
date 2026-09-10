@@ -45,8 +45,8 @@ export default function SideDrawer() {
     const diffX = currentX - touchStartX.current;
     const diffY = currentY - touchStartY.current;
     
-    // Swipe horizontal maior que 50px e superior ao movimento vertical
-    if (diffX > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+    // Drawer ancorado à esquerda: deslizar para a esquerda fecha o painel.
+    if (diffX < -50 && Math.abs(diffX) > Math.abs(diffY)) {
       closeDrawer();
       touchStartX.current = null;
       touchStartY.current = null;

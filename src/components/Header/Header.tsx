@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sun, Moon, Map } from "lucide-react";
+import { Sun, Moon, Menu } from "lucide-react";
 import { useTheme } from "next-themes";
 import styles from "./Header.module.css";
 import { useQuizStore } from "@/store/useQuizStore";
@@ -32,6 +32,14 @@ export default function Header() {
     <header className={`${styles.siteHeader} backdrop-blur-md bg-background/80`}>
       <div className="container">
         <div className={styles.headerInner}>
+          <button
+            className={`${styles.drawerToggle} ${isDrawerOpen ? styles.open : ""} transition-transform duration-150 active:scale-95`}
+            onClick={toggleDrawer}
+            aria-label={isDrawerOpen ? "Fechar painel" : "Abrir painel"}
+            aria-expanded={isDrawerOpen}
+          >
+            <Menu width={22} height={22} strokeWidth={2.25} aria-hidden="true" />
+          </button>
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <Link className="flex items-center shrink-0" href="/" aria-label="AIVUR — Página principal">
               <Image
@@ -45,15 +53,6 @@ export default function Header() {
             </Link>
           </div>
           <div className={styles.headerActions}>
-            <button 
-              className={`${styles.drawerToggle} ${isDrawerOpen ? styles.open : ""} transition-transform duration-150 active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center`} 
-              onClick={toggleDrawer}
-              role="dialog" 
-              aria-modal="true" 
-              aria-label={isDrawerOpen ? "Fechar painel" : "Abrir painel"}
-            >
-              <span></span><span></span><span></span>
-            </button>
             <button className={`${styles.themeToggle} transition-transform duration-150 active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center`} onClick={toggleTheme} aria-label="Alternar tema">
               {mounted ? (
                 theme === "dark" ? (

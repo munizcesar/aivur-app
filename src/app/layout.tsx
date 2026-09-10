@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     siteName: "AIVUR",
     images: [
       {
-        url: "/og-image-wa-v2.png", // Next.js assumirá a URL base se for relativo na raiz public/
+        url: "/og-image-aivur-premium-v1.png", // Next.js assumirá a URL base se for relativo na raiz public/
         width: 1200,
         height: 630,
         alt: "AIVUR Preview",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AIVUR — Inteligência que evolui resultados",
     description: "Sistema inteligente de evolução do conhecimento com questões, trilhas personalizadas e IA aplicada ao aprendizado.",
-    images: ["/og-image-wa-v2.png"],
+    images: ["/og-image-aivur-premium-v1.png"],
   },
   icons: {
     icon: [

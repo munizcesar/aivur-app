@@ -40,7 +40,7 @@ export default function Header() {
                 width={120}
                 height={40}
                 priority
-                style={{ height: 40, width: "auto", maxWidth: 120 }}
+                style={{ width: 120, height: "auto", aspectRatio: "3 / 1", objectFit: "contain" }}
                 className="object-contain"
               />
             </Link>

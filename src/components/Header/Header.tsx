@@ -33,7 +33,7 @@ export default function Header() {
       <div className="container">
         <div className={styles.headerInner}>
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            <Link className="flex items-center shrink-0" href="/trilhas">
+            <Link className="flex items-center shrink-0" href="/" aria-label="AIVUR — Página principal">
               <Image
                 alt="AIVUR"
                 src={mounted && theme === "light" ? "/assets/logo-aivur-light.png" : "/assets/logo-aivur-dark.png"}

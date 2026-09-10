@@ -37,11 +37,10 @@ export default function Header() {
               <Image
                 alt="AIVUR"
                 src={mounted && theme === "light" ? "/assets/logo-aivur-light.png" : "/assets/logo-aivur-dark.png"}
-                width={120}
-                height={40}
+                width={180}
+                height={60}
                 priority
-                style={{ width: 120, height: "auto", aspectRatio: "3 / 1", objectFit: "contain" }}
-                className="object-contain"
+                className={`${styles.logoImage} object-contain`}
               />
             </Link>
           </div>

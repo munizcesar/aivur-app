@@ -78,7 +78,7 @@ export default function SideDrawer() {
         <div className={styles.drawerHeader}>
           <div className={styles.drawerHeaderLeft}>
             <span className={styles.drawerLogo} aria-hidden="true">
-              <Image src="/logo-aivur.png" alt="" width={28} height={28} />
+              <Image src="/assets/logo-aivur.png" alt="" width={28} height={28} />
             </span>
             <span className={`${styles.drawerTitle} font-semibold tracking-tight`}>Painel de Estudo</span>
           </div>

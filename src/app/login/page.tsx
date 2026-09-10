@@ -65,7 +65,7 @@ export default function LoginPage() {
       <div className={styles.card}>
         <div className={styles.brand}>
           <div className={styles.emblemFrame} aria-hidden="true">
-            <Image className={styles.emblem} src="/logo-aivur.png" alt="" width={1024} height={1024} priority />
+            <Image className={styles.emblem} src="/assets/logo-aivur.png" alt="" width={1024} height={1024} priority />
           </div>
           <div className={styles.brandName}>AIVUR</div>
           <div className={styles.brandTagline}>Inteligência que evolui resultados</div>

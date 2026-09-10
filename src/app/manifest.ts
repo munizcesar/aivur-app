@@ -11,12 +11,12 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#0A0F2C',
     icons: [
       {
-        src: '/logo-aivur.png',
+        src: '/assets/logo-aivur.png',
         sizes: '1024x1024',
         type: 'image/png',
       },
       {
-        src: '/logo-aivur.png',
+        src: '/assets/logo-aivur.png',
         sizes: '1024x1024',
         type: 'image/png',
       },

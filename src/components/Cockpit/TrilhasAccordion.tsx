@@ -167,7 +167,11 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLDivElement).style.backgroundColor = "#0B1929";
                 }}
-                onClick={() => selectTopic(props.moduleId, topic.id)}
+                onClick={() => {
+                  selectTopic(props.moduleId, topic.id);
+                  setActiveTab("video");
+                  router.push("/sala-de-aula");
+                }}
               >
                 {/* Status icon + topic name */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">

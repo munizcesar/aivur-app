@@ -11,13 +11,13 @@ export default function CockpitSidebar() {
     <aside
       className={`
         fixed inset-y-0 right-0 z-50 flex h-screen w-full flex-col
-        bg-[#091422] border-l border-[#C9A84C]/20
+        border border-[#C9A84C]/15 bg-[#0B1929]/90 shadow-2xl backdrop-blur-xl
         transform transition-transform duration-300 md:w-96
-        lg:relative lg:inset-auto lg:h-screen lg:w-full lg:translate-x-0 lg:shrink-0 lg:flex-none lg:border-l
+        lg:relative lg:inset-auto lg:h-full lg:w-96 lg:translate-x-0 lg:shrink-0 lg:flex-none lg:overflow-hidden lg:rounded-3xl
         ${ isMobileDrawerOpen ? 'translate-x-0' : 'translate-x-full' }
       `}
     >
-        <div className="flex h-full min-w-0 flex-col p-6">
+        <div className="flex h-full min-w-0 flex-col p-4">
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-[#C9A84C]">
@@ -31,11 +31,11 @@ export default function CockpitSidebar() {
               onClick={toggleMobileDrawer}
               className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/5 lg:hidden"
             >
-              <X size={20} aria-hidden="true" />
+              <X size={20} aria-hidden="true" className="shrink-0 flex-none" />
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-6">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-24">
             {modules.map((module, idx) => (
               <TrilhasAccordion
                 key={module.id}

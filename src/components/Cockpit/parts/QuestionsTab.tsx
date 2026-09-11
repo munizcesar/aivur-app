@@ -15,7 +15,6 @@ import {
   Info,
   MessageCircle,
   MoreHorizontal,
-  RotateCcw,
   StickyNote,
   Tag,
   X,
@@ -68,12 +67,14 @@ function AnswerOption({
   index,
   answer,
   mobile = false,
+  resolving = false,
   onSelect,
 }: {
   option: Option;
   index: number;
   answer?: AnswerState;
   mobile?: boolean;
+  resolving?: boolean;
   onSelect: () => void;
 }) {
   const selected = answer?.selected === index;
@@ -81,23 +82,27 @@ function AnswerOption({
   const correct = submitted && option.isCorreta;
   const incorrect = submitted && selected && !option.isCorreta;
   const stateClass = correct
-    ? "border-[var(--color-success)] bg-emerald-50"
+    ? "border-emerald-500 bg-emerald-50"
     : incorrect
-      ? "border-[var(--color-error)] bg-rose-50"
+      ? "border-rose-500 bg-rose-50"
       : selected
-        ? "border-[var(--color-primary)] bg-[var(--color-surface-offset)]"
-        : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-offset)]";
+        ? "border-[#C9A84C] bg-[#C9A84C]/10"
+        : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[#C9A84C]/60 hover:bg-[var(--color-surface-offset)]";
 
   return (
     <button
       type="button"
       onClick={onSelect}
-      disabled={submitted}
+      disabled={submitted || resolving}
       aria-pressed={selected}
-      className={`group grid w-full min-w-0 grid-cols-[40px_minmax(0,1fr)_24px] items-center gap-3 text-left transition-colors disabled:cursor-default ${mobile ? "rounded-xl border px-4 py-4" : "rounded-lg border px-3 py-2.5"} ${stateClass}`}
+      className={`group grid w-full min-w-0 grid-cols-[40px_minmax(0,1fr)_24px] items-center gap-3 text-left transition-colors disabled:cursor-default ${mobile ? "rounded-xl border px-5 py-4" : "rounded-lg border px-3 py-2.5"} ${stateClass} ${resolving && selected ? "opacity-80" : ""}`}
     >
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${correct ? "border-[var(--color-success)] bg-[var(--color-success)] text-white" : incorrect ? "border-[var(--color-error)] bg-[var(--color-error)] text-white" : selected ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white" : "border-[var(--color-border)] bg-[var(--color-surface-offset)] text-[var(--color-text-muted)]"}`}>
-        {letters[index]}
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${correct ? "border-emerald-500 bg-emerald-500 text-white" : incorrect ? "border-rose-500 bg-rose-500 text-white" : selected ? "border-[#C9A84C] bg-[#C9A84C] text-[#0B1929]" : "border-[var(--color-border)] bg-[var(--color-surface-offset)] text-[var(--color-text-muted)]"}`}>
+        {resolving && selected ? (
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0B1929]/30 border-t-[#0B1929]" />
+        ) : (
+          letters[index]
+        )}
       </span>
       <span className={`min-w-0 leading-relaxed ${mobile ? "text-[15px]" : "text-sm"} ${submitted && !correct && !incorrect ? "text-[var(--color-text-faint)]" : "text-[var(--color-text)]"}`}>{option.texto}</span>
       <ResultIcon isCorrect={Boolean(correct)} isSelected={Boolean(incorrect)} />
@@ -121,27 +126,37 @@ function ActionBar() {
 
 function QuestionResult({ question }: { question: Question }) {
   return (
-    <div className="mt-4 rounded-lg border border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5 p-4 text-sm text-[var(--color-text)]">
-      <div className="flex items-start gap-2"><Info size={17} className="mt-0.5 shrink-0 flex-none text-[var(--color-primary)]" /><div><strong className="font-bold">Gabarito comentado</strong><p className="mt-1 leading-relaxed text-[var(--color-text-muted)]">{question.comentario}</p></div></div>
+    <div
+      role="status"
+      aria-live="polite"
+      className="mt-4 rounded-lg border border-[#C9A84C]/50 bg-[#122338] p-4 text-sm text-slate-200 shadow-[inset_0_0_0_1px_rgba(201,168,76,0.12)]"
+    >
+      <div className="flex items-start gap-2">
+        <Info size={17} className="mt-0.5 shrink-0 flex-none text-[#C9A84C]" />
+        <div>
+          <strong className="font-bold text-[#C9A84C]">Gabarito comentado</strong>
+          <p className="mt-1 leading-relaxed text-slate-300">{question.comentario}</p>
+        </div>
+      </div>
     </div>
   );
 }
 
-function DesktopQuestion({ question, index, answer, pending, onSelect, onSubmit }: { question: Question; index: number; answer?: AnswerState; pending?: number; onSelect: (index: number) => void; onSubmit: () => void }) {
+function DesktopQuestion({ question, index, answer, pending, resolving, onSelect, onSubmit }: { question: Question; index: number; answer?: AnswerState; pending?: number; resolving?: boolean; onSelect: (index: number) => void; onSubmit: () => void }) {
   return (
     <article className="border-b border-[var(--color-divider)] px-1 py-6 first:pt-2 last:border-b-0">
       <header className="mb-3 flex min-w-0 flex-wrap items-center gap-2 text-sm">
-        <span className="flex h-7 min-w-7 items-center justify-center rounded-md bg-[var(--color-primary)] px-2 font-bold text-white">{index}</span>
+        <span className="flex h-7 min-w-7 items-center justify-center rounded-md bg-[#C9A84C] px-2 font-bold text-[#0B1929]">{index}</span>
         <span className="font-bold text-[var(--color-text)]">Questão {question.codigo}</span><span className="text-[var(--color-text-faint)]">•</span>
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          {question.tags.map((tag, tagIndex) => <span key={tag} className="inline-flex items-center gap-1 text-xs text-[var(--color-text-muted)]"><Tag size={12} className="shrink-0 flex-none text-[var(--color-primary)]" />{tag}{tagIndex < question.tags.length - 1 && <ChevronRight size={12} className="shrink-0 flex-none" />}</span>)}
+          {question.tags.map((tag, tagIndex) => <span key={tag} className="inline-flex items-center gap-1 text-xs text-[var(--color-text-muted)]"><Tag size={12} className="shrink-0 flex-none text-[#C9A84C]" />{tag}{tagIndex < question.tags.length - 1 && <ChevronRight size={12} className="shrink-0 flex-none" />}</span>)}
         </div>
       </header>
       <Metadata question={question} />
       <p className="mt-4 max-w-4xl text-[15px] font-medium leading-7 text-[var(--color-text)]">{question.enunciado}</p>
-      <div className="mt-4 grid max-w-4xl gap-2">{question.alternativas.map((option, optionIndex) => <AnswerOption key={option.texto} option={option} index={optionIndex} answer={answer ?? (pending === undefined ? undefined : { selected: pending, submitted: false })} onSelect={() => onSelect(optionIndex)} />)}</div>
+      <div className="mt-4 grid max-w-4xl gap-2">{question.alternativas.map((option, optionIndex) => <AnswerOption key={option.texto} option={option} index={optionIndex} answer={answer ?? (pending === undefined ? undefined : { selected: pending, submitted: false })} resolving={resolving} onSelect={() => onSelect(optionIndex)} />)}</div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <button type="button" disabled={answer?.submitted || pending === undefined} onClick={onSubmit} className="inline-flex items-center gap-2 rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-default disabled:opacity-60">{answer?.submitted ? <Check size={16} className="shrink-0 flex-none" /> : null}{answer?.submitted ? "Respondida" : "Responder"}</button>
+        <button type="button" disabled={answer?.submitted || pending === undefined || resolving} onClick={onSubmit} className="inline-flex items-center gap-2 rounded-md bg-[#C9A84C] px-4 py-2 text-sm font-bold text-[#0B1929] transition-colors hover:bg-[#d4b65e] disabled:cursor-default disabled:opacity-60">{resolving ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0B1929]/30 border-t-[#0B1929]" /> : answer?.submitted ? <Check size={16} className="shrink-0 flex-none" /> : null}{resolving ? "Validando..." : answer?.submitted ? "Respondida" : "Responder"}</button>
         <span className="text-xs text-[var(--color-text-faint)]">{answer?.submitted ? "Resposta registrada" : "Selecione uma alternativa"}</span>
       </div>
       {answer?.submitted && <QuestionResult question={question} />}
@@ -178,6 +193,7 @@ export default function QuestionsTab() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, AnswerState>>({});
   const [pending, setPending] = useState<Record<string, number | undefined>>({});
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -200,6 +216,7 @@ export default function QuestionsTab() {
       setCurrentIndex(0);
       setAnswers({});
       setPending({});
+      setResolvingId(null);
       try {
         const response = await fetch("/api/mentor/questoes", {
           method: "POST",
@@ -232,41 +249,51 @@ export default function QuestionsTab() {
   }, [topic, activeModule?.titulo]);
 
   const selectOption = (questionId: string, optionIndex: number) => {
-    if (answers[questionId]?.submitted) return;
+    if (answers[questionId]?.submitted || resolvingId) return;
     setPending((current) => ({ ...current, [questionId]: optionIndex }));
   };
 
   const submitAnswer = (questionId: string) => {
     const selected = pending[questionId];
-    if (selected === undefined) return;
-    setAnswers((current) => ({ ...current, [questionId]: { selected, submitted: true } }));
-    const submittedQuestion = questions.find((item) => item.id === questionId);
-    registerAnswer(questionId, Boolean(submittedQuestion?.alternativas[selected]?.isCorreta));
+    if (selected === undefined || answers[questionId]?.submitted || resolvingId) return;
+    setResolvingId(questionId);
+    window.setTimeout(() => {
+      setAnswers((current) => ({ ...current, [questionId]: { selected, submitted: true } }));
+      const submittedQuestion = questions.find((item) => item.id === questionId);
+      registerAnswer(questionId, Boolean(submittedQuestion?.alternativas[selected]?.isCorreta));
+      setResolvingId(null);
+    }, 280);
   };
 
-  const reset = () => {
-    setCurrentIndex(0);
-    setAnswers({});
-    setPending({});
+  const selectAndSubmitMobile = (questionId: string, optionIndex: number) => {
+    if (answers[questionId]?.submitted || resolvingId) return;
+    setPending((current) => ({ ...current, [questionId]: optionIndex }));
+    setResolvingId(questionId);
+    window.setTimeout(() => {
+      setAnswers((current) => ({ ...current, [questionId]: { selected: optionIndex, submitted: true } }));
+      const submittedQuestion = questions.find((item) => item.id === questionId);
+      registerAnswer(questionId, Boolean(submittedQuestion?.alternativas[optionIndex]?.isCorreta));
+      setResolvingId(null);
+    }, 280);
   };
 
-  if (isLoading) return <div className="mt-6 flex min-h-[320px] items-center justify-center gap-3 text-slate-500"><span className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-500" />Gerando questões com contexto do tópico...</div>;
-  if (error || questions.length === 0 || !question) return <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-6 text-center text-sm text-rose-700">{error ?? "Nenhuma questão foi gerada para este tópico."}</div>;
+  if (isLoading) return <div className="mt-6 flex min-h-[320px] items-center justify-center gap-3 text-slate-400"><span className="h-6 w-6 animate-spin rounded-full border-2 border-[#C9A84C]/20 border-t-[#C9A84C]" />Gerando questões com contexto do tópico...</div>;
+  if (error || questions.length === 0 || !question) return <div className="mt-6 rounded-xl border border-rose-500/30 bg-rose-950/20 p-6 text-center text-sm text-rose-300">{error ?? "Nenhuma questão foi gerada para este tópico."}</div>;
 
   return (
     <section style={{ "--spacing": "0.25rem" } as CSSProperties} className="mt-4 w-full min-w-0 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-[var(--shadow-sm)] lg:mt-6 lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none">
       <div className="hidden lg:block">
-        <div className="flex items-center justify-between border-b border-[var(--color-divider)] pb-4"><div><p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-primary)]"><button type="button" onClick={() => setActiveTab('resumo')} className="mr-2 p-1 hover:bg-white/10 rounded-md"><ArrowLeft size={16} /></button><Link href="/trilhas" className="hover:underline">{activeModule?.titulo}</Link> <span className="text-[var(--color-text-muted)]">&gt;</span> <button type="button" onClick={() => setActiveTab('resumo')} className="hover:underline">{topic?.titulo}</button> <span className="text-[var(--color-text-muted)]">&gt;</span> <span className="text-[var(--color-text)]">Questões</span></p><h3 className="mt-1 text-xl font-black text-[var(--color-text)]">Questão {currentIndex + 1} de {questions.length}</h3></div><div className="flex gap-2"><button type="button" disabled={currentIndex === 0} onClick={() => setCurrentIndex((value) => Math.max(0, value - 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-text-muted)] disabled:opacity-40"><ChevronLeft size={17} className="shrink-0 flex-none" />Anterior</button><button type="button" disabled={currentIndex === questions.length - 1} onClick={() => setCurrentIndex((value) => Math.min(questions.length - 1, value + 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-text-muted)] disabled:opacity-40">Próxima<ChevronRight size={17} className="shrink-0 flex-none" /></button></div></div>
-        <div>{questions.map((item, index) => <DesktopQuestion key={item.id} question={item} index={index + 1} answer={answers[item.id]} pending={pending[item.id]} onSelect={(optionIndex) => selectOption(item.id, optionIndex)} onSubmit={() => submitAnswer(item.id)} />)}</div>
+        <div className="flex items-center justify-between border-b border-[var(--color-divider)] pb-4"><div><p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[#C9A84C]"><button type="button" onClick={() => setActiveTab('resumo')} className="mr-2 p-1 hover:bg-white/10 rounded-md"><ArrowLeft size={16} /></button><Link href="/trilhas" className="hover:underline">{activeModule?.titulo}</Link> <span className="text-[var(--color-text-muted)]">&gt;</span> <button type="button" onClick={() => setActiveTab('resumo')} className="hover:underline">{topic?.titulo}</button> <span className="text-[var(--color-text-muted)]">&gt;</span> <span className="text-[var(--color-text)]">Questões</span></p><h3 className="mt-1 text-xl font-black text-[var(--color-text)]">Questão {currentIndex + 1} de {questions.length}</h3></div><div className="flex gap-2"><button type="button" disabled={currentIndex === 0} onClick={() => setCurrentIndex((value) => Math.max(0, value - 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-text-muted)] disabled:opacity-40"><ChevronLeft size={17} className="shrink-0 flex-none" />Anterior</button><button type="button" disabled={currentIndex === questions.length - 1} onClick={() => setCurrentIndex((value) => Math.min(questions.length - 1, value + 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-text-muted)] disabled:opacity-40">Próxima<ChevronRight size={17} className="shrink-0 flex-none" /></button></div></div>
+        <div>{questions.map((item, index) => <DesktopQuestion key={item.id} question={item} index={index + 1} answer={answers[item.id]} pending={pending[item.id]} resolving={resolvingId === item.id} onSelect={(optionIndex) => selectOption(item.id, optionIndex)} onSubmit={() => submitAnswer(item.id)} />)}</div>
       </div>
 
       <div className="lg:hidden">
         <MobileQuestionHeader question={question} index={currentIndex + 1} total={questions.length} />
-        <div className="px-4 pb-24 pt-4"><Metadata question={question} compact /><p className="mt-5 text-base font-medium leading-7 text-[var(--color-text)]">{question.enunciado}</p><div className="mt-5 grid gap-3">{question.alternativas.map((option, index) => <AnswerOption key={option.texto} option={option} index={index} answer={answers[question.id] ?? (pending[question.id] === undefined ? undefined : { selected: pending[question.id] as number, submitted: false })} mobile onSelect={() => selectOption(question.id, index)} />)}</div>{answers[question.id]?.submitted && <QuestionResult question={question} />}</div>
+        <div className="px-4 pb-24 pt-4"><Metadata question={question} compact /><p className="mt-5 text-base font-medium leading-7 text-[var(--color-text)]">{question.enunciado}</p><div className="mt-5 grid gap-3">{question.alternativas.map((option, index) => <AnswerOption key={option.texto} option={option} index={index} answer={answers[question.id] ?? (pending[question.id] === undefined ? undefined : { selected: pending[question.id] as number, submitted: false })} resolving={resolvingId === question.id} mobile onSelect={() => selectAndSubmitMobile(question.id, index)} />)}</div>{answers[question.id]?.submitted && <QuestionResult question={question} />}</div>
         <nav className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between border-t border-[var(--color-divider)] bg-[var(--color-surface)]/95 px-3 py-3 shadow-[0_-4px_12px_rgba(10,46,69,0.08)] backdrop-blur lg:hidden">
           <button type="button" disabled={currentIndex === 0} onClick={() => setCurrentIndex((value) => Math.max(0, value - 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-text-muted)] disabled:opacity-40"><ChevronLeft size={17} className="shrink-0 flex-none" />Anterior</button>
           <button type="button" className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)]"><FileText size={15} className="shrink-0 flex-none" />Ir para questão</button>
-          <button type="button" disabled={currentIndex === questions.length - 1} onClick={() => setCurrentIndex((value) => Math.min(questions.length - 1, value + 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[var(--color-primary)] disabled:opacity-40">Próxima<ChevronRight size={17} className="shrink-0 flex-none" /></button>
+          <button type="button" disabled={currentIndex === questions.length - 1} onClick={() => setCurrentIndex((value) => Math.min(questions.length - 1, value + 1))} className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-bold text-[#C9A84C] disabled:opacity-40">Próxima<ChevronRight size={17} className="shrink-0 flex-none" /></button>
         </nav>
       </div>
     </section>

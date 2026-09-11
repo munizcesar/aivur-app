@@ -116,7 +116,7 @@ export default function TrilhasAccordion(props: TrilhasAccordionProps) {
               <span className="font-semibold text-sm text-[#FBEBD0] truncate">
                 {discipline.title}
               </span>
-              <span className="text-xs font-black tabular-nums text-emerald-400 shrink-0">
+              <span className="shrink-0 rounded bg-[#122338] px-2 py-1 text-xs font-bold tabular-nums text-[#C9A84C]">
                 {pct}%
               </span>
             </div>

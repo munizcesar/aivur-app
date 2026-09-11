@@ -52,8 +52,11 @@ function CockpitContent() {
   // ── Hydration Guard ─────────────────────────────────────────────────────────
   if (!hydrated) {
     return (
-      <div className="flex min-h-screen w-full flex-col overflow-hidden bg-[#0B1929] text-slate-200 lg:grid lg:grid-cols-[minmax(0,1fr)_24rem]">
-        Carregando Cockpit...
+      <div className="flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-[#091422] text-slate-200">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 rounded-full border-2 border-[#C9A84C]/20 border-t-[#C9A84C] animate-spin" />
+          <p className="text-[#C9A84C] font-semibold">Carregando módulo tático...</p>
+        </div>
       </div>
     );
   }
@@ -61,9 +64,9 @@ function CockpitContent() {
   // ── Skeleton Premium (Proteção CLS) ───────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="flex min-h-screen w-full flex-col overflow-hidden bg-[#0B1929] text-slate-200 lg:grid lg:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="flex min-h-screen w-full flex-col overflow-hidden bg-[#091422] text-slate-200 lg:h-screen lg:flex-row lg:gap-6 lg:p-8">
         {/* Skeleton Sidebar */}
-        <aside className="hidden flex-col bg-[#091422] p-6 shadow-sm lg:flex lg:h-screen lg:w-full lg:min-w-0 lg:shrink-0 lg:border-r lg:border-[#C9A84C]/20">
+        <aside className="hidden flex-col bg-[#0B1929]/90 p-4 shadow-2xl backdrop-blur-xl lg:flex lg:h-full lg:w-96 lg:min-w-0 lg:shrink-0 lg:rounded-3xl lg:border lg:border-[#C9A84C]/15">
           <div className="h-4 w-24 bg-white/5 rounded animate-pulse mb-2" />
           <div className="h-6 w-32 bg-white/5 rounded animate-pulse mb-8" />
           
@@ -75,7 +78,7 @@ function CockpitContent() {
         </aside>
 
         {/* Skeleton Stage */}
-        <main className="flex-1 min-w-0 h-screen overflow-y-auto overflow-x-hidden bg-[#020c14] p-4 lg:p-10">
+        <main className="flex-1 min-w-0 h-screen overflow-y-auto overflow-x-hidden bg-[#091422] p-4 lg:h-full lg:rounded-3xl lg:p-8">
           <div className="flex w-full min-w-0 flex-1 flex-col">
             <div className="h-4 w-32 bg-white/10 rounded animate-pulse mb-4" />
             <div className="h-8 w-64 bg-white/10 rounded animate-pulse mb-8" />
@@ -94,20 +97,20 @@ function CockpitContent() {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full min-w-0 flex-col overflow-x-hidden bg-[#0B1929] text-slate-200 lg:grid lg:grid-cols-[minmax(0,1fr)_24rem]">
+    <div className="relative flex min-h-screen w-full min-w-0 flex-col overflow-x-hidden bg-[#091422] text-slate-200 lg:h-screen lg:flex-row lg:gap-6 lg:overflow-hidden lg:p-8">
       
       {/* Overlay Escuro para Mobile (clicar para fechar) */}
       {isMobileDrawerOpen && (
         <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={toggleMobileDrawer} />
       )}
 
-      <main className="flex-1 min-w-0 h-screen overflow-y-auto overflow-x-hidden bg-[#020c14] p-4 lg:p-10">
+      <main className="flex-1 min-w-0 h-screen overflow-y-auto overflow-x-hidden bg-[#091422] p-4 lg:h-full lg:rounded-3xl lg:p-8">
         {/* Botão Hambúrguer (Apenas Mobile) */}
         <button 
           className="lg:hidden mb-6 p-2 bg-[#122338] text-[#C9A84C] rounded-lg border border-[#C9A84C]/30 hover:bg-[#1E3A5F] transition-colors" 
           onClick={toggleMobileDrawer}
         >
-          <Menu size={24}/>
+          <Menu size={24} className="shrink-0 flex-none" />
         </button>
 
         {currentTopicId ? (
@@ -133,7 +136,14 @@ function CockpitContent() {
 
 export default function StudyCockpit() {
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800">Carregando Cockpit...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex h-screen flex-col items-center justify-center gap-4 bg-[#091422]">
+          <div className="h-12 w-12 rounded-full border-2 border-[#C9A84C]/20 border-t-[#C9A84C] animate-spin" />
+          <p className="text-[#C9A84C] font-semibold">Carregando módulo tático...</p>
+        </div>
+      }
+    >
       <CockpitContent />
     </Suspense>
   );

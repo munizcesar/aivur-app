@@ -78,26 +78,26 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
   // SSR Hydration Guard
   if (!isMounted) {
     return (
-      <div className="flex flex-col h-full overflow-y-auto p-6 space-y-6">
-        <div className="w-full max-w-4xl mx-auto aspect-video bg-slate-100 animate-pulse rounded-lg" />
+      <div className="flex h-full flex-col space-y-6 p-6">
+        <div className="mx-auto aspect-video w-full max-w-4xl animate-pulse rounded-3xl bg-[#122338]" />
       </div>
     );
   }
 
   return (
-      <div className="my-4 mx-auto w-full max-w-5xl rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-[#0b1d2b] sm:p-6">
+    <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
       {/* Player Principal */}
       <div className="w-full mb-6">
         {isLoading ? (
-          <div className="aspect-video w-full bg-slate-100 animate-pulse rounded-lg flex items-center justify-center">
+          <div className="flex aspect-video w-full items-center justify-center rounded-3xl bg-[#122338] animate-pulse">
             <span className="text-slate-400 font-medium text-sm">Carregando player...</span>
           </div>
         ) : error ? (
-          <div className="aspect-video w-full bg-slate-100 rounded-lg flex items-center justify-center border border-slate-200">
-            <span className="text-red-500 font-medium text-sm">{error}</span>
+          <div className="flex aspect-video w-full items-center justify-center rounded-3xl border border-rose-500/20 bg-rose-950/10">
+            <span className="text-sm font-medium text-rose-300">{error}</span>
           </div>
         ) : activeVideoId ? (
-          <div className="aspect-video w-full bg-slate-900 rounded-lg overflow-hidden shadow-sm relative">
+          <div className="relative aspect-video w-full overflow-hidden rounded-3xl bg-slate-950 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
             <iframe
               className="absolute top-0 left-0 w-full h-full"
               src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1`}
@@ -111,18 +111,18 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
 
       {/* Grade de Alternativas */}
       <div className="w-full">
-        <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          <PlayCircle size={20} className="shrink-0 flex-none text-emerald-600" />
+        <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#FBEBD0]">
+          <PlayCircle size={20} className="shrink-0 flex-none text-[#C9A84C]" />
           Outras Abordagens / Professores
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex flex-col border border-slate-200 rounded-lg overflow-hidden">
-                <div className="aspect-video bg-slate-100 animate-pulse" />
+              <div key={i} className="flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0B1929]/70">
+                <div className="aspect-video animate-pulse bg-[#122338]" />
                 <div className="p-3 space-y-2">
-                  <div className="h-4 bg-slate-100 rounded animate-pulse w-3/4" />
-                  <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-white/10" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-white/10" />
                 </div>
               </div>
             ))
@@ -135,11 +135,11 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
                 onClick={() => setActiveVideoId(video.videoId)}
                 className={`flex flex-col text-left group overflow-hidden rounded-lg border transition-all duration-200 active:scale-95 cursor-pointer relative z-10 ${
                 isActive 
-                ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500 dark:bg-emerald-950/30"
-                : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm dark:border-slate-700 dark:bg-[#102a3d]"
+                ? "border-[#C9A84C]/70 bg-[#C9A84C]/10 ring-1 ring-[#C9A84C]/30"
+                : "border-white/10 bg-[#0B1929]/70 hover:border-[#C9A84C]/30 hover:bg-[#122338]"
               }`}
               >
-                <div className="relative aspect-video w-full bg-slate-100 overflow-hidden">
+                <div className="relative aspect-video w-full overflow-hidden bg-[#122338]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={video.thumbnail}
@@ -149,15 +149,15 @@ export default function VideoPlayerHub({ topicTitle, subjectName }: VideoPlayerH
                   />
                   {isActive && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
-                      <div className="bg-emerald-600 text-white text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 rounded-full bg-[#C9A84C] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#0B1929]">
                         <PlayCircle size={14} className="shrink-0 flex-none" /> Reproduzindo
                       </div>
                     </div>
                   )}
                 </div>
                 <div className="p-3">
-                  <h4 className="mb-1.5 line-clamp-2 text-sm font-medium leading-snug text-slate-800 dark:text-slate-100" dangerouslySetInnerHTML={{ __html: video.title }} />
-                  <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                  <h4 className="mb-1.5 line-clamp-2 text-sm font-medium leading-snug text-slate-100" dangerouslySetInnerHTML={{ __html: video.title }} />
+                  <p className="flex items-center gap-1 text-xs text-slate-400">
                     <User size={14} className="shrink-0 flex-none" /> {video.channelTitle}
                   </p>
                 </div>

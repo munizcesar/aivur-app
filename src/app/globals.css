@@ -196,6 +196,13 @@ button { background: none; border: none; outline: none; cursor: pointer; font-fa
 h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); }
 
 /* ── Utilities ── */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 .btn-ripple {
   position: relative;
   overflow: hidden;

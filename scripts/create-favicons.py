@@ -32,5 +32,5 @@ for size, margin in [(16, 2), (32, 3), (180, 18), (192, 18), (512, 42)]:
 # Browser fallback: a real multi-resolution ICO, not the old placeholder.
 ico16 = Image.open(root / 'favicon-16x16.png').convert('RGBA')
 ico32 = Image.open(root / 'favicon-32x32.png').convert('RGBA')
-ico32.save(root / 'favicon.ico', format='ICO', sizes=[(16, 16), (32, 32)], append_images=[ico16])
+ico32.save(root / 'favicon.ico', format='ICO', sizes=[(16, 16), (32, 32)])
 print('Favicons regenerated from public/assets/logo-aivur.png')

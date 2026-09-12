@@ -10,7 +10,7 @@ if not bbox:
 
 mark = source.crop(bbox)
 # Keep the supplied symbol only: no background, no border, and no colored tile.
-for size, margin in [(16, 2), (32, 3), (180, 18), (192, 18), (512, 42)]:
+for size, margin in [(16, 0), (32, 1), (180, 10), (192, 10), (512, 24)]:
     canvas = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     target = size - margin * 2
     fitted = mark.copy()

@@ -44,7 +44,7 @@ export default function Header() {
             <Link className="flex items-center shrink-0" href="/" aria-label="AIVUR — Página principal">
               <Image
                 alt="AIVUR"
-                src={mounted && theme === "light" ? "/assets/logo-aivur-light.png" : "/assets/logo-aivur-dark.png"}
+                src={mounted && theme === "light" ? "/assets/logo-aivur-light.webp" : "/assets/logo-aivur-dark.webp"}
                 width={180}
                 height={60}
                 priority

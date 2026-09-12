@@ -19,7 +19,7 @@ export default function Footer() {
           <div className={styles.footerBrand}>
             <div className={styles.logoRow}>
               <Link className="flex items-center shrink-0" href="/trilhas">
-                <Image alt="AIVUR" src="/assets/logo-aivur-dark.png" width={102} height={34} priority style={{ height: 34, width: 'auto', maxWidth: 102 }} className="object-contain" />
+                <Image alt="AIVUR" src="/assets/logo-aivur-dark.webp" width={102} height={34} priority style={{ height: 34, width: 'auto', maxWidth: 102 }} className="object-contain" />
               </Link>
               <button 
                 onClick={openAdminIngest} 

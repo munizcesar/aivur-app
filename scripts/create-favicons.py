@@ -9,9 +9,9 @@ if not bbox:
     raise RuntimeError('Logo sem conteúdo visível')
 
 mark = source.crop(bbox)
-# Keep a compact premium tile: dark institutional background + large, centered symbol.
+# Keep the supplied symbol only: no background, no border, and no colored tile.
 for size, margin in [(16, 2), (32, 3), (180, 18), (192, 18), (512, 42)]:
-    canvas = Image.new('RGBA', (size, size), (6, 21, 33, 255))
+    canvas = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     target = size - margin * 2
     fitted = mark.copy()
     fitted.thumbnail((target, target), Image.Resampling.LANCZOS)
@@ -19,9 +19,9 @@ for size, margin in [(16, 2), (32, 3), (180, 18), (192, 18), (512, 42)]:
     y = (size - fitted.height) // 2
     canvas.alpha_composite(fitted, (x, y))
     if size == 16:
-        canvas.convert('RGB').save(root / 'favicon-16x16.png', optimize=True)
+        canvas.save(root / 'favicon-16x16.png', optimize=True)
     elif size == 32:
-        canvas.convert('RGB').save(root / 'favicon-32x32.png', optimize=True)
+        canvas.save(root / 'favicon-32x32.png', optimize=True)
     elif size == 180:
         canvas.save(root / 'apple-touch-icon.png', optimize=True)
     elif size == 192:

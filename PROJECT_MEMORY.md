@@ -242,3 +242,4 @@ pm run build sucesso) e o script de teste de mock (scratch/test-ai-route.mjs) fo
 - Nenhum link morto remanescente (rotas /trilhas/novo apontam diretamente para criação e redirecionam para o Cockpit).
 - A base do app está estruturada inteiramente sobre o padrão do Cockpit (Microlearning).
 - **Ajuste UX (CriarTrilhaView):** Adicionada capacidade de renomear o título da trilha gerada inline (click-to-edit com ícone Edit2) antes de salvá-la definitivamente no Zustand, mantendo o restante do fluxo 100% automatizado.
+- **PDF Parsing:** Leitura de PDFs foi movida para o client-side (no CriarTrilhaView.tsx) usando pdfjs-dist para suportar nativamente a restrição do Edge Runtime do Cloudflare Pages sem quebrar a geração da IA.

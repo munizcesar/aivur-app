@@ -166,3 +166,19 @@ Para evitar falhas por chaves revogadas (401) ou rate limit (429), foi implement
 
 ### Pendência Atualizada
 - A chave primária `GROQ_API_KEY` (index 0) está retornando `401 Invalid API Key`. Como não há chaves secundárias no momento, o sistema esgota as tentativas e cai suavemente no fallback mock. Para restaurar o motor real de IA, basta adicionar chaves válidas em `.env.local` na ordem de prioridade descrita acima.
+
+## 9. Motor de Validação Zod (Schema-Driven AI) — Sessão atual
+
+### Arquivos Criados/Modificados
+- `src/lib/validations/trilha.ts` — **[NOVO]** Contrato único de dados:
+  - `TrilhaSchema` — fonte de verdade completa (video + flashcards min(3) + questoes min(3), opcoes `.length(4)`).
+  - `AIExpansionSchema` — contrato da saída da IA (questoes min(1) + flashcards optional).
+  - Types exportados: `TrilhaTemplateType`, `AIExpansionType`.
+- `src/app/api/ai/gerar-questoes/route.ts` — **[MODIFICADO]**:
+  - Import de `AIExpansionSchema`.
+  - `JSON.parse(content)` substituído por `AIExpansionSchema.safeParse(...)`.
+  - Formato inválido da IA → log estruturado + throw → cai no catch existente → fallback mock ativado.
+  - **Gap corrigido:** antes a IA podia retornar `opcoes` com 3 itens e quebrar o grid de alternativas silenciosamente.
+
+### Verificação
+- `npx tsc -p tsconfig.json --noEmit` → exit 0 (zero erros TypeScript).

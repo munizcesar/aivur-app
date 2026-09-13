@@ -2,6 +2,7 @@ export const runtime = 'edge';
 
 import { NextResponse } from "next/server";
 import { callGroqWithFallback } from "@/lib/groq";
+import { AIExpansionSchema } from "@/lib/validations/trilha";
 
 export async function POST(req: Request) {
   try {
@@ -22,19 +23,23 @@ export async function POST(req: Request) {
     const topico = body.topico as string;
     const erros = Array.isArray(body.erros) ? (body.erros as string[]) : [];
 
-    const prompt = `Você é um gerador de questões de múltipla escolha para o AIVUR. 
-Tópico atual: ${topico}
-Foque nestes pontos onde o aluno apresentou dificuldade: ${erros?.join(" | ") || "Conceitos gerais"}.
-Gere 3 questões com 4 opções cada.
-Retorne um JSON estrito no formato exato:
+    const errosFormatados = erros.length > 0
+      ? erros.join(", ")
+      : "Nenhum erro registrado ainda. Gere questões de nível intermediário.";
+
+    const prompt = `Você é um gerador de questões de concurso público focado em micro-learning e correção de fraquezas.
+Tópico: ${topico}.
+O aluno errou os seguintes conceitos recentemente: ${errosFormatados}.
+Gere EXATAMENTE 3 questões de múltipla escolha com 4 alternativas cada, focadas em corrigir essas fraquezas e aprofundar o conhecimento.
+Retorne SOMENTE este JSON, sem texto adicional:
 {
   "questoes": [
     {
-      "id": "uuid-unico",
+      "id": "q_gen_1",
       "enunciado": "texto da questao",
-      "opcoes": ["A", "B", "C", "D"],
+      "opcoes": ["alternativa A", "alternativa B", "alternativa C", "alternativa D"],
       "corretaIdx": 0,
-      "justificativa": "explicacao da resposta"
+      "justificativa": "explicacao detalhada da resposta correta"
     }
   ]
 }`;
@@ -46,7 +51,13 @@ Retorne um JSON estrito no formato exato:
     
     if (!content) throw new Error("Retorno vazio da IA");
 
-    return NextResponse.json(JSON.parse(content));
+    const parsed = AIExpansionSchema.safeParse(JSON.parse(content));
+    if (!parsed.success) {
+      console.error("[Zod Validation Error]", parsed.error.flatten());
+      throw new Error(`Formato inválido retornado pela IA: ${parsed.error.message}`);
+    }
+
+    return NextResponse.json(parsed.data);
 
   } catch (error: any) {
     console.error("[AI Generation Error]", error);

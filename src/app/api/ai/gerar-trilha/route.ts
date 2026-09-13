@@ -79,18 +79,20 @@ ${text ? `Conteúdo de base para a trilha:\n${text}` : ""}
 
 Você deve gerar UMA UNICA Trilha de Estudo em JSON rigoroso contendo:
 - 'disciplina': o nome da matéria geral (ex: Direito Constitucional).
-- 'video': um objeto contendo 'titulo' e 'resumo'.
+- 'video': um objeto contendo 'titulo', 'resumo' (curto, 1 frase) e 'resumo_markdown' (um resumo farto, estruturado em markdown com subtópicos, listas e conceitos-chave da matéria).
 - 'flashcards': array de 3 a 5 objetos com 'frente' (pergunta) e 'verso' (resposta curta e direta).
 - 'questoes': array de 3 a 5 questões de múltipla escolha. Cada questão deve ter 'enunciado', 'opcoes' (exatamente 4 strings), 'corretaIdx' (0 a 3) e 'justificativa'.
 
-NÃO use markdown no retorno, devolva APENAS o JSON puro.
+Certifique-se de escapar corretamente as aspas e quebras de linha (\\n) dentro da string do 'resumo_markdown', pois o retorno DEVE ser um JSON perfeitamente válido.
+NÃO use markdown no corpo principal do retorno (sem blocos \`\`\`json), devolva APENAS o JSON puro.
 
 Schema esperado:
 {
   "disciplina": "string",
   "video": {
     "titulo": "string",
-    "resumo": "string"
+    "resumo": "string",
+    "resumo_markdown": "string"
   },
   "flashcards": [
     { "frente": "string", "verso": "string" }
@@ -232,7 +234,8 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
       video: {
         youtubeId: youtubeId,
         titulo: parsedJson.video?.titulo || `Aula: ${title}`,
-        resumo: parsedJson.video?.resumo || "Resumo da aula."
+        resumo: parsedJson.video?.resumo || "Resumo da aula.",
+        resumo_markdown: parsedJson.video?.resumo_markdown || ""
       },
       flashcards: (parsedJson.flashcards || []).map((fc: any, idx: number) => ({
         id: `${trilhaId}-fc-${idx}`,

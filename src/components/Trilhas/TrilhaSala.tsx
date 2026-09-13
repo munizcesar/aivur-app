@@ -5,6 +5,38 @@ import { useParams, useRouter } from "next/navigation";
 import { CheckCircle2, XCircle, ArrowRight, Zap, Loader2 } from "lucide-react";
 import { TRILHAS_MOCK, TrilhaQuestao } from "@/mocks/trilhasMock";
 import { useStudyStore, StudyTab } from "@/store/useStudyStore";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { type ReactNode } from "react";
+
+const markdownComponents: Components = {
+  h1: ({ children }: { children?: ReactNode }) => (
+    <h1 className="mt-8 mb-4 text-2xl font-bold text-[var(--color-primary)] md:text-3xl">{children}</h1>
+  ),
+  h2: ({ children }: { children?: ReactNode }) => (
+    <h2 className="mt-7 mb-3 text-xl font-bold text-[var(--color-primary)] md:text-2xl">{children}</h2>
+  ),
+  h3: ({ children }: { children?: ReactNode }) => (
+    <h3 className="mt-6 mb-2 text-lg font-semibold text-[var(--color-primary)]">{children}</h3>
+  ),
+  p: ({ children }: { children?: ReactNode }) => (
+    <p className="text-[1.05rem] leading-[1.8] text-[var(--color-text-muted)] mb-4">{children}</p>
+  ),
+  ul: ({ children }: { children?: ReactNode }) => (
+    <ul className="my-4 list-disc space-y-2 pl-6 text-[var(--color-text-muted)]">{children}</ul>
+  ),
+  ol: ({ children }: { children?: ReactNode }) => (
+    <ol className="my-4 list-decimal space-y-2 pl-6 text-[var(--color-text-muted)]">{children}</ol>
+  ),
+  li: ({ children }: { children?: ReactNode }) => <li className="leading-relaxed">{children}</li>,
+  strong: ({ children }: { children?: ReactNode }) => <strong className="font-semibold text-[var(--color-text)]">{children}</strong>,
+  em: ({ children }: { children?: ReactNode }) => <em className="italic text-[var(--color-text-muted)] opacity-80">{children}</em>,
+  blockquote: ({ children }: { children?: ReactNode }) => (
+    <blockquote className="my-6 border-l-2 border-[var(--color-primary)]/50 pl-5 italic text-[var(--color-text-muted)]">
+      {children}
+    </blockquote>
+  ),
+};
 
 // ─── 1. TELEMETRIA E GROWTH (Mixpanel/PostHog Hooks) ──────────────────────
 const trackEvent = (eventName: string, properties: Record<string, any> = {}) => {
@@ -135,13 +167,17 @@ export default function TrilhaSala() {
   };
 
   const renderResumo = () => {
+    const markdownContent = (trilha.video as any)?.resumo_markdown || trilha.video?.resumo || "O resumo detalhado desta trilha estará disponível em breve.";
+    
     return (
       <div className="w-full max-w-[800px] mx-auto animate-in fade-in zoom-in-95 duration-300">
-        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6 md:p-8 text-left shadow-lg">
-          <h3 className="text-[var(--color-heading)] font-bold text-xl md:text-2xl mb-4">Resumo da Aula</h3>
-          <p className="text-[var(--color-text)] text-sm md:text-base leading-relaxed whitespace-pre-wrap">
-            {trilha.video?.resumo || "O resumo detalhado desta trilha estará disponível em breve."}
-          </p>
+        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6 md:p-10 text-left shadow-lg">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={markdownComponents}
+          >
+            {markdownContent}
+          </ReactMarkdown>
         </div>
       </div>
     );

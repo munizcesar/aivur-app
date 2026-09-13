@@ -10,6 +10,7 @@ export const TrilhaSchema = z.object({
     youtubeId: z.string(),
     titulo: z.string(),
     resumo: z.string(),
+    resumo_markdown: z.string().optional(),
   }),
   flashcards: z
     .array(

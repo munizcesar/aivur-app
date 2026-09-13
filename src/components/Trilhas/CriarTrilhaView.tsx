@@ -219,7 +219,7 @@ export default function CriarTrilhaView({
               <label className="block text-sm font-bold text-[var(--color-cream)] mb-2">
                 Upload de Edital em PDF
               </label>
-              <div className="relative border-2 border-dashed border-[rgba(107,153,179,0.3)] hover:border-[var(--color-slate-blue)] rounded-xl p-6 text-center transition-colors bg-[var(--color-bg)]/30 cursor-pointer">
+              <div className="relative border-2 border-dashed border-[rgba(107,153,179,0.3)] hover:border-[var(--color-red)] rounded-xl p-6 text-center transition-colors bg-[var(--color-bg)]/30 cursor-pointer">
                 <input
                   type="file"
                   accept=".pdf"
@@ -315,4 +315,5 @@ export default function CriarTrilhaView({
     </div>
   );
 }
+
 

@@ -1,24 +1,24 @@
 .page {
-  --navy-950: #020b14;
-  --navy-900: #071521;
-  --navy-850: #0b1d2b;
-  --navy-800: #102a3d;
-  --blue-muted: #8ca6b8;
-  --cream: #f8ecd7;
-  --gold: #d8b75c;
-  --red: #d42b4c;
+  --navy-950: #020C14;
+  --navy-900: #0A2E45;
+  --navy-850: #0B1929;
+  --navy-800: #0A2E45;
+  --blue-muted: #6B99B3;
+  --cream: #FBEBD0;
+  --gold: #F4A261;
+  --red: #C41230;
   min-height: 100%;
   overflow: hidden;
   background:
-    radial-gradient(circle at 84% 4%, rgba(31, 86, 116, .2), transparent 28rem),
+    radial-gradient(circle at 84% 4%, rgba(10, 46, 69, .2), transparent 28rem),
     var(--navy-950);
   color: #f8fafc;
 }
 
 .hero {
   position: relative;
-  border-bottom: 1px solid rgba(140, 166, 184, .18);
-  background: linear-gradient(135deg, rgba(7, 21, 33, .96), rgba(2, 11, 20, .9));
+  border-bottom: 1px solid rgba(107, 153, 179, .18);
+  background: linear-gradient(135deg, rgba(10, 46, 69, .96), rgba(2, 12, 20, .9));
 }
 
 .heroInner,
@@ -43,9 +43,9 @@
   gap: 8px;
   margin-bottom: 16px;
   padding: 7px 12px;
-  border: 1px solid rgba(216, 183, 92, .35);
+  border: 1px solid rgba(244, 162, 97, .35);
   border-radius: 999px;
-  background: rgba(216, 183, 92, .1);
+  background: rgba(244, 162, 97, .1);
   color: var(--gold);
   font-size: 11px;
   font-weight: 800;
@@ -83,14 +83,14 @@
   padding: 0 20px;
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 12px;
-  background: linear-gradient(135deg, #e03b5a, #b7193b);
-  box-shadow: 0 12px 30px rgba(212, 43, 76, .22);
-  color: white;
+  background: var(--red);
+  box-shadow: 0 12px 30px rgba(196, 18, 48, .22);
+  color: var(--cream);
   font-size: 14px;
   font-weight: 800;
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
-.primaryAction:hover { transform: translateY(-2px); box-shadow: 0 16px 35px rgba(212,43,76,.32); }
+.primaryAction:hover { transform: translateY(-2px); box-shadow: 0 16px 35px rgba(196, 18, 48,.32); background: #8B0C20; }
 .primaryAction:active { transform: scale(.98); }
 
 .heroArt {
@@ -99,9 +99,6 @@
   justify-content: center;
   min-width: 0;
   min-height: 250px;
-  border: 1px solid rgba(140, 166, 184, .12);
-  border-radius: 28px;
-  background: radial-gradient(circle, rgba(22, 61, 85, .5), rgba(2,11,20,.15) 68%);
 }
 .heroArt img { width: min(100%, 330px); height: auto; object-fit: contain; filter: drop-shadow(0 24px 32px rgba(0,0,0,.4)); }
 

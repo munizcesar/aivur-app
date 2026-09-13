@@ -8,8 +8,9 @@ import TrilhasContainer from "@/components/Trilhas/TrilhasContainer";
  */
 export default function NovaTrilhaPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-[#020C14] text-[#6B99B3] text-sm">Carregando...</div>}>
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] text-[#6B99B3] text-sm">Carregando...</div>}>
       <TrilhasContainer initialView="criar" />
     </Suspense>
   );
 }
+

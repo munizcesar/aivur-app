@@ -39,7 +39,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
       {/* HEADER DA SEÇÃO DE TEMPLATES */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-[#F4A261]/10 text-[#F4A261] text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-[var(--color-slate-blue)]/10 text-[var(--color-slate-blue)] text-xs font-bold uppercase tracking-wider mb-2">
             <Compass className="w-3.5 h-3.5" />
             Modelos Estruturados
           </div>
@@ -98,7 +98,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                     {template.category}
                   </span>
                   {template.badge && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-[var(--color-red)]/15 text-[#F4A261] border border-[var(--color-red)]/30">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-[var(--color-red)]/15 text-[var(--color-cream)] border border-[var(--color-red)]/30">
                       {template.badge}
                     </span>
                   )}
@@ -109,7 +109,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                   {template.title}
                 </h3>
                 {template.banca && (
-                  <p className="text-xs text-[#F4A261] font-semibold mt-1">
+                  <p className="text-xs text-[var(--color-slate-blue)] font-semibold mt-1">
                     Banca alvo: {template.banca}
                   </p>
                 )}
@@ -125,7 +125,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                     {template.syllabusSummary.slice(0, 3).map((item, idx) => (
                       <span
                         key={idx}
-                        className="text-[10px] px-2 py-0.5 rounded bg-[#020C14]/60 text-slate-300 border border-[rgba(107,153,179,0.15)]"
+                        className="text-[10px] px-2 py-0.5 rounded bg-[var(--color-bg)]/60 text-slate-300 border border-[rgba(107,153,179,0.15)]"
                       >
                         {item}
                       </span>
@@ -169,9 +169,9 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                   <button
                     type="button"
                     onClick={() => onSelectTemplate?.(template)}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[#020C14]/50 hover:bg-[var(--color-navy)] text-[var(--color-cream)] hover:border-[#F4A261] text-xs sm:text-sm font-bold transition-all cursor-pointer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[var(--color-bg)]/50 hover:bg-[var(--color-navy)] text-[var(--color-cream)] hover:border-[var(--color-cream)] text-xs sm:text-sm font-bold transition-all cursor-pointer"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-[#F4A261]" />
+                    <Sparkles className="w-3.5 h-3.5 text-[var(--color-cream)]" />
                     <span>Usar como Base</span>
                   </button>
                 )}
@@ -183,4 +183,5 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
     </section>
   );
 }
+
 

@@ -57,7 +57,7 @@ export default function TrilhasContainer({ initialView }: TrilhasContainerProps)
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#020C14] text-[#F8FAFC]">
+    <div className="min-h-screen flex flex-col bg-[var(--color-bg)] text-[#F8FAFC]">
       <Header />
 
       <main className="flex-1 transition-opacity duration-200">
@@ -80,4 +80,5 @@ export default function TrilhasContainer({ initialView }: TrilhasContainerProps)
     </div>
   );
 }
+
 

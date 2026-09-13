@@ -46,7 +46,7 @@ export default function MinhasTrilhasView({
       {/* CABEÇALHO */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#F4A261]/15 text-[#F4A261] text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--color-red)]/15 text-[var(--color-red)] text-xs font-bold uppercase tracking-wider mb-2">
             <Compass className="w-3.5 h-3.5" />
             Mentor AIVUR 360 · Painel
           </div>
@@ -114,14 +114,14 @@ export default function MinhasTrilhasView({
                         <button
                           type="button"
                           onClick={() => setEditingCourse({ id: trilha.id, titulo: trilha.titulo })}
-                          className="p-1.5 rounded text-[var(--color-slate-blue)] hover:text-white hover:bg-[#020C14]/50 transition-colors"
+                          className="p-1.5 rounded text-[var(--color-slate-blue)] hover:text-white hover:bg-[var(--color-bg)]/50 transition-colors"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeletingCourse(trilha)}
-                          className="p-1.5 rounded text-[var(--color-slate-blue)] hover:text-red-400 hover:bg-[#020C14]/50 transition-colors"
+                          className="p-1.5 rounded text-[var(--color-slate-blue)] hover:text-red-400 hover:bg-[var(--color-bg)]/50 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -135,11 +135,11 @@ export default function MinhasTrilhasView({
                     <div className="space-y-1.5 mb-5">
                       <div className="flex justify-between text-xs text-[var(--color-slate-blue)] font-semibold">
                         <span>Progresso de retenção</span>
-                        <span className="text-[#F4A261] font-bold">{percent}%</span>
+                        <span className="text-[var(--color-cream)] font-bold">{percent}%</span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-[#020C14]/80 overflow-hidden border border-[rgba(107,153,179,0.15)]">
+                      <div className="w-full h-2 rounded-full bg-[var(--color-bg)]/80 overflow-hidden border border-[rgba(107,153,179,0.15)]">
                         <div
-                          className="h-full bg-gradient-to-r from-[var(--color-red)] to-[#F4A261] transition-all duration-500 rounded-full"
+                          className="h-full bg-[var(--color-red)] transition-all duration-500 rounded-full"
                           style={{ width: `${percent}%` }}
                         />
                       </div>
@@ -149,10 +149,10 @@ export default function MinhasTrilhasView({
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 mt-auto border-t border-[rgba(107,153,179,0.15)] bg-[#0B1929]/30">
                     <Link
                       href={`/trilhas/${trilha.id}`}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-navy)] hover:bg-[#0F3A53] text-[var(--color-cream)] text-xs sm:text-sm font-bold border border-[rgba(107,153,179,0.25)] transition-all group-hover:border-[#F4A261]/60"
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-navy)] hover:bg-[#0F3A53] text-[var(--color-cream)] text-xs sm:text-sm font-bold border border-[rgba(107,153,179,0.25)] transition-all group-hover:border-[var(--color-slate-blue)]/60"
                     >
                       <span>Acessar Cronograma</span>
-                      <ArrowRight className="w-4 h-4 text-[#F4A261]" />
+                      <ArrowRight className="w-4 h-4 text-[var(--color-slate-blue)]" />
                     </Link>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export default function MinhasTrilhasView({
             </div>
             <input
               autoFocus
-              className="w-full px-3 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[#020C14] text-white text-sm focus:border-[var(--color-red)] outline-none mb-5"
+              className="w-full px-3 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[var(--color-bg)] text-white text-sm focus:border-[var(--color-red)] outline-none mb-5"
               value={editingCourse.titulo}
               onChange={(e) => setEditingCourse({ ...editingCourse, titulo: e.target.value })}
               onKeyDown={(e) => {
@@ -282,3 +282,4 @@ export default function MinhasTrilhasView({
     </div>
   );
 }
+

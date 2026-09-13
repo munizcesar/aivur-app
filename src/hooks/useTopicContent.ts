@@ -74,7 +74,7 @@ export function useTopicContent(topicId: string) {
     setIsLoadingTeoria(true);
     setError(null);
     try {
-      const res = await fetch("/api/mentor/teoria", {
+      const res = await fetch("/api/ai/teoria", {
         method: "POST",
         body: JSON.stringify({ label, subject, nicho }),
       });
@@ -95,7 +95,7 @@ export function useTopicContent(topicId: string) {
     setIsLoadingFlashcards(true);
     setError(null);
     try {
-      const res = await fetch("/api/mentor/flashcards", {
+      const res = await fetch("/api/ai/flashcards", {
         method: "POST",
         body: JSON.stringify({ label, subject, nicho, context: state.teoria }),
       });
@@ -116,7 +116,7 @@ export function useTopicContent(topicId: string) {
     setIsLoadingQuestoes(true);
     setError(null);
     try {
-      const res = await fetch("/api/mentor/questoes", {
+      const res = await fetch("/api/ai/questoes", {
         method: "POST",
         body: JSON.stringify({ label, subject, nicho, dificuldade, banca }),
       });

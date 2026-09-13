@@ -63,7 +63,7 @@ export default function ResumeTab() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch("/api/mentor/teoria", {
+        const response = await fetch("/api/ai/teoria", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ tema: selectedTopic.titulo, subject: activeModule?.titulo ?? "Geral" }),

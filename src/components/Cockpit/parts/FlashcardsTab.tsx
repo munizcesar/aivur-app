@@ -29,7 +29,7 @@ export default function FlashcardsTab({ topicTitle, subjectName }: FlashcardsTab
       setCurrentIndex(0);
       setIsFlipped(false);
       try {
-        const response = await fetch("/api/mentor/flashcards", {
+        const response = await fetch("/api/ai/flashcards", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ label: topicTitle ?? "Tópico atual", subject: subjectName ?? "Geral" }),

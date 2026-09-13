@@ -19,9 +19,9 @@ export default function TrilhaSala() {
   const params = useParams();
   const id = params.id as string;
   
-  const trilha = TRILHAS_MOCK.find(t => t.id === id);
-
-  const { progressData, registerAnswer, toggleTopicCompletion } = useStudyStore();
+  const { progressData, registerAnswer, toggleTopicCompletion, customTrilhas } = useStudyStore();
+  
+  const trilha = TRILHAS_MOCK.find(t => t.id === id) || customTrilhas.find(t => t.id === id);
 
   const [activeTab, setActiveTab] = useState<StudyTab>("video");
 
@@ -275,8 +275,8 @@ export default function TrilhaSala() {
                 onClick={() => {
                   const correct = selectedOpt === q.corretaIdx;
                   setIsSubmitted(true);
-                  registerAnswer(q.id, correct);
-                  trackEvent("question_answered", { question_id: q.id, correct, trilha_id: trilha.id });
+                  registerAnswer(String(q.id), correct);
+                  trackEvent("question_answered", { question_id: String(q.id), correct, trilha_id: trilha.id });
                 }}
                 className="w-full md:w-auto px-8 py-3 rounded-xl bg-[var(--color-primary)] text-white font-bold hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >

@@ -218,7 +218,7 @@ export default function QuestionsTab() {
       setPending({});
       setResolvingId(null);
       try {
-        const response = await fetch("/api/mentor/questoes", {
+        const response = await fetch("/api/ai/questoes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ label: selectedTopic.titulo, subject: activeModule?.titulo }),

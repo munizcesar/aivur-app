@@ -31,6 +31,10 @@ interface StudyStore {
   loadStudyPath: () => Promise<void>;
   registerAnswer: (questionId: string, isCorrect: boolean) => void;
   toggleTopicCompletion: (topicId: string) => void;
+  customTrilhas: import("@/lib/validations/trilha").TrilhaTemplateType[];
+  addCustomTrilha: (trilha: import("@/lib/validations/trilha").TrilhaTemplateType) => void;
+  updateCustomTrilha: (id: string, updates: Partial<import("@/lib/validations/trilha").TrilhaTemplateType>) => void;
+  deleteCustomTrilha: (id: string) => void;
 }
 
 const initialProgress: StudyProgressData = {
@@ -53,6 +57,15 @@ export const useStudyStore = create<StudyStore>()(
       modules: [],
       progressData: initialProgress,
       completedTopicIds: [],
+
+      customTrilhas: [],
+      addCustomTrilha: (trilha) => set((state) => ({ customTrilhas: [...state.customTrilhas, trilha] })),
+      updateCustomTrilha: (id, updates) => set((state) => ({
+        customTrilhas: state.customTrilhas.map((t) => t.id === id ? { ...t, ...updates } : t)
+      })),
+      deleteCustomTrilha: (id) => set((state) => ({
+        customTrilhas: state.customTrilhas.filter((t) => t.id !== id)
+      })),
 
       setActiveModule: (id) => set({ activeModuleId: id }),
       selectTopic: (moduleId, topicId) => set({ activeModuleId: moduleId, currentTopicId: topicId, isMobileDrawerOpen: false }),
@@ -107,13 +120,14 @@ export const useStudyStore = create<StudyStore>()(
     {
       name: "aivur-study-store",
       storage: createJSONStorage(() => localStorage),
-      // Only persist navigation state — never isLoading (transient)
+      // Only persist navigation state and custom trilhas
       partialize: (state) => ({
         activeModuleId: state.activeModuleId,
         currentTopicId: state.currentTopicId,
         activeTab: state.activeTab,
         progressData: state.progressData,
         completedTopicIds: state.completedTopicIds,
+        customTrilhas: state.customTrilhas,
       }),
     }
   )

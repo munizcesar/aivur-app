@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractCleanJson, getDomainRules } from '@/lib/ai-protocols';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 // Basic in-memory rate limiting
 const ipMap = new Map<string, { count: number; resetTime: number }>();
@@ -97,62 +97,35 @@ export async function POST(req: Request) {
       text = text.slice(0, 50000);
     }
 
-    const promptEdital = `Você é um estruturador de cursos especialista em concursos públicos e exames. 
-Abaixo está o conteúdo de um edital ou material bruto.
-Você deve estruturar esse conteúdo em um JSON rigoroso, dividindo-o em matérias, nichos de matérias e tópicos.
-Para cada matéria, sugira um 'ytTerm' apropriado (o termo de busca que o aluno deve usar para encontrar aulas sobre essa matéria no YouTube).
-NÃO invente artigos de lei ou dispositivos que não estejam no texto.
-NÃO OMita nenhuma lei, artigo ou tópico listado. Se houver legislações ou tópicos soltos no final do texto sem uma matéria clara, crie uma matéria extra (ex: "Legislação Específica" ou "Conhecimentos Específicos") e coloque-os lá. Todo o conteúdo do edital deve ser contemplado.
-Seja SINTÉTICO na fragmentação: não crie um tópico isolado para cada vírgula ou palavra solta; agrupe conceitos e legislações correlatas em tópicos abrangentes para otimizar o tamanho da saída.
+    const prompt = `Você é um tutor especialista. 
+O aluno quer estudar sobre o seguinte tema: "${title}".
+${text ? `Conteúdo de base para a trilha:\n${text}` : ""}
+
+Você deve gerar UMA UNICA Trilha de Estudo em JSON rigoroso contendo:
+- 'disciplina': o nome da matéria geral (ex: Direito Constitucional).
+- 'video': um objeto contendo 'youtubeId' (invente uma string de 11 caracteres baseada no tema ou use um real se souber), 'titulo' e 'resumo'.
+- 'flashcards': array de 3 a 5 objetos com 'frente' (pergunta) e 'verso' (resposta curta e direta).
+- 'questoes': array de 3 a 5 questões de múltipla escolha. Cada questão deve ter 'enunciado', 'opcoes' (exatamente 4 strings), 'corretaIdx' (0 a 3) e 'justificativa'.
+
 NÃO use markdown no retorno, devolva APENAS o JSON puro.
 
-Schema esperado do JSON:
+Schema esperado:
 {
-  "subjects": [
+  "disciplina": "string",
+  "video": {
+    "youtubeId": "string",
+    "titulo": "string",
+    "resumo": "string"
+  },
+  "flashcards": [
+    { "frente": "string", "verso": "string" }
+  ],
+  "questoes": [
     {
-      "subject": "Nome da Matéria (ex: Língua Portuguesa)",
-      "ytTerm": "Língua Portuguesa para concursos aula",
-      "nichos": [
-        {
-          "title": "Nome do Nicho (ex: Compreensão de Textos)",
-          "items": [
-            {
-              "id": "será preenchido no backend, retorne string vazia",
-              "label": "Tópico específico (ex: Significação das palavras e Pontuação)"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-
-Conteúdo bruto:
-${text}`;
-
-    const promptLivre = `Você é um estruturador de cursos especialista.
-O aluno deseja criar uma trilha de estudos abrangente sobre o seguinte tema livre: "${title}".
-Você deve estruturar uma trilha lógica e pedagógica sobre este tema em um JSON rigoroso, dividindo o curso em grandes módulos (matérias), subseções (nichos) e aulas individuais (tópicos).
-Para cada matéria/módulo, sugira um 'ytTerm' apropriado (o termo de busca que o aluno deve usar para encontrar aulas no YouTube).
-NÃO use markdown no retorno, devolva APENAS o JSON puro.
-
-Schema esperado do JSON:
-{
-  "subjects": [
-    {
-      "subject": "Nome do Módulo (ex: Fundamentos Básicos)",
-      "ytTerm": "Tema específico aula passo a passo",
-      "nichos": [
-        {
-          "title": "Nome da Subseção (ex: Introdução Histórica)",
-          "items": [
-            {
-              "id": "será preenchido no backend, retorne string vazia",
-              "label": "Tópico da Aula (ex: O surgimento do conceito no século XX)"
-            }
-          ]
-        }
-      ]
+      "enunciado": "string",
+      "opcoes": ["string", "string", "string", "string"],
+      "corretaIdx": 0,
+      "justificativa": "string"
     }
   ]
 }`;
@@ -175,16 +148,14 @@ Schema esperado do JSON:
       // Ambientes locais sem bindings RAG seguem usando o conteúdo fornecido.
     }
 
-    const prompt = `${sourceType === "edital" ? promptEdital : promptLivre}
-
+    const finalPrompt = `${prompt}
 === PROTOCOLO DE CONFIABILIDADE ===
 ${getDomainRules(title)}
-
 ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
 
     const messages = [
       { role: "system", content: "You are a JSON assistant. Output valid JSON only." },
-      { role: "user", content: prompt }
+      { role: "user", content: finalPrompt }
     ];
 
     const fallbackModels = [
@@ -255,33 +226,33 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
         { status: 400 }
       );
     }
-    const parsedSubjects = parsedJson.subjects;
+    const trilhaId = `t-gerada-${Date.now().toString(36)}`;
     
-    // Validate basic shape
-    if (!Array.isArray(parsedSubjects)) {
-      throw new Error("Invalid output shape from AI");
-    }
-
-    // Add unique IDs and structure the final Course
-    const courseId = `local-${Date.now().toString(36)}`;
-    const finalCourse = {
-      id: courseId,
-      title: title,
-      sourceType: sourceType,
-      subjects: parsedSubjects.map((s: any, sIdx: number) => ({
-        subject: s.subject,
-        ytTerm: s.ytTerm,
-        nichos: (s.nichos || []).map((n: any, nIdx: number) => ({
-          title: n.title,
-          items: (n.items || []).map((i: any, iIdx: number) => ({
-            id: `${courseId}_M${sIdx}_N${nIdx}_T${iIdx}`,
-            label: i.label
-          }))
-        }))
+    const finalTrilha = {
+      id: trilhaId,
+      titulo: title,
+      disciplina: parsedJson.disciplina || "Geral",
+      progresso: 0,
+      video: {
+        youtubeId: parsedJson.video?.youtubeId || "dQw4w9WgXcQ",
+        titulo: parsedJson.video?.titulo || `Aula: ${title}`,
+        resumo: parsedJson.video?.resumo || "Resumo da aula."
+      },
+      flashcards: (parsedJson.flashcards || []).map((fc: any, idx: number) => ({
+        id: `${trilhaId}-fc-${idx}`,
+        frente: fc.frente || "",
+        verso: fc.verso || ""
+      })),
+      questoes: (parsedJson.questoes || []).map((q: any, idx: number) => ({
+        id: `${trilhaId}-q-${idx}`,
+        enunciado: q.enunciado || "",
+        opcoes: Array.isArray(q.opcoes) && q.opcoes.length === 4 ? q.opcoes : ["A", "B", "C", "D"],
+        corretaIdx: typeof q.corretaIdx === 'number' && q.corretaIdx >= 0 && q.corretaIdx <= 3 ? q.corretaIdx : 0,
+        justificativa: q.justificativa || ""
       }))
     };
 
-    return NextResponse.json(finalCourse);
+    return NextResponse.json(finalTrilha);
   } catch (error: any) {
     console.error("Erro na rota de Geração:", error);
     

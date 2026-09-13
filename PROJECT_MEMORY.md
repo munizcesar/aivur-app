@@ -212,3 +212,17 @@ await new Promise((resolve) => setTimeout(resolve, delay));
 - **Não implementar agora** — com apenas 1 chave no `.env.local`, o loop executa 1 iteração: `~326ms` (chave) + `throw` → `catch` → mock. Tempo atual aceitável (~326ms).
 - **Implementar quando** houver 3+ chaves todas inválidas em cascata (ex: rotação de chaves vencidas). Prioridade: **Backlog Baixa**.
 - **Tarefa futura:** substituir delay fixo por `const delay = status === 401 ? 0 : 500` em `src/lib/groq.ts`.
+
+## 11. Auditoria: Navegação em CriarTrilhaView.tsx (2026-09-13)
+
+### Resultado: ✅ Já está correto — nenhuma alteração necessária
+
+Auditoria completa de todos os usos de `window.history` e `router.push` no codebase:
+
+- **`CriarTrilhaView.tsx`**: botão "Verificar minhas trilhas" usa `onNavigateToMinhas` (callback de prop) → `TrilhasContainer.handleNavigateToMinhas` → `router.push("/trilhas?view=minhas", { scroll: false })`. Padrão correto.
+- **`handleSave`**: usa `router.push(`/mentor/${draftCourse.id}`)`. Correto.
+- **`TrilhasContainer.tsx`**: todas as transições usam `router.push` com `{ scroll: false }`. Correto.
+- **`WizardStep3.tsx`**: usa `window.history.pushState` (não `back()`) como interceptor intencional para capturar `popstate` e exibir modal de confirmação antes de sair do quiz. Padrão legítimo de UX defensivo.
+
+**`window.history.back()` não existe em nenhum arquivo do projeto.** O item de backlog foi resolvido em sessão anterior sem registro explícito.
+

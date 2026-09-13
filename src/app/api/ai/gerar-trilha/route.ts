@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractCleanJson, getDomainRules } from '@/lib/ai-protocols';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
 // Basic in-memory rate limiting
 const ipMap = new Map<string, { count: number; resetTime: number }>();

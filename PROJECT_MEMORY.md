@@ -182,3 +182,33 @@ Para evitar falhas por chaves revogadas (401) ou rate limit (429), foi implement
 
 ### Verificação
 - `npx tsc -p tsconfig.json --noEmit` → exit 0 (zero erros TypeScript).
+- Commit: `647dad5` — "feat: adaptive prompt for gerar-questoes + regression tests (11/11 pass)"
+
+## 10. Investigação: Timing do Failover Groq (não bloqueante)
+
+### Dados Medidos (2026-09-13)
+Medição com `groq-sdk` diretamente (Node.js), simulando o loop de `callGroqWithFallback`:
+
+| Cenário | Status | Tempo até exceção | Delay pós-falha | Custo total/chave |
+|---|---|---|---|---|
+| Chave formato errado | 401 | ~37ms | 500ms | ~537ms |
+| Chave vazia | 401 | ~85ms | 500ms | ~585ms |
+| Chave projeto (`gsk_9mgS...`) | 401 | ~326ms | 500ms | ~826ms |
+
+**Projeção worst-case (5 chaves todas 401):** `5 × 826ms = ~4.1s` até ativar mock fallback.
+
+### Diagnóstico do Problema
+O delay de `500ms` entre chaves (`src/lib/groq.ts` linha 67) foi concebido para erros de rate-limit (429) ou falhas de servidor (5xx), onde o delay faz sentido. Para erros `401` (chave inválida), o delay é **desnecessário** — a resposta já chegou em ~326ms e sabemos imediatamente que a chave é inválida permanentemente.
+
+### Proposta de Otimização (BACKLOG)
+```ts
+// Em callGroqWithFallback, diferenciar delay por tipo de erro:
+const delay = status === 401 ? 0 : 500; // 401 = chave inválida permanente, sem delay
+await new Promise((resolve) => setTimeout(resolve, delay));
+```
+**Ganho projetado com 5 chaves 401:** `5 × 326ms = ~1.6s` (vs. 4.1s atual) — redução de **61%** no tempo até o mock.
+
+### Decisão
+- **Não implementar agora** — com apenas 1 chave no `.env.local`, o loop executa 1 iteração: `~326ms` (chave) + `throw` → `catch` → mock. Tempo atual aceitável (~326ms).
+- **Implementar quando** houver 3+ chaves todas inválidas em cascata (ex: rotação de chaves vencidas). Prioridade: **Backlog Baixa**.
+- **Tarefa futura:** substituir delay fixo por `const delay = status === 401 ? 0 : 500` em `src/lib/groq.ts`.

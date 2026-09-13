@@ -201,12 +201,14 @@ export default function TrilhaSala() {
           }}
         >
           <div className={`w-full h-full transition-all duration-500 [transform-style:preserve-3d] ${fcFlipped ? "[transform:rotateY(180deg)]" : ""}`}>
-            <div className="absolute inset-0 w-full h-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-xl [backface-visibility:hidden]">
+            {/* Frente */}
+            <div className="absolute inset-0 w-full h-full bg-[var(--color-surface)] border border-[var(--color-border)] group-hover:border-[var(--color-primary)] transition-colors rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-xl [backface-visibility:hidden]">
               <span className="text-[var(--color-primary)] text-xs font-bold tracking-widest mb-6 uppercase">Pergunta</span>
               <p className="text-[var(--color-heading)] text-xl md:text-2xl font-medium leading-relaxed">{card.frente}</p>
             </div>
-            <div className="absolute inset-0 w-full h-full bg-[var(--elite-navy)] border border-[var(--color-primary)] rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-xl [backface-visibility:hidden] [transform:rotateY(180deg)]">
-              <span className="text-[var(--color-primary)] text-xs font-bold tracking-widest mb-6 uppercase">Resposta</span>
+            {/* Verso */}
+            <div className="absolute inset-0 w-full h-full bg-[var(--elite-navy)] border border-[var(--color-primary)] rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-xl [backface-visibility:hidden] [transform:rotateY(180deg)] overflow-y-auto no-scrollbar">
+              <span className="text-[var(--color-primary)] text-xs font-bold tracking-widest mb-4 uppercase shrink-0">Resposta</span>
               <p className="text-[var(--elite-cream)] text-lg md:text-xl font-medium leading-relaxed">{card.verso}</p>
             </div>
           </div>

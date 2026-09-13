@@ -73,7 +73,7 @@ export default function TrilhaSelector({ activeTrilhaId }: TrilhaSelectorProps) 
 
       {/* ── Dropdown Menu Premium ── */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-full max-w-md bg-[#0B1929] border border-[#1E3A5F] rounded-2xl shadow-2xl shadow-black/60 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="mt-2 w-full bg-[#0B1929] border border-[#1E3A5F] rounded-2xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="p-2">
             <h3 className="px-3 pt-2 pb-1 text-[10px] uppercase font-bold tracking-wider text-slate-500">
               Suas Trilhas
@@ -144,3 +144,4 @@ export default function TrilhaSelector({ activeTrilhaId }: TrilhaSelectorProps) 
     </div>
   );
 }
+

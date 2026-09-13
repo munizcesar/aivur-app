@@ -1,6 +1,6 @@
 ## 1. Regras Vigentes
 
-- **Paleta Institucional (tokens CSS):** usar EXCLUSIVAMENTE variáveis CSS do `globals.css` — `var(--color-bg)`, `var(--color-surface)`, `var(--color-border)`, `var(--color-heading)`, `var(--color-text)`, `var(--color-text-muted)`, `var(--color-primary)`, `var(--color-primary-hover)`, `var(--elite-red)`, `var(--elite-navy)`, `var(--elite-cream)`. **PROIBIDO** hex hardcoded (`#020C14`, `#C9A84C` etc.) em qualquer componente novo ou editado.
+- **Paleta Institucional (tokens CSS oficiais da marca):**`n  - Fundo branco limpo: #FFFFFF`n  - Azul-marinho profundo: #0A2E45`n  - Vermelho vivo: #C41230`n  - Creme editorial: #FBEBD0`n  - Azul acinzentado: #6B99B3`n  - **Regra:** Usar EXCLUSIVAMENTE variaveis CSS documentadas no globals.css que mapeiam essas cores exatas. PROIBIDO hex hardcoded em componentes.
 - Alternativas devem preservar CSS Grid com primeira coluna fixa de `40px` e segunda coluna flexível (`40px 1fr` / `40px_minmax(0,1fr)_24px`).
 - O box model das alternativas mobile deve manter respiro lateral mínimo de `px-5` e padding vertical equivalente a `py-4`.
 - Badges de alternativas devem permanecer fixas em `40x40px`, sem deformação ou layout shift.
@@ -77,7 +77,7 @@
 ## 1. Regras Vigentes
 
 - **Git — Push seguro:** NUNCA usar `git push --force`. Sempre usar `git push --force-with-lease`, que cancela o push automaticamente se o remoto tiver recebido commits novos entre o fetch e o push, evitando sobrescrever/perder trabalho de outra sessão ou dispositivo sem aviso.
-- **Paleta Institucional (tokens CSS):** usar EXCLUSIVAMENTE variáveis CSS do `globals.css` — `var(--color-bg)`, `var(--color-surface)`, `var(--color-border)`, `var(--color-heading)`, `var(--color-text)`, `var(--color-text-muted)`, `var(--color-primary)`, `var(--color-primary-hover)`, `var(--elite-red)`, `var(--elite-navy)`, `var(--elite-cream)`. **PROIBIDO** hex hardcoded (`#020C14`, `#C9A84C` etc.) em qualquer componente novo ou editado.
+- **Paleta Institucional (tokens CSS oficiais da marca):**`n  - Fundo branco limpo: #FFFFFF`n  - Azul-marinho profundo: #0A2E45`n  - Vermelho vivo: #C41230`n  - Creme editorial: #FBEBD0`n  - Azul acinzentado: #6B99B3`n  - **Regra:** Usar EXCLUSIVAMENTE variaveis CSS documentadas no globals.css que mapeiam essas cores exatas. PROIBIDO hex hardcoded em componentes.
 - Alternativas devem preservar CSS Grid com primeira coluna fixa de `40px` e segunda coluna flexível (`40px 1fr` / `40px_minmax(0,1fr)_24px`).
 - O box model das alternativas mobile deve manter respiro lateral mínimo de `px-5` e padding vertical equivalente a `py-4`.
 - Badges de alternativas devem permanecer fixas em `40x40px`, sem deformação ou layout shift.
@@ -245,3 +245,4 @@ pm run build sucesso) e o script de teste de mock (scratch/test-ai-route.mjs) fo
 - **PDF Parsing:** Leitura de PDFs foi movida para o client-side (no CriarTrilhaView.tsx) usando pdfjs-dist para suportar nativamente a restrição do Edge Runtime do Cloudflare Pages sem quebrar a geração da IA.
 
 - Stage 1-5 UI e IA fixes no Cockpit Microlearning conclu�dos (YouTube real, Resumo Markdown, Flashcards overflow, Quest�es grid, Trilhas Page Palette).
+

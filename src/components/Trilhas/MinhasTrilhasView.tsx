@@ -53,7 +53,7 @@ export default function MinhasTrilhasView({
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             Minhas Trilhas Ativas
           </h1>
-          <p className="text-sm sm:text-base text-[#6B99B3] mt-1 max-w-xl">
+          <p className="text-sm sm:text-base text-[var(--color-slate-blue)] mt-1 max-w-xl">
             Acompanhe o checklist de metas do seu concurso e monitore sua taxa de retenção.
           </p>
         </div>
@@ -62,7 +62,7 @@ export default function MinhasTrilhasView({
           <button
             type="button"
             onClick={onNavigateToCriar}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#C41230] hover:bg-[#6B0000] text-[#FBEBD0] text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--color-red)] hover:bg-[#6B0000] text-[var(--color-cream)] text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Gerar trilhas</span>
@@ -74,18 +74,18 @@ export default function MinhasTrilhasView({
       <div className="mb-12">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 text-[#C41230]" />
+            <GraduationCap className="w-5 h-5 text-[var(--color-red)]" />
             Trilhas em Andamento
           </h2>
           {customTrilhas.length > 0 && (
-            <span className="text-xs text-[#6B99B3] font-semibold">
+            <span className="text-xs text-[var(--color-slate-blue)] font-semibold">
               {customTrilhas.length} trilha{customTrilhas.length !== 1 ? "s" : ""} ativa{customTrilhas.length !== 1 ? "s" : ""}
             </span>
           )}
         </div>
 
         {!isHydrated ? (
-          <div className="p-8 text-center rounded-xl border border-[rgba(107,153,179,0.2)] bg-[#0A2E45]/20 text-[#6B99B3] animate-pulse">
+          <div className="p-8 text-center rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-navy)]/20 text-[var(--color-slate-blue)] animate-pulse">
             Carregando suas trilhas ativas...
           </div>
         ) : customTrilhas.length > 0 ? (
@@ -103,43 +103,43 @@ export default function MinhasTrilhasView({
               return (
                 <div
                   key={trilha.id}
-                  className="rounded-xl border border-[rgba(107,153,179,0.2)] hover:border-[rgba(107,153,179,0.4)] bg-[#0A2E45]/30 p-5 backdrop-blur-sm transition-all duration-200 flex flex-col justify-between group"
+                  className="rounded-xl border border-[rgba(107,153,179,0.2)] hover:border-[rgba(107,153,179,0.4)] bg-[var(--color-navy)]/30 p-5 backdrop-blur-sm transition-all duration-200 flex flex-col justify-between group"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-[#FBEBD0] transition-colors leading-snug line-clamp-2">
+                      <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-[var(--color-cream)] transition-colors leading-snug line-clamp-2">
                         {trilha.titulo}
                       </h3>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <button
                           type="button"
                           onClick={() => setEditingCourse({ id: trilha.id, titulo: trilha.titulo })}
-                          className="p-1.5 rounded text-[#6B99B3] hover:text-white hover:bg-[#020C14]/50 transition-colors"
+                          className="p-1.5 rounded text-[var(--color-slate-blue)] hover:text-white hover:bg-[#020C14]/50 transition-colors"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeletingCourse(trilha)}
-                          className="p-1.5 rounded text-[#6B99B3] hover:text-red-400 hover:bg-[#020C14]/50 transition-colors"
+                          className="p-1.5 rounded text-[var(--color-slate-blue)] hover:text-red-400 hover:bg-[#020C14]/50 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
 
-                    <p className="text-xs text-[#6B99B3] mb-4">
+                    <p className="text-xs text-[var(--color-slate-blue)] mb-4">
                       {trilha.disciplina} • {trilha.questoes.length} questões mapeadas
                     </p>
 
                     <div className="space-y-1.5 mb-5">
-                      <div className="flex justify-between text-xs text-[#6B99B3] font-semibold">
+                      <div className="flex justify-between text-xs text-[var(--color-slate-blue)] font-semibold">
                         <span>Progresso de retenção</span>
                         <span className="text-[#F4A261] font-bold">{percent}%</span>
                       </div>
                       <div className="w-full h-2 rounded-full bg-[#020C14]/80 overflow-hidden border border-[rgba(107,153,179,0.15)]">
                         <div
-                          className="h-full bg-gradient-to-r from-[#C41230] to-[#F4A261] transition-all duration-500 rounded-full"
+                          className="h-full bg-gradient-to-r from-[var(--color-red)] to-[#F4A261] transition-all duration-500 rounded-full"
                           style={{ width: `${percent}%` }}
                         />
                       </div>
@@ -149,7 +149,7 @@ export default function MinhasTrilhasView({
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 mt-auto border-t border-[rgba(107,153,179,0.15)] bg-[#0B1929]/30">
                     <Link
                       href={`/trilhas/${trilha.id}`}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#0A2E45] hover:bg-[#0F3A53] text-[#FBEBD0] text-xs sm:text-sm font-bold border border-[rgba(107,153,179,0.25)] transition-all group-hover:border-[#F4A261]/60"
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-navy)] hover:bg-[#0F3A53] text-[var(--color-cream)] text-xs sm:text-sm font-bold border border-[rgba(107,153,179,0.25)] transition-all group-hover:border-[#F4A261]/60"
                     >
                       <span>Acessar Cronograma</span>
                       <ArrowRight className="w-4 h-4 text-[#F4A261]" />
@@ -160,21 +160,21 @@ export default function MinhasTrilhasView({
             })}
           </div>
         ) : (
-          <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[#0A2E45]/20 p-8 sm:p-10 text-center backdrop-blur-sm">
-            <div className="w-12 h-12 rounded-full bg-[#C41230]/15 flex items-center justify-center mx-auto mb-4 text-[#C41230]">
+          <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-navy)]/20 p-8 sm:p-10 text-center backdrop-blur-sm">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-red)]/15 flex items-center justify-center mx-auto mb-4 text-[var(--color-red)]">
               <Compass className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-white mb-1">
               Você ainda não possui trilhas personalizadas
             </h3>
-            <p className="text-xs sm:text-sm text-[#6B99B3] max-w-md mx-auto mb-6">
+            <p className="text-xs sm:text-sm text-[var(--color-slate-blue)] max-w-md mx-auto mb-6">
               Comece agora colando seu edital para estruturar suas metas diárias.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={onNavigateToCriar}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-[#C41230] hover:bg-[#6B0000] text-[#FBEBD0] text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-[var(--color-red)] hover:bg-[#6B0000] text-[var(--color-cream)] text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
               >
                 <Plus className="w-4 h-4" />
                 <span>Gerar trilhas</span>
@@ -192,21 +192,21 @@ export default function MinhasTrilhasView({
           onClick={() => setEditingCourse(null)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-[rgba(107,153,179,0.3)] bg-[#0A2E45] p-6 shadow-2xl"
+            className="w-full max-w-md rounded-xl border border-[rgba(107,153,179,0.3)] bg-[var(--color-navy)] p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-white">Renomear Trilha</h3>
               <button
                 onClick={() => setEditingCourse(null)}
-                className="text-[#6B99B3] hover:text-white p-1"
+                className="text-[var(--color-slate-blue)] hover:text-white p-1"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <input
               autoFocus
-              className="w-full px-3 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[#020C14] text-white text-sm focus:border-[#C41230] outline-none mb-5"
+              className="w-full px-3 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[#020C14] text-white text-sm focus:border-[var(--color-red)] outline-none mb-5"
               value={editingCourse.titulo}
               onChange={(e) => setEditingCourse({ ...editingCourse, titulo: e.target.value })}
               onKeyDown={(e) => {
@@ -232,7 +232,7 @@ export default function MinhasTrilhasView({
                     setEditingCourse(null);
                   }
                 }}
-                className="px-4 py-2 rounded-lg bg-[#C41230] hover:bg-[#6B0000] text-[#FBEBD0] text-xs font-bold shadow-[2px_2px_0px_#6B0000]"
+                className="px-4 py-2 rounded-lg bg-[var(--color-red)] hover:bg-[#6B0000] text-[var(--color-cream)] text-xs font-bold shadow-[2px_2px_0px_#6B0000]"
               >
                 Salvar Alteração
               </button>
@@ -247,7 +247,7 @@ export default function MinhasTrilhasView({
           onClick={() => setDeletingCourse(null)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-red-800/60 bg-[#0A2E45] p-6 shadow-2xl"
+            className="w-full max-w-md rounded-xl border border-red-800/60 bg-[var(--color-navy)] p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-3 text-red-400">

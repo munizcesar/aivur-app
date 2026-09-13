@@ -34,12 +34,20 @@
   --color-accent-destructive: #D96B54;
   --color-accent-destructive-hover: #C25B46;
 
-  /* ── Paleta Institucional Elite ── */
-  --elite-navy:     #0A2E45; /* Fundo primário Dark Navy */
-  --elite-red:      #C41230; /* Ação / CTA Bright Red */
-  --elite-wine:     #6B0000; /* Ênfase / Hover Dark Wine */
-  --elite-cream:    #FBEBD0; /* Fundo claro / texto principal */
-  --elite-grayblue: #6B99B3; /* Neutro / Apoio Grayish Blue */
+  /* ✨ Paleta Institucional Oficial ✨ */
+  --color-white:      #FFFFFF; /* Fundo branco limpo */
+  --color-navy:       #0A2E45; /* Azul-marinho profundo */
+  --color-red:        #C41230; /* Vermelho vivo */
+  --color-cream:      #FBEBD0; /* Creme editorial */
+  --color-slate-blue: #6B99B3; /* Azul acinzentado */
+
+  /* Aliases compatíveis com a paleta oficial (para não quebrar componentes existentes) */
+  --elite-navy:     var(--color-navy);
+  --elite-red:      var(--color-red);
+  --elite-cream:    var(--color-cream);
+  --elite-wine:     #6B0000; /* Shadow/Hover para o Red, não faz parte das 5 principais mas é usado no CTA */
+  --elite-gold:     #F4A261; /* Dourado: Perguntar ao usuário se isso entra nas 5 ou é exceção */
+  --elite-grayblue: var(--color-slate-blue);
 
   /* ── Gradients (AIVUR) ── */
   --grad-ai: linear-gradient(135deg, #F4A261, #D96B54);

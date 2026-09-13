@@ -141,14 +141,14 @@ export default function CriarTrilhaView({
     <div className="w-full max-w-[1000px] mx-auto px-4 py-6 md:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#C41230]/15 text-[#C41230] text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--color-red)]/15 text-[var(--color-red)] text-xs font-bold uppercase tracking-wider mb-2">
             <Sparkles className="w-3.5 h-3.5" />
             Mentor AIVUR 360 · Criação
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             Criar Trilha Personalizada
           </h1>
-          <p className="text-sm sm:text-base text-[#6B99B3] mt-1 max-w-xl">
+          <p className="text-sm sm:text-base text-[var(--color-slate-blue)] mt-1 max-w-xl">
             Converta qualquer edital ou conteúdo programático em um roteiro diário estruturado para aprovação.
           </p>
         </div>
@@ -157,7 +157,7 @@ export default function CriarTrilhaView({
           <button
             type="button"
             onClick={onNavigateToMinhas}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[#0A2E45]/40 hover:bg-[#0A2E45] text-[#FBEBD0] text-sm font-semibold transition-all duration-150 hover:border-[rgba(107,153,179,0.6)] active:scale-95 shadow-sm"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[var(--color-navy)]/40 hover:bg-[var(--color-navy)] text-[var(--color-cream)] text-sm font-semibold transition-all duration-150 hover:border-[rgba(107,153,179,0.6)] active:scale-95 shadow-sm"
           >
             <FolderCheck className="w-4 h-4 text-[#F4A261]" />
             <span>Verificar minhas trilhas</span>
@@ -167,16 +167,16 @@ export default function CriarTrilhaView({
 
       {error && (
         <div className="mb-6 p-4 rounded-lg bg-red-950/40 border border-red-800/60 text-red-200 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-[#C41230] flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-[var(--color-red)] flex-shrink-0 mt-0.5" />
           <div className="text-sm leading-relaxed">{error}</div>
         </div>
       )}
 
       {step === "input" && (
         <form onSubmit={handleGenerate} className="space-y-6">
-          <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[#0A2E45]/30 p-6 md:p-8 backdrop-blur-sm space-y-6">
+          <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-navy)]/30 p-6 md:p-8 backdrop-blur-sm space-y-6">
             <div>
-              <label className="block text-sm font-bold text-[#FBEBD0] mb-2">
+              <label className="block text-sm font-bold text-[var(--color-cream)] mb-2">
                 Nome do Concurso / Trilha *
               </label>
               <input
@@ -184,17 +184,17 @@ export default function CriarTrilhaView({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Polícia Federal — Agente Administrativo 2026"
-                className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[#020C14]/70 text-[#F8FAFC] placeholder:text-slate-500 text-sm md:text-base focus:border-[#C41230] focus:ring-1 focus:ring-[#C41230] outline-none transition-colors"
+                className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[#020C14]/70 text-[#F8FAFC] placeholder:text-slate-500 text-sm md:text-base focus:border-[var(--color-red)] focus:ring-1 focus:ring-[var(--color-red)] outline-none transition-colors"
                 required
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-bold text-[#FBEBD0]">
+                <label className="block text-sm font-bold text-[var(--color-cream)]">
                   Edital, Matérias ou Tópicos de Estudo
                 </label>
-                <span className="text-xs text-[#6B99B3]">
+                <span className="text-xs text-[var(--color-slate-blue)]">
                   Cole o anexo de conteúdo programático
                 </span>
               </div>
@@ -203,20 +203,20 @@ export default function CriarTrilhaView({
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Cole aqui os tópicos completos do edital, súmulas, leis específicas ou a lista de assuntos que você precisa cobrir..."
                 rows={8}
-                className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[#020C14]/70 text-[#F8FAFC] placeholder:text-slate-500 text-sm leading-relaxed focus:border-[#C41230] focus:ring-1 focus:ring-[#C41230] outline-none transition-colors resize-y"
+                className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[#020C14]/70 text-[#F8FAFC] placeholder:text-slate-500 text-sm leading-relaxed focus:border-[var(--color-red)] focus:ring-1 focus:ring-[var(--color-red)] outline-none transition-colors resize-y"
               />
             </div>
 
             <div className="relative flex py-2 items-center">
               <div className="flex-grow border-t border-[rgba(107,153,179,0.2)]"></div>
-              <span className="flex-shrink mx-4 text-xs uppercase tracking-widest text-[#6B99B3] font-bold">
+              <span className="flex-shrink mx-4 text-xs uppercase tracking-widest text-[var(--color-slate-blue)] font-bold">
                 ou envie o documento
               </span>
               <div className="flex-grow border-t border-[rgba(107,153,179,0.2)]"></div>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-[#FBEBD0] mb-2">
+              <label className="block text-sm font-bold text-[var(--color-cream)] mb-2">
                 Upload de Edital em PDF
               </label>
               <div className="relative border-2 border-dashed border-[rgba(107,153,179,0.3)] hover:border-[#F4A261] rounded-xl p-6 text-center transition-colors bg-[#020C14]/30 cursor-pointer">
@@ -234,10 +234,10 @@ export default function CriarTrilhaView({
                     </div>
                   ) : (
                     <>
-                      <p className="text-sm font-semibold text-[#FBEBD0]">
+                      <p className="text-sm font-semibold text-[var(--color-cream)]">
                         Clique para selecionar ou arraste o PDF do edital aqui
                       </p>
-                      <p className="text-xs text-[#6B99B3]">
+                      <p className="text-xs text-[var(--color-slate-blue)]">
                         Suporta arquivos de até 15MB
                       </p>
                     </>
@@ -248,13 +248,13 @@ export default function CriarTrilhaView({
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-            <p className="text-xs text-[#6B99B3]">
+            <p className="text-xs text-[var(--color-slate-blue)]">
               A IA estruturará as matérias em tópicos atômicos prontos para estudo diário.
             </p>
             <button
               ref={submitButtonRef}
               type="submit"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-[#C41230] hover:bg-[#6B0000] disabled:opacity-40 disabled:cursor-not-allowed text-[#FBEBD0] text-base font-bold shadow-[2px_2px_0px_#6B0000] focus:ring-4 focus:ring-[#C41230]/50 active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer outline-none"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-[var(--color-red)] hover:bg-[#6B0000] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-cream)] text-base font-bold shadow-[2px_2px_0px_#6B0000] focus:ring-4 focus:ring-[var(--color-red)]/50 active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer outline-none"
             >
               <Sparkles className="w-5 h-5 text-[#F4A261]" />
               <ArrowRight className="w-4 h-4 ml-1" />
@@ -264,8 +264,8 @@ export default function CriarTrilhaView({
       )}
 
       {step === "loading" && (
-        <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[#0A2E45]/20 p-12 text-center my-8 backdrop-blur-sm">
-          <div className="w-12 h-12 border-4 border-[rgba(107,153,179,0.2)] border-t-[#C41230] rounded-full animate-spin mx-auto mb-6"></div>
+        <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-navy)]/20 p-12 text-center my-8 backdrop-blur-sm">
+          <div className="w-12 h-12 border-4 border-[rgba(107,153,179,0.2)] border-t-[var(--color-red)] rounded-full animate-spin mx-auto mb-6"></div>
           <h2 className="text-xl font-bold text-white mb-2">Processando Conteúdo Programático...</h2>
           <p className="text-base text-[#F4A261] font-medium min-h-[28px] transition-all duration-300">
             {loadingPhrases[loadingPhraseIdx]}
@@ -275,7 +275,7 @@ export default function CriarTrilhaView({
 
       {step === "review" && draftTrilha && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-xl border border-[rgba(107,153,179,0.2)] bg-[#0A2E45]/30">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-navy)]/30">
             <div>
               <span className="text-xs font-bold text-[#F4A261] uppercase tracking-wider">Trilha Estruturada</span>
               {isEditingTitle ? (
@@ -286,25 +286,25 @@ export default function CriarTrilhaView({
                   onChange={(e) => setDraftTrilha({ ...draftTrilha, titulo: e.target.value })}
                   onBlur={() => setIsEditingTitle(false)}
                   onKeyDown={(e) => e.key === "Enter" && setIsEditingTitle(false)}
-                  className="block w-full max-w-sm mt-0.5 px-3 py-1.5 rounded-lg border border-[#C41230] bg-[#020C14]/90 text-xl font-bold text-white outline-none focus:ring-1 focus:ring-[#C41230]"
+                  className="block w-full max-w-sm mt-0.5 px-3 py-1.5 rounded-lg border border-[var(--color-red)] bg-[#020C14]/90 text-xl font-bold text-white outline-none focus:ring-1 focus:ring-[var(--color-red)]"
                 />
               ) : (
                 <h2 
                   onClick={() => setIsEditingTitle(true)}
-                  className="text-xl font-bold text-white mt-0.5 group flex items-center gap-2 cursor-text hover:text-[#FBEBD0] transition-colors"
+                  className="text-xl font-bold text-white mt-0.5 group flex items-center gap-2 cursor-text hover:text-[var(--color-cream)] transition-colors"
                   title="Clique para editar o nome"
                 >
                   {draftTrilha.titulo}
-                  <Edit2 className="w-4 h-4 text-[#6B99B3] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Edit2 className="w-4 h-4 text-[var(--color-slate-blue)] opacity-0 group-hover:opacity-100 transition-opacity" />
                 </h2>
               )}
-              <p className="text-xs text-[#6B99B3] mt-1">
+              <p className="text-xs text-[var(--color-slate-blue)] mt-1">
                 {draftTrilha.disciplina} • {draftTrilha.questoes.length} questões e {draftTrilha.flashcards.length} flashcards
               </p>
             </div>
             <button
               onClick={handleSave}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#C41230] hover:bg-[#6B0000] text-[#FBEBD0] font-bold text-sm shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[var(--color-red)] hover:bg-[#6B0000] text-[var(--color-cream)] font-bold text-sm shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
             >
               <CheckCircle2 className="w-4 h-4 text-[#F4A261]" />
               <span>Salvar e Iniciar Trilha</span>

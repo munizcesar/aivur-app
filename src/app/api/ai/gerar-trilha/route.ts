@@ -79,7 +79,7 @@ ${text ? `Conteúdo de base para a trilha:\n${text}` : ""}
 
 Você deve gerar UMA UNICA Trilha de Estudo em JSON rigoroso contendo:
 - 'disciplina': o nome da matéria geral (ex: Direito Constitucional).
-- 'video': um objeto contendo 'youtubeId' (invente uma string de 11 caracteres baseada no tema ou use um real se souber), 'titulo' e 'resumo'.
+- 'video': um objeto contendo 'titulo' e 'resumo'.
 - 'flashcards': array de 3 a 5 objetos com 'frente' (pergunta) e 'verso' (resposta curta e direta).
 - 'questoes': array de 3 a 5 questões de múltipla escolha. Cada questão deve ter 'enunciado', 'opcoes' (exatamente 4 strings), 'corretaIdx' (0 a 3) e 'justificativa'.
 
@@ -89,7 +89,6 @@ Schema esperado:
 {
   "disciplina": "string",
   "video": {
-    "youtubeId": "string",
     "titulo": "string",
     "resumo": "string"
   },
@@ -190,19 +189,40 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
     const messageContent = data.choices[0]?.message?.content;
 
     // 4. Extração de JSON centralizada via ai-protocols (extractCleanJson)
-    const jsonString = extractCleanJson(messageContent || "");
-
-    let parsedJson;
+    let parsedJson: any;
     try {
+      const jsonString = extractCleanJson(messageContent || "");
       parsedJson = JSON.parse(jsonString);
-    } catch (parseError) {
-      console.error("Erro ao fazer parse do JSON retornado pela Groq:", parseError);
+    } catch (err) {
+      console.error("Falha ao fazer parse do JSON final:", err);
       return NextResponse.json(
-        { error: "O edital é muito extenso ou complexo, fazendo a geração ser cortada. Tente dividir o conteúdo em partes ou remover textos irrelevantes." },
+        { error: "A resposta gerada não estava em um formato válido." },
         { status: 400 }
       );
     }
+    
     const trilhaId = `t-gerada-${Date.now().toString(36)}`;
+    
+    // Busca real no YouTube usando o título gerado
+    let youtubeId = "dQw4w9WgXcQ"; // fallback
+    const searchTitle = parsedJson.video?.titulo || title;
+    const ytKey = process.env.YOUTUBE_API_KEY;
+    
+    if (ytKey) {
+      try {
+        const ytRes = await fetch(
+          `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(searchTitle)}&type=video&key=${ytKey}`
+        );
+        if (ytRes.ok) {
+          const ytData = await ytRes.json() as any;
+          if (ytData.items && ytData.items.length > 0) {
+            youtubeId = ytData.items[0].id.videoId;
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao buscar no YouTube", e);
+      }
+    }
     
     const finalTrilha = {
       id: trilhaId,
@@ -210,7 +230,7 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
       disciplina: parsedJson.disciplina || "Geral",
       progresso: 0,
       video: {
-        youtubeId: parsedJson.video?.youtubeId || "dQw4w9WgXcQ",
+        youtubeId: youtubeId,
         titulo: parsedJson.video?.titulo || `Aula: ${title}`,
         resumo: parsedJson.video?.resumo || "Resumo da aula."
       },

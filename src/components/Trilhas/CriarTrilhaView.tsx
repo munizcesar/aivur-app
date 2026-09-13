@@ -9,7 +9,8 @@ import {
   UploadCloud,
   CheckCircle2, 
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  Edit2
 } from "lucide-react";
 import { useStudyStore } from "@/store/useStudyStore";
 import type { TrilhaTemplateType } from "@/lib/validations/trilha";
@@ -49,6 +50,7 @@ export default function CriarTrilhaView({
   }, [initialTitle, initialText, step]);
 
   const [draftTrilha, setDraftTrilha] = useState<TrilhaTemplateType | null>(null);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   const loadingPhrases = [
     "Analisando o conteúdo...",
@@ -253,8 +255,27 @@ export default function CriarTrilhaView({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-xl border border-[rgba(107,153,179,0.2)] bg-[#0A2E45]/30">
             <div>
               <span className="text-xs font-bold text-[#F4A261] uppercase tracking-wider">Trilha Estruturada</span>
-              <h2 className="text-xl font-bold text-white mt-0.5">{draftTrilha.titulo}</h2>
-              <p className="text-xs text-[#6B99B3]">
+              {isEditingTitle ? (
+                <input
+                  type="text"
+                  autoFocus
+                  value={draftTrilha.titulo}
+                  onChange={(e) => setDraftTrilha({ ...draftTrilha, titulo: e.target.value })}
+                  onBlur={() => setIsEditingTitle(false)}
+                  onKeyDown={(e) => e.key === "Enter" && setIsEditingTitle(false)}
+                  className="block w-full max-w-sm mt-0.5 px-3 py-1.5 rounded-lg border border-[#C41230] bg-[#020C14]/90 text-xl font-bold text-white outline-none focus:ring-1 focus:ring-[#C41230]"
+                />
+              ) : (
+                <h2 
+                  onClick={() => setIsEditingTitle(true)}
+                  className="text-xl font-bold text-white mt-0.5 group flex items-center gap-2 cursor-text hover:text-[#FBEBD0] transition-colors"
+                  title="Clique para editar o nome"
+                >
+                  {draftTrilha.titulo}
+                  <Edit2 className="w-4 h-4 text-[#6B99B3] opacity-0 group-hover:opacity-100 transition-opacity" />
+                </h2>
+              )}
+              <p className="text-xs text-[#6B99B3] mt-1">
                 {draftTrilha.disciplina} • {draftTrilha.questoes.length} questões e {draftTrilha.flashcards.length} flashcards
               </p>
             </div>

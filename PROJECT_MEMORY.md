@@ -243,3 +243,5 @@ pm run build sucesso) e o script de teste de mock (scratch/test-ai-route.mjs) fo
 - A base do app está estruturada inteiramente sobre o padrão do Cockpit (Microlearning).
 - **Ajuste UX (CriarTrilhaView):** Adicionada capacidade de renomear o título da trilha gerada inline (click-to-edit com ícone Edit2) antes de salvá-la definitivamente no Zustand, mantendo o restante do fluxo 100% automatizado.
 - **PDF Parsing:** Leitura de PDFs foi movida para o client-side (no CriarTrilhaView.tsx) usando pdfjs-dist para suportar nativamente a restrição do Edge Runtime do Cloudflare Pages sem quebrar a geração da IA.
+
+- Stage 1-5 UI e IA fixes no Cockpit Microlearning conclu�dos (YouTube real, Resumo Markdown, Flashcards overflow, Quest�es grid, Trilhas Page Palette).

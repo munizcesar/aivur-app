@@ -76,6 +76,7 @@
 - `src/app/trilhas/[id]/page.tsx` — Dynamic route com SSG.
 ## 1. Regras Vigentes
 
+- **Git — Push seguro:** NUNCA usar `git push --force`. Sempre usar `git push --force-with-lease`, que cancela o push automaticamente se o remoto tiver recebido commits novos entre o fetch e o push, evitando sobrescrever/perder trabalho de outra sessão ou dispositivo sem aviso.
 - **Paleta Institucional (tokens CSS):** usar EXCLUSIVAMENTE variáveis CSS do `globals.css` — `var(--color-bg)`, `var(--color-surface)`, `var(--color-border)`, `var(--color-heading)`, `var(--color-text)`, `var(--color-text-muted)`, `var(--color-primary)`, `var(--color-primary-hover)`, `var(--elite-red)`, `var(--elite-navy)`, `var(--elite-cream)`. **PROIBIDO** hex hardcoded (`#020C14`, `#C9A84C` etc.) em qualquer componente novo ou editado.
 - Alternativas devem preservar CSS Grid com primeira coluna fixa de `40px` e segunda coluna flexível (`40px 1fr` / `40px_minmax(0,1fr)_24px`).
 - O box model das alternativas mobile deve manter respiro lateral mínimo de `px-5` e padding vertical equivalente a `py-4`.

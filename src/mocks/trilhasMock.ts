@@ -4,6 +4,7 @@ export interface TrilhaVideo {
   youtubeId: string;
   titulo: string;
   resumo: string;
+  resumo_markdown?: string;
 }
 
 export interface TrilhaFlashcard {
@@ -37,9 +38,10 @@ export const TRILHAS_MOCK: Trilha[] = [
     disciplina: "Direito Administrativo",
     progresso: 72,
     video: {
-      youtubeId: "dQw4w9WgXcQ",
+      youtubeId: "Y_m2s4TXPyM",
       titulo: "Principios LIMPE — Aula Completa",
       resumo: "Os principios constitucionais da Administracao Publica estao previstos no art. 37 da CF/88: Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiencia (LIMPE).",
+      resumo_markdown: `### Princípios da Administração Pública (LIMPE)\n\nA Administração Pública direta e indireta de qualquer dos Poderes da União, dos Estados, do Distrito Federal e dos Municípios obedecerá aos princípios de legalidade, impessoalidade, moralidade, publicidade e eficiência.\n\n- **Legalidade**: O administrador só pode fazer o que a lei permite.\n- **Impessoalidade**: A administração deve ser neutra, sem favoritismos.\n- **Moralidade**: Atuação ética e de boa-fé.\n- **Publicidade**: Transparência dos atos.\n- **Eficiência**: Fazer o melhor com os recursos disponíveis (Emenda 19/98).`,
     },
     flashcards: [
       { id: "fc-001-1", frente: "O que significa o principio da Legalidade para o administrador publico?", verso: "O administrador so pode fazer o que a lei expressamente autoriza — diferente do particular, que pode fazer tudo que a lei nao proibe." },
@@ -62,9 +64,10 @@ export const TRILHAS_MOCK: Trilha[] = [
     disciplina: "Lingua Portuguesa",
     progresso: 45,
     video: {
-      youtubeId: "dQw4w9WgXcQ",
+      youtubeId: "W3XrpIRTgzA",
       titulo: "Interpretacao e Inferencia — Tecnicas para Concursos",
       resumo: "A interpretacao de textos exige identificar tema, ideia central e intencao do autor. Nas bancas, as questoes testam inferencia e distinguir informacoes implicitas das explicitas.",
+      resumo_markdown: `### Interpretação e Compreensão Textual\n\nInterpretar textos é uma das habilidades mais cobradas em provas. É preciso diferenciar compreensão (o que está no texto) de interpretação (o que se pode deduzir).\n\n- **Compreensão**: Encontra-se na superfície do texto (Ex: *Segundo o texto...*, *O autor afirma que...*).\n- **Interpretação**: Vai além, exige inferência e dedução lógicas (Ex: *Infere-se que...*, *Conclui-se que...*).\n- **Dica**: Evite extrapolar ou reduzir as ideias do autor. Atenção a conjunções que mudam o sentido!`,
     },
     flashcards: [
       { id: "fc-002-1", frente: "Qual a diferenca entre informacao explicita e implicita em um texto?", verso: "Explicita: esta claramente escrita no texto. Implicita: pode ser inferida a partir do que esta escrito, mas nao esta dita diretamente." },
@@ -83,9 +86,10 @@ export const TRILHAS_MOCK: Trilha[] = [
     disciplina: "Direito Constitucional",
     progresso: 20,
     video: {
-      youtubeId: "dQw4w9WgXcQ",
+      youtubeId: "lBJISfl4Cjk",
       titulo: "Direitos Fundamentais — CF/88 Art. 5",
       resumo: "O art. 5 da CF/88 consagra os direitos e garantias fundamentais. Sao clausulas petreas (art. 60, par. 4), nao podendo ser abolidos por emenda constitucional.",
+      resumo_markdown: `### Direitos e Deveres Individuais e Coletivos (Art. 5º)\n\nO artigo 5º é o coração dos Direitos Fundamentais na CF/88. Ele garante que "todos são iguais perante a lei, sem distinção de qualquer natureza".\n\n- **Direito à Vida**: Proteção desde a concepção. Veda pena de morte, salvo em guerra declarada.\n- **Liberdade**: Ninguém será obrigado a fazer ou deixar de fazer algo senão em virtude de lei.\n- **Igualdade**: Homens e mulheres são iguais em direitos e obrigações.\n- **Segurança**: Assegura direitos como inviolabilidade de domicílio e sigilo de correspondência.\n- **Propriedade**: Garantida, mas deve atender à sua função social.`,
     },
     flashcards: [
       { id: "fc-003-1", frente: "O que sao clausulas petreas e qual a sua relacao com os direitos fundamentais?", verso: "Clausulas petreas sao dispositivos imutaveis da CF (art. 60, par. 4) que nao podem ser abolidos nem por emenda. Os direitos e garantias individuais sao clausulas petreas." },
@@ -103,9 +107,10 @@ export const TRILHAS_MOCK: Trilha[] = [
     disciplina: "Raciocinio Logico",
     progresso: 0,
     video: {
-      youtubeId: "dQw4w9WgXcQ",
+      youtubeId: "i8jbzEWEOYk",
       titulo: "Proposicoes e Conectivos Logicos",
       resumo: "Uma proposicao e uma afirmacao que pode ser verdadeira (V) ou falsa (F). Os conectivos (e, ou, se...entao, nao) combinam proposicoes formando novas, com valor logico calculavel pelas tabelas-verdade.",
+      resumo_markdown: `### Lógica Proposicional e Conectivos\n\nA lógica para concursos foca muito em Tabela Verdade e Equivalências.\n\n- **Proposição**: Sentença declarativa que pode ser V ou F. Não inclui perguntas, ordens ou paradoxos.\n- **Conectivos**:\n  - *E (Conjunção - ^)*: Só é V se tudo for V.\n  - *Ou (Disjunção - v)*: Só é F se tudo for F.\n  - *Se... então (Condicional - ->)*: Só é F se a 1ª for V e a 2ª for F (Regra da Vera Fischer Falsa).\n  - *Somente se (Bicondicional - <->)*: V se iguais, F se diferentes.`,
     },
     flashcards: [
       { id: "fc-004-1", frente: "O que e uma proposicao logica?", verso: "E uma sentenca declarativa que pode ser classificada como verdadeira (V) ou falsa (F), nunca as duas ao mesmo tempo." },

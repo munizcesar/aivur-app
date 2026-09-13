@@ -266,34 +266,36 @@ export default function TrilhaSala() {
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 md:p-8 text-left shadow-lg">
           <p className="text-[var(--color-heading)] font-medium text-lg md:text-xl mb-8 leading-relaxed">{q.enunciado}</p>
           <div className="space-y-3">
-            {q.opcoes.map((alt, i) => {
-              const isSelected = selectedOpt === i;
-              const isCorrect = isSubmitted && i === q.corretaIdx;
-              const isWrongSelected = isSubmitted && isSelected && !isCorrect;
-              
-              let style = "border-[var(--color-border)] bg-[var(--color-bg)] hover:border-[var(--color-primary)] text-[var(--color-text)]";
-              let badgeStyle = "bg-[var(--color-surface)] text-[var(--color-text)] border-[var(--color-border)]";
-
-              if (isSelected && !isSubmitted) {
-                style = "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-heading)]";
-                badgeStyle = "bg-[var(--color-primary)] text-white border-[var(--color-primary)]";
-              } else if (isCorrect) {
-                style = "border-emerald-500 bg-emerald-500/10 text-[var(--color-heading)]";
-                badgeStyle = "bg-emerald-500 text-white border-emerald-500";
-              } else if (isWrongSelected) {
-                style = "border-rose-500 bg-rose-500/10 text-[var(--color-heading)]";
-                badgeStyle = "bg-rose-500 text-white border-rose-500";
-              }
-
-              return (
-                <button key={i} disabled={isSubmitted} onClick={() => setSelectedOpt(i)} className={`w-full flex items-start gap-4 p-4 text-left rounded-xl border transition-all ${style} ${isSubmitted ? "cursor-default" : "cursor-pointer"}`}>
-                  <span className={`shrink-0 flex items-center justify-center w-8 h-8 font-bold rounded-lg text-sm border transition-colors ${badgeStyle}`}>{["A", "B", "C", "D", "E"][i] || i}</span>
-                  <span className="flex-1 text-sm md:text-base whitespace-normal leading-snug pt-1">{alt}</span>
-                  {isCorrect && <CheckCircle2 className="text-emerald-500 shrink-0 mt-1" size={20} />}
-                  {isWrongSelected && <XCircle className="text-rose-500 shrink-0 mt-1" size={20} />}
-                </button>
-              );
-            })}
+              {q.opcoes.map((alt, i) => {
+                const isSelected = selectedOpt === i;
+                const isCorrect = isSubmitted && i === q.corretaIdx;
+                const isWrongSelected = isSubmitted && isSelected && !isCorrect;
+                
+                let style = "border-[var(--color-border)] bg-[var(--color-bg)] hover:border-[var(--color-primary)] text-[var(--color-text)]";
+                let badgeStyle = "bg-[var(--color-surface)] text-[var(--color-text)] border-[var(--color-border)]";
+  
+                if (isSelected && !isSubmitted) {
+                  style = "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-heading)]";
+                  badgeStyle = "bg-[var(--color-primary)] text-white border-[var(--color-primary)]";
+                } else if (isCorrect) {
+                  style = "border-emerald-500 bg-emerald-500/10 text-[var(--color-heading)]";
+                  badgeStyle = "bg-emerald-500 text-white border-emerald-500";
+                } else if (isWrongSelected) {
+                  style = "border-rose-500 bg-rose-500/10 text-[var(--color-heading)]";
+                  badgeStyle = "bg-rose-500 text-white border-rose-500";
+                }
+  
+                return (
+                  <button key={i} disabled={isSubmitted} onClick={() => setSelectedOpt(i)} className={`w-full grid grid-cols-[40px_minmax(0,1fr)_24px] items-start gap-4 px-5 py-4 text-left rounded-xl border transition-all ${style} ${isSubmitted ? "cursor-default" : "cursor-pointer"}`}>
+                    <span className={`flex items-center justify-center w-8 h-8 font-bold rounded-lg text-sm border transition-colors ${badgeStyle}`}>{["A", "B", "C", "D", "E"][i] || i}</span>
+                    <span className="text-sm md:text-base whitespace-normal pt-1">{alt}</span>
+                    <span className="flex items-center justify-center mt-1">
+                      {isCorrect && <CheckCircle2 className="text-emerald-500" size={20} />}
+                      {isWrongSelected && <XCircle className="text-rose-500" size={20} />}
+                    </span>
+                  </button>
+                );
+              })}
           </div>
 
           {/* CLS FIX: min-h permanente para não gerar empurrão (Layout Shift) no botão de ação */}

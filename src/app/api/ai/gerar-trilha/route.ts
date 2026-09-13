@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { extractCleanJson, getDomainRules } from '@/lib/ai-protocols';
+import { TrilhaSchema } from '@/lib/validations/trilha';
 
 export const runtime = 'edge';
 
@@ -203,11 +204,91 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
       );
     }
     
+    // 4. Validação Zod com schema TrilhaSchema
+    // Usamos um schema derivado que ignora 'id' e 'progresso', pois estes 
+    // são injetados pelo backend e não devem ser gerados/validados da IA
+    const StrictTrilhaSchema = TrilhaSchema.omit({ id: true, progresso: true });
+    
+    let validTrilhaData = parsedJson;
+    let parseResult = StrictTrilhaSchema.safeParse(parsedJson);
+
+    // 5. Estratégia de Retry (Fixer Prompt) - 1 tentativa apenas
+    if (!parseResult.success) {
+      console.warn("[AIVUR IA] Erro na validacao do JSON inicial, iniciando Fixer Prompt...", parseResult.error.issues);
+      
+      const fixerPrompt = `Você gerou o JSON abaixo, mas ele falhou na validação estrutural obrigatória do sistema.
+ERROS ENCONTRADOS:
+${JSON.stringify(parseResult.error.issues, null, 2)}
+
+JSON ORIGINAL DEFEITUOSO:
+${JSON.stringify(parsedJson, null, 2)}
+
+Sua única tarefa: Corrija APENAS os erros estruturais apontados acima (ex: ajuste o número de opções para exatamente 4, garanta que todos os campos existam). NÃO altere a essência do conteúdo se ele estiver correto. 
+Devolva o mesmo JSON perfeitamente válido, e NADA MAIS. Sem markdown fora do JSON.`;
+
+      let fixerResponse;
+      let fixerSuccess = false;
+
+      for (const modelId of fallbackModels) {
+        fixerResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey.trim()}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: modelId,
+            messages: [{ role: "user", content: fixerPrompt }],
+            temperature: 0.1,
+            max_tokens: 1000, // Token limit baixo para o fixer
+            response_format: { type: "json_object" }
+          })
+        });
+
+        if (fixerResponse.ok) {
+          console.log(`[AIVUR IA Fixer] Sucesso na correcao utilizando o modelo: ${modelId}`);
+          fixerSuccess = true;
+          break;
+        }
+      }
+
+      if (fixerSuccess && fixerResponse) {
+        const fixerData = await fixerResponse.json() as any;
+        const fixerContent = fixerData.choices[0]?.message?.content;
+        
+        try {
+          const cleanFixerJson = extractCleanJson(fixerContent || "");
+          const parsedFixerJson = JSON.parse(cleanFixerJson);
+          const fixerParseResult = StrictTrilhaSchema.safeParse(parsedFixerJson);
+          
+          if (fixerParseResult.success) {
+            validTrilhaData = parsedFixerJson;
+            parseResult = fixerParseResult;
+          } else {
+            console.error("[AIVUR IA Fixer] O Fixer tambem falhou na validacao Zod:", fixerParseResult.error.issues);
+          }
+        } catch (err) {
+          console.error("[AIVUR IA Fixer] JSON do fixer malformado:", err);
+        }
+      }
+
+      // Se mesmo após o fixer a validação falhar, aborta com 422
+      if (!parseResult.success) {
+        return NextResponse.json(
+          { 
+            error: "Não foi possível gerar uma trilha com o formato correto.",
+            details: parseResult.error.issues 
+          },
+          { status: 422 }
+        );
+      }
+    }
+
     const trilhaId = `t-gerada-${Date.now().toString(36)}`;
     
     // Busca real no YouTube usando o título gerado
     let youtubeId = "dQw4w9WgXcQ"; // fallback
-    const searchTitle = parsedJson.video?.titulo || title;
+    const searchTitle = validTrilhaData.video?.titulo || title;
     const ytKey = process.env.YOUTUBE_API_KEY;
     
     if (ytKey) {
@@ -229,24 +310,24 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
     const finalTrilha = {
       id: trilhaId,
       titulo: title,
-      disciplina: parsedJson.disciplina || "Geral",
+      disciplina: validTrilhaData.disciplina || "Geral",
       progresso: 0,
       video: {
         youtubeId: youtubeId,
-        titulo: parsedJson.video?.titulo || `Aula: ${title}`,
-        resumo: parsedJson.video?.resumo || "Resumo da aula.",
-        resumo_markdown: parsedJson.video?.resumo_markdown || ""
+        titulo: validTrilhaData.video?.titulo || `Aula: ${title}`,
+        resumo: validTrilhaData.video?.resumo || "Resumo da aula.",
+        resumo_markdown: validTrilhaData.video?.resumo_markdown || ""
       },
-      flashcards: (parsedJson.flashcards || []).map((fc: any, idx: number) => ({
+      flashcards: (validTrilhaData.flashcards || []).map((fc: any, idx: number) => ({
         id: `${trilhaId}-fc-${idx}`,
         frente: fc.frente || "",
         verso: fc.verso || ""
       })),
-      questoes: (parsedJson.questoes || []).map((q: any, idx: number) => ({
+      questoes: (validTrilhaData.questoes || []).map((q: any, idx: number) => ({
         id: `${trilhaId}-q-${idx}`,
         enunciado: q.enunciado || "",
-        opcoes: Array.isArray(q.opcoes) && q.opcoes.length === 4 ? q.opcoes : ["A", "B", "C", "D"],
-        corretaIdx: typeof q.corretaIdx === 'number' && q.corretaIdx >= 0 && q.corretaIdx <= 3 ? q.corretaIdx : 0,
+        opcoes: q.opcoes, // Validação garantida pelo Zod
+        corretaIdx: q.corretaIdx, // Validação garantida pelo Zod
         justificativa: q.justificativa || ""
       }))
     };

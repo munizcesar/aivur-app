@@ -1,17 +1,25 @@
 import { Groq } from "groq-sdk";
 
-const API_KEY = process.env.GROQ_API_KEY || "";
-const API_KEY_FALLBACK = process.env.GROQ_API_KEY_FALLBACK || "";
+// Extrai múltiplas chaves do ambiente (Next.js Edge resolve essas envs estaticamente)
+const getGroqKeys = (): string[] => {
+  const keys: string[] = [];
+  if (process.env.GROQ_API_KEY) keys.push(process.env.GROQ_API_KEY);
+  if (process.env.GROQ_API_KEY_2) keys.push(process.env.GROQ_API_KEY_2);
+  if (process.env.GROQ_API_KEY_3) keys.push(process.env.GROQ_API_KEY_3);
+  if (process.env.GROQ_API_KEY_4) keys.push(process.env.GROQ_API_KEY_4);
+  if (process.env.GROQ_API_KEY_5) keys.push(process.env.GROQ_API_KEY_5);
+  if (process.env.GROQ_API_KEY_FALLBACK) keys.push(process.env.GROQ_API_KEY_FALLBACK); // Suporte legado
+  
+  // Garante ao menos uma chave vazia para evitar crash na inicialização do SDK
+  return keys.length > 0 ? keys : [""]; 
+};
 
-// Initialize multiple clients if fallback is provided
-const clients = [new Groq({ apiKey: API_KEY })];
-if (API_KEY_FALLBACK) {
-  clients.push(new Groq({ apiKey: API_KEY_FALLBACK }));
-}
+const keys = getGroqKeys();
+const clients = keys.map(apiKey => new Groq({ apiKey }));
 
 /**
- * Utility function to call Groq API with automatic fallback and retry.
- * Matches the logic previously established in studymaster-worker.
+ * Função utilitária para chamar a Groq API com failover automático e retentativas.
+ * Suporta múltiplas chaves via GROQ_API_KEY, GROQ_API_KEY_2, etc.
  */
 export async function callGroqWithFallback(
   messages: any[],
@@ -22,12 +30,16 @@ export async function callGroqWithFallback(
   const temperature = options.temperature ?? 0.3;
 
   const finalKey = explicitApiKey || options.apiKey;
-  // Use dynamically provided API key if available, otherwise fallback to module-level clients
+  // Usa chave dinâmica se fornecida explicitamente (ex: input do usuário), senão usa a fila de failover do ambiente
   const activeClients = finalKey ? [new Groq({ apiKey: finalKey })] : clients;
 
   for (let attempt = 0; attempt < activeClients.length; attempt++) {
     const client = activeClients[attempt];
     try {
+      if (attempt > 0) {
+        console.log(`[Groq Failover] Iniciando failover para a chave reserva no index ${attempt}...`);
+      }
+      
       const response = await client.chat.completions.create({
         messages,
         model,
@@ -35,15 +47,24 @@ export async function callGroqWithFallback(
         response_format: options.response_format,
         max_tokens: options.max_tokens,
       });
+      
+      console.log(`[Groq Success] Resposta gerada com sucesso utilizando chave no index ${attempt}.`);
       return response.choices[0]?.message?.content;
+      
     } catch (error: any) {
-      console.warn(`[Groq API] Attempt ${attempt + 1} failed:`, error.message);
-      // Wait before retrying (1000ms base)
-      if (attempt < clients.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      } else {
-        throw new Error(`All Groq API attempts failed. Last error: ${error.message}`);
+      // Extrai o status HTTP do erro (Groq SDK usa error.status)
+      const status = error.status || (error.response?.status) || 500;
+      console.warn(`[Groq API Error] Falha na chave index ${attempt} (Status: ${status}): ${error.message}`);
+      
+      // Só executa failover se for problema com a chave (401), limite de taxa (429) ou erro do servidor (5xx)
+      const isRetryable = status === 401 || status === 429 || status >= 500;
+      
+      if (!isRetryable || attempt >= activeClients.length - 1) {
+         throw new Error(`All Groq API attempts failed. Last error: ${error.message}`);
       }
+      
+      // Pequeno delay antes de tentar a próxima chave
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
 }

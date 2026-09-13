@@ -89,7 +89,7 @@ export default function TrilhasPage() {
               <p className={styles.sectionHint}>Aulas curtas com vídeo, flashcards 3D e questões de fixação.</p>
             </div>
             <Link
-              href="/trilhas/criar"
+              href="/trilhas/novo"
               style={{
                 display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "7px",
                 minHeight: "40px", padding: "0 16px", borderRadius: "10px",

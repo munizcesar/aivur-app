@@ -54,7 +54,6 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const title = formData.get("title") as string;
     let text = formData.get("text") as string || "";
-    const file = formData.get("file") as File | null;
 
     if (!title) {
       return NextResponse.json(
@@ -63,34 +62,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const sourceType: "edital" | "livre" = (text || file) ? "edital" : "livre";
-
-    if (file) {
-      try {
-        if (typeof global !== 'undefined') {
-          // @ts-ignore
-          if (typeof global.DOMMatrix === 'undefined') {
-            // @ts-ignore
-            global.DOMMatrix = class DOMMatrix { constructor() { this.a=1; this.b=0; this.c=0; this.d=1; this.e=0; this.f=0; } } as any;
-          }
-          // @ts-ignore
-          if (typeof global.Path2D === 'undefined') global.Path2D = class Path2D {} as any;
-          // @ts-ignore
-          if (typeof global.ImageData === 'undefined') global.ImageData = class ImageData {} as any;
-        }
-
-        const pdfParse = require("pdf-parse");
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const pdfData = await pdfParse(buffer);
-        text = pdfData.text;
-      } catch (err) {
-        console.error("PDF Parsing error:", err);
-        return NextResponse.json(
-          { error: "Falha ao ler o PDF fornecido." },
-          { status: 400 }
-        );
-      }
+    if (!text) {
+      return NextResponse.json(
+        { error: "Conteúdo do edital (text) é obrigatório." },
+        { status: 400 }
+      );
     }
 
     if (text.length > 50000) {

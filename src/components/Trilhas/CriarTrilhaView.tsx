@@ -53,6 +53,7 @@ export default function CriarTrilhaView({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   const loadingPhrases = [
+    "Extraindo conteúdo do PDF...",
     "Analisando o conteúdo...",
     "Estruturando questões e flashcards...",
     "Buscando referências de aula...",
@@ -83,10 +84,32 @@ export default function CriarTrilhaView({
     setStep("loading");
 
     try {
+      let finalContent = text.trim();
+
+      if (file) {
+        if (file.type === "application/pdf") {
+          const pdfjsLib = await import('pdfjs-dist');
+          pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          
+          let extractedText = "";
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((item: any) => item.str).join(" ");
+            extractedText += pageText + "\n";
+          }
+          finalContent = (finalContent + "\n" + extractedText).trim();
+        } else {
+          throw new Error("Apenas arquivos PDF são suportados no momento.");
+        }
+      }
+
       const formData = new FormData();
       formData.append("title", title);
-      if (text) formData.append("text", text);
-      if (file) formData.append("file", file);
+      formData.append("text", finalContent);
 
       const res = await fetch("/api/ai/gerar-trilha", {
         method: "POST",

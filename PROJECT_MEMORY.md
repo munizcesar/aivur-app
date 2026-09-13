@@ -226,3 +226,18 @@ Auditoria completa de todos os usos de `window.history` e `router.push` no codeb
 
 **`window.history.back()` não existe em nenhum arquivo do projeto.** O item de backlog foi resolvido em sessão anterior sem registro explícito.
 
+## 12. Migração de IA para TrilhaSchema (Etapa 3 de 3)
+
+### Mudanças Implementadas
+- **Refatoração do Endpoint de IA (/api/ai/gerar-trilha):** O prompt de geração e a extração do JSON foram totalmente refatorados. Antes, gerava um Course complexo (composto por matérias, nichos e tópicos iteráveis). Agora, instrui o modelo a retornar diretamente o formato micro-learning TrilhaSchema (um vídeo, lista de flashcards e lista de questões), mapeando perfeitamente para o armazenamento persistido. O Edge runtime foi removido em prol do 
+odejs runtime para suportar pacotes nativos de extração (ex: pdf-parse).
+- **Migração de Rotas:** Todos os arquivos da pasta obsoleta /api/mentor/* foram migrados para /api/ai/* e a API foi atualizada em todos os callers do Cockpit (FlashcardsTab, QuestionsTab, ResumeTab, useTopicContent).
+- **Refatoração da View de Criação (CriarTrilhaView.tsx):** A view foi completamente simplificada. O estado de eview complexo (que permitia editar disciplinas, nichos e itens manualmente antes de salvar) foi removido. Agora, uma vez carregado, exibe apenas a ementa simplificada da trilha gerada (Título, Disciplina e contagem de Questões/Flashcards) e um botão de salvamento atômico.
+- **Acoplamento com Zustand (useStudyStore):** A view de criação agora salva a Trilha finalizada no array global customTrilhas via ddCustomTrilha (persistência unificada em localStorage), roteando imediatamente para o Cockpit unificado (/trilhas/[id]). O Cockpit (TrilhaSala.tsx) consegue ler tanto o TRILHAS_MOCK estático quanto as dinâmicas do useStudyStore.
+- **Limpeza do Legado:** Foram removidas todas as interfaces remanescentes da área Mentor, inclusive subcomponentes (src/components/Mentor/*) e a própria dependência do IDBKeyVal em visualizações antigas (como MinhasTrilhasView).
+
+### Status e Próximos Passos
+- O refactor da trilha está 100% concluído. O código passa com zero erros de TS (
+pm run build sucesso) e o script de teste de mock (scratch/test-ai-route.mjs) foi testado contra a API rodando.
+- Nenhum link morto remanescente (rotas /trilhas/novo apontam diretamente para criação e redirecionam para o Cockpit).
+- A base do app está estruturada inteiramente sobre o padrão do Cockpit (Microlearning).

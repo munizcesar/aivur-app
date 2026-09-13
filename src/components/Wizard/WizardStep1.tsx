@@ -148,8 +148,8 @@ export default function WizardStep1() {
           type="button" 
           className={`${styles.modeCard} ${mode === 'aivos360' ? styles.selected : ''}`}
           onClick={() => {
-            setMode('aivos360');
-            window.location.href = '/mentor';
+            // fallback ou navegação legado
+            window.location.href = '/trilhas';
           }}
           aria-label="Trilhas de Estudo"
         >

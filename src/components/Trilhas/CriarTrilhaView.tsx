@@ -124,7 +124,9 @@ export default function CriarTrilhaView({
   const handleSave = async () => {
     if (!draftCourse) return;
     await saveCourse(draftCourse);
-    router.push(`/mentor/${draftCourse.id}`);
+    // TODO (Stage 3): Atualizar para rotear para o novo formato do Cockpit
+    alert("Função temporariamente desativada na Etapa 1. Concluído na Etapa 3.");
+    // router.push(`/mentor/${draftCourse.id}`);
   };
 
   const handleUpdateSubject = (sIdx: number, field: keyof CourseSubject, value: string) => {

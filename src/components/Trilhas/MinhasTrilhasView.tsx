@@ -183,9 +183,10 @@ export default function MinhasTrilhasView({
                   </div>
 
                   {/* AÇÃO DE ACESSO */}
-                  <div className="pt-3 border-t border-[rgba(107,153,179,0.15)]">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 mt-auto border-t border-[rgba(107,153,179,0.15)] bg-[#0B1929]/30">
                     <Link
-                      href={`/mentor/${course.id}`}
+                      href="#"
+                      title="Refatoração em andamento (Etapa 3)"
                       className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#0A2E45] hover:bg-[#0F3A53] text-[#FBEBD0] text-xs sm:text-sm font-bold border border-[rgba(107,153,179,0.25)] transition-all group-hover:border-[#F4A261]/60"
                     >
                       <span>Acessar Cronograma</span>

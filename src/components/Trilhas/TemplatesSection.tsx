@@ -158,7 +158,8 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
 
                 {template.isReady ? (
                   <Link
-                    href={`/mentor/${template.courseId}`}
+                    href="#"
+                    title="Função de template desativada temporariamente (refatoração)"
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#C41230] hover:bg-[#6B0000] text-[#FBEBD0] text-xs sm:text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
                   >
                     <span>Acessar Trilha</span>

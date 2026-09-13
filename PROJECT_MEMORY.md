@@ -70,3 +70,26 @@
 - **ResumeTab:** Editorial reader mode — `bg-transparent`, `p-6 md:p-12`, `max-w-3xl`, `text-[1.05rem] md:text-[1.15rem]`, `leading-[1.8]`, gold titles.
 - **Global CSS:** Added `.no-scrollbar` utility (hides scrollbar for webkit/firefox/IE).
 - `npx tsc -p tsconfig.json --noEmit` → exit 0.
+
+## 8. Trilhas Microlearning Module
+
+### Arquivos Criados
+- `src/mocks/trilhasMock.ts` — 4 trilhas com `video`, `flashcards[]`, `questoes[]` + `QUESTOES_IA_EXTRA[]` (3 questões extras para o loop de retenção IA).
+- `src/components/Trilhas/TrilhaSala.tsx` — Sala de Estudo standalone com 3 tabs DOM-preserved (`hidden`/`block`):
+  - **VideoTab:** iframe YouTube + resumo.
+  - **FlashcardsTab:** 3D flip card via arbitrary Tailwind values (`[perspective:1000px]`, `[transform:rotateY(180deg)]`, `[backface-visibility:hidden]`); SRS controls (Errei/Bom/Fácil); progress pills; paginação.
+  - **QuestoesTab:** questão por vez; alternativas com color-coding Emerald/Rose pós-submit; callout de gabarito; End State com "Salvar Progresso" + "⚡ Gerar mais questões com IA" (skeleton 1.5s → +3 questões mockadas).
+- `src/app/trilhas/[id]/page.tsx` — Dynamic route `/trilhas/[id]`; `generateStaticParams` + `generateMetadata`; renderiza `TrilhaSala`.
+- `src/components/Trilhas/TrilhaCriadorMicro.tsx` — Criador estruturado com Bloco A (identidade), Bloco B (mídia + iframe preview em tempo real), Bloco C (flashcards + questões com alerts de limite microlearning). CTA fixo no footer.
+- `src/app/trilhas/criar/page.tsx` — Rota `/trilhas/criar` para o criador.
+
+### Modificações
+- `src/app/trilhas/page.tsx` — Hub atualizado com seção "Trilhas de Microlearning" (grid de cards com barra de progresso, tags de disciplina, contadores, botão "Abrir Aula →") + botão "+ Nova Trilha" → `/trilhas/criar`.
+
+### Regras Mantidas
+- Paleta Navy/Gold do projeto (`#020C14`, `#0A2E45`, `#C9A84C`, `#FBEBD0`, `#6B99B3`, `#C41230`).
+- Sem pacotes externos adicionados.
+- `hidden`/`block` para retenção de DOM de tabs.
+- Ícones Lucide com `shrink-0 flex-none` (sem `w-N h-N` + `size={N}` juntos).
+- 3D via arbitrary values Tailwind.
+

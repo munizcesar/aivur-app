@@ -16,13 +16,13 @@ import { useStudyStore } from "@/store/useStudyStore";
 import type { TrilhaTemplateType } from "@/lib/validations/trilha";
 
 interface CriarTrilhaViewProps {
-  onNavigateToMinhas: () => void;
+  
   initialTitle?: string;
   initialText?: string;
 }
 
 export default function CriarTrilhaView({
-  onNavigateToMinhas,
+  
   initialTitle = "",
   initialText = "",
 }: CriarTrilhaViewProps) {
@@ -156,7 +156,7 @@ export default function CriarTrilhaView({
         <div className="flex-shrink-0">
           <button
             type="button"
-            onClick={onNavigateToMinhas}
+            onClick={() => router.push("/trilhas")}
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[var(--color-navy)]/40 hover:bg-[var(--color-navy)] text-[var(--color-cream)] text-sm font-semibold transition-all duration-150 hover:border-[rgba(107,153,179,0.6)] active:scale-95 shadow-sm"
           >
             <FolderCheck className="w-4 h-4 text-[var(--color-slate-blue)]" />
@@ -315,5 +315,6 @@ export default function CriarTrilhaView({
     </div>
   );
 }
+
 
 

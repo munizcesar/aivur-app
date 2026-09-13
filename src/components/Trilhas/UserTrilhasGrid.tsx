@@ -151,19 +151,7 @@ export default function UserTrilhasGrid() {
             <h3 className="text-lg font-bold text-white mb-1">
               Você ainda não possui trilhas personalizadas
             </h3>
-            <p className="text-xs sm:text-sm text-[var(--color-slate-blue)] max-w-md mx-auto mb-6">
-              Comece agora colando seu edital para estruturar suas metas diárias.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => window.location.href = "/trilhas/novo"}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-[var(--color-red)] hover:bg-[#6B0000] text-[var(--color-cream)] text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Gerar trilhas</span>
-              </button>
-            </div>
+            <p className="text-xs sm:text-sm text-[var(--color-slate-blue)] max-w-md mx-auto mt-2 italic">Nenhuma trilha ainda — use o botão no topo da página para gerar a primeira.</p>
           </div>
         )}
       </div>

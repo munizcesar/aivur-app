@@ -61,19 +61,7 @@ export default function TrilhasPage() {
               <h2 id="micro-title" className={styles.sectionTitle}>Trilhas de Microlearning</h2>
               <p className={styles.sectionHint}>Aulas curtas com vídeo, flashcards 3D e questões de fixação.</p>
             </div>
-            <Link
-              href="/trilhas/novo"
-              style={{
-                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "7px",
-                minHeight: "40px", padding: "0 16px", borderRadius: "10px",
-                background: "linear-gradient(135deg, #e03b5a, #b7193b)", color: "white",
-                fontSize: "13px", fontWeight: 800, textDecoration: "none",
-                border: "1px solid rgba(255,255,255,0.08)", whiteSpace: "nowrap",
-                flexShrink: 0,
-              }}
-            >
-              + Nova Trilha
-            </Link>
+            
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(268px, 1fr))", gap: "14px" }}>

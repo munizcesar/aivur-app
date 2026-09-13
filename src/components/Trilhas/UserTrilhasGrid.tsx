@@ -51,16 +51,7 @@ export default function UserTrilhasGrid() {
           </p>
         </div>
 
-        <div className="flex-shrink-0">
-          <button
-            type="button"
-            onClick={() => window.location.href = "/trilhas/novo"}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--color-red)] hover:bg-[#6B0000] text-[var(--color-cream)] text-sm font-bold shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Gerar trilhas</span>
-          </button>
-        </div>
+        
       </div>
 
       {/* LISTA */}
@@ -275,5 +266,6 @@ export default function UserTrilhasGrid() {
     </div>
   );
 }
+
 
 

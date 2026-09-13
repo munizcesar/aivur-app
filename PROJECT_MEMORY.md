@@ -241,3 +241,4 @@ odejs runtime para suportar pacotes nativos de extração (ex: pdf-parse).
 pm run build sucesso) e o script de teste de mock (scratch/test-ai-route.mjs) foi testado contra a API rodando.
 - Nenhum link morto remanescente (rotas /trilhas/novo apontam diretamente para criação e redirecionam para o Cockpit).
 - A base do app está estruturada inteiramente sobre o padrão do Cockpit (Microlearning).
+- **Ajuste UX (CriarTrilhaView):** Adicionada capacidade de renomear o título da trilha gerada inline (click-to-edit com ícone Edit2) antes de salvá-la definitivamente no Zustand, mantendo o restante do fluxo 100% automatizado.

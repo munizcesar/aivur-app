@@ -1,6 +1,18 @@
 export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
+import { getRequestContext } from '@cloudflare/next-on-pages';
+
+// Função auxiliar para resolver bindings e env no Edge
+function resolveEnv(): any {
+  try {
+    const ctx = getRequestContext();
+    if (ctx?.env) return ctx.env;
+  } catch (_) {}
+  const g = globalThis as any;
+  if (g.YOUTUBE_API_KEY) return g;
+  return process.env;
+}
 
 export interface YoutubeSearchResult {
   videoId: string;
@@ -18,8 +30,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
   }
 
-  const rawApiKey = process.env.YOUTUBE_API_KEY || "";
-  console.error(`[DEBUG YOUTUBE] API Key length at runtime: ${rawApiKey.length}`);
+  const env = resolveEnv();
+  const rawApiKey = env.YOUTUBE_API_KEY || "";
   
   const apiKey = rawApiKey.trim();
 

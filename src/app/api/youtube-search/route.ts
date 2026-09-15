@@ -18,10 +18,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
   }
 
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  const rawApiKey = process.env.YOUTUBE_API_KEY || "";
+  console.error(`[DEBUG YOUTUBE] API Key length at runtime: ${rawApiKey.length}`);
+  
+  const apiKey = rawApiKey.trim();
 
   if (!apiKey) {
-    return NextResponse.json({ error: 'YouTube API key is missing' }, { status: 500 });
+    return NextResponse.json({ error: `YouTube API key is missing. Raw length was ${rawApiKey.length}` }, { status: 500 });
   }
 
   try {

@@ -35,6 +35,8 @@ interface StudyStore {
   addCustomTrilha: (trilha: import("@/lib/validations/trilha").TrilhaTemplateType) => void;
   updateCustomTrilha: (id: string, updates: Partial<import("@/lib/validations/trilha").TrilhaTemplateType>) => void;
   deleteCustomTrilha: (id: string) => void;
+  videoResultsCache: Record<string, any[]>;
+  setVideoResults: (trilhaId: string, results: any[]) => void;
 }
 
 const initialProgress: StudyProgressData = {
@@ -65,6 +67,11 @@ export const useStudyStore = create<StudyStore>()(
       })),
       deleteCustomTrilha: (id) => set((state) => ({
         customTrilhas: state.customTrilhas.filter((t) => t.id !== id)
+      })),
+
+      videoResultsCache: {},
+      setVideoResults: (trilhaId, results) => set((state) => ({
+        videoResultsCache: { ...state.videoResultsCache, [trilhaId]: results }
       })),
 
       setActiveModule: (id) => set({ activeModuleId: id }),

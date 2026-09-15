@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   CheckCircle2,
@@ -292,12 +292,37 @@ export default function TrilhaSalaV2() {
   const params = useParams();
   const id     = params.id as string;
 
-  const { registerAnswer, toggleTopicCompletion, customTrilhas } = useStudyStore();
+  const { registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults } = useStudyStore();
 
   // Same data source as TrilhaSala — no duplication
   const trilha = TRILHAS_MOCK.find(t => t.id === id) || customTrilhas.find(t => t.id === id);
 
   const [openSection, setOpenSection] = useState<SectionId | null>(null);
+  const [isPlayingId, setIsPlayingId] = useState<string | null>(null);
+  const [isLoadingVideo, setIsLoadingVideo] = useState(false);
+
+  const formatViews = (views: number) => {
+    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M visualizações`;
+    if (views >= 1000) return `${(views / 1000).toFixed(1)} mil visualizações`;
+    return `${views} visualizações`;
+  };
+
+  useEffect(() => {
+    if (openSection === "video" && trilha) {
+      if (!videoResultsCache[trilha.id] && !isLoadingVideo) {
+        setIsLoadingVideo(true);
+        fetch(`/api/youtube-search?query=${encodeURIComponent(trilha.titulo)}`)
+          .then(res => res.json())
+          .then((data: any) => {
+            if (data.items) {
+              setVideoResults(trilha.id, data.items);
+            }
+          })
+          .catch(err => console.error("Error fetching videos:", err))
+          .finally(() => setIsLoadingVideo(false));
+      }
+    }
+  }, [openSection, trilha, videoResultsCache, setVideoResults, isLoadingVideo]);
 
   const toggle = useCallback((section: SectionId) => {
     setOpenSection(prev => {
@@ -503,6 +528,87 @@ export default function TrilhaSalaV2() {
           font-weight: 700;
           color: var(--color-heading, var(--color-text));
           font-size: 0.9rem;
+        }
+
+        /* ── Video Gallery ────────────────────────────────────── */
+        .v2-video-gallery {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+        .v2-video-card {
+          display: flex;
+          gap: 1rem;
+          padding: 0.75rem;
+          border-radius: var(--radius-lg);
+          border: 1px solid var(--color-border);
+          background: var(--color-surface);
+          cursor: pointer;
+          transition: border-color var(--transition), background var(--transition);
+        }
+        .v2-video-card:hover {
+          border-color: var(--color-primary);
+          background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+        }
+        .v2-video-thumb {
+          width: 120px;
+          aspect-ratio: 16/9;
+          border-radius: var(--radius-md);
+          object-fit: cover;
+          background: var(--color-bg);
+          flex-shrink: 0;
+        }
+        .v2-video-info {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 0.25rem;
+          overflow: hidden;
+        }
+        .v2-video-card-title {
+          font-weight: 600;
+          font-size: 0.9rem;
+          color: var(--color-heading, var(--color-text));
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .v2-video-card-meta {
+          font-size: 0.75rem;
+          color: var(--color-text-muted);
+        }
+        .v2-skeleton-card {
+          display: flex;
+          gap: 1rem;
+          padding: 0.75rem;
+          border-radius: var(--radius-lg);
+          border: 1px solid var(--color-border);
+          background: var(--color-surface);
+        }
+        .v2-skeleton-thumb {
+          width: 120px;
+          aspect-ratio: 16/9;
+          border-radius: var(--radius-md);
+          background: var(--color-border);
+          animation: pulse 1.5s infinite;
+        }
+        .v2-skeleton-text {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+        .v2-skeleton-line {
+          height: 0.75rem;
+          background: var(--color-border);
+          border-radius: var(--radius-sm);
+          animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
         }
 
         /* ── Resumo panel ─────────────────────────────────────── */
@@ -797,15 +903,49 @@ export default function TrilhaSalaV2() {
                     {/* ── VIDEO ──────────────────────────────── */}
                     {sId === "video" && (
                       <div className="v2-video-wrapper">
-                        <div className="v2-video-iframe-box">
-                          <iframe
-                            src={`https://www.youtube.com/embed/${trilha.video.youtubeId}?rel=0&modestbranding=1`}
-                            title={trilha.video.titulo}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </div>
-                        <p className="v2-video-title">{trilha.video.titulo}</p>
+                        {isPlayingId ? (
+                          <>
+                            <div className="v2-video-iframe-box">
+                              <iframe
+                                src={`https://www.youtube.com/embed/${isPlayingId}?rel=0&modestbranding=1&autoplay=1`}
+                                title="Video Player"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </div>
+                            <button className="v2-btn-outline" style={{ alignSelf: 'flex-start' }} onClick={() => setIsPlayingId(null)}>
+                              ← Voltar para opções
+                            </button>
+                          </>
+                        ) : (
+                          <div className="v2-video-gallery">
+                            {!videoResultsCache[trilha.id] ? (
+                              <>
+                                {[1, 2, 3, 4].map(i => (
+                                  <div key={i} className="v2-skeleton-card">
+                                    <div className="v2-skeleton-thumb" />
+                                    <div className="v2-skeleton-text">
+                                      <div className="v2-skeleton-line" style={{ width: '90%' }} />
+                                      <div className="v2-skeleton-line" style={{ width: '60%' }} />
+                                      <div className="v2-skeleton-line" style={{ width: '40%' }} />
+                                    </div>
+                                  </div>
+                                ))}
+                              </>
+                            ) : (
+                              videoResultsCache[trilha.id].map((v: any) => (
+                                <div key={v.videoId} className="v2-video-card" onClick={() => setIsPlayingId(v.videoId)}>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={v.thumbnail} alt={v.title} className="v2-video-thumb" />
+                                  <div className="v2-video-info">
+                                    <h4 className="v2-video-card-title">{v.title}</h4>
+                                    <span className="v2-video-card-meta">{v.channelTitle} • {formatViews(v.viewCount)}</span>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
 

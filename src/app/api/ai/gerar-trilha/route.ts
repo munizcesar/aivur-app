@@ -2,7 +2,20 @@ import { NextResponse } from "next/server";
 import { extractCleanJson, getDomainRules } from '@/lib/ai-protocols';
 import { TrilhaSchema } from '@/lib/validations/trilha';
 
+import { getRequestContext } from '@cloudflare/next-on-pages';
+
 export const runtime = 'edge';
+
+// Função auxiliar para resolver bindings e env no Edge
+function resolveEnv(): any {
+  try {
+    const ctx = getRequestContext();
+    if (ctx?.env) return ctx.env;
+  } catch (_) {}
+  const g = globalThis as any;
+  if (g.GROQ_API_KEY) return g;
+  return process.env;
+}
 
 // Basic in-memory rate limiting
 const ipMap = new Map<string, { count: number; resetTime: number }>();
@@ -33,7 +46,8 @@ function checkRateLimit(ip: string): boolean {
 }
 
 export async function POST(req: Request) {
-  const apiKey = process.env.GROQ_API_KEY;
+  const env = resolveEnv();
+  const apiKey = env.GROQ_API_KEY || env.GROQ_API_KEY_2 || env.GROQ_API_KEY_3 || env.GROQ_API_KEY_FALLBACK;
   
   if (!apiKey) {
     return new Response(JSON.stringify({ error: "GROQ_API_KEY não configurada no ambiente." }), {

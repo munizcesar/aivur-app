@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { TRILHAS_MOCK } from "@/mocks/trilhasMock";
-import TrilhaSala from "@/components/Trilhas/TrilhaSala";
+import TrilhaSalaV2 from "@/components/Trilhas/TrilhaSalaV2";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -25,5 +25,5 @@ export default async function TrilhaSalaPage({ params }: Props) {
   const { id } = await params;
   const trilha = TRILHAS_MOCK.find((t) => t.id === id);
   if (!trilha) notFound();
-  return <TrilhaSala />;
+  return <TrilhaSalaV2 key={id} />;
 }

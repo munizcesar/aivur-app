@@ -265,10 +265,9 @@ O TrilhaSala.tsx original apresentava bugs recorrentes de layout (coluna direita
   - Renderiza <TrilhaSalaV2 /> com key={id}.
 
 ### Status Final da Sessão
-- **Feito e validado:** Cockpit V2 completo (rollout pendente de aprovação final, galeria de vídeo lazy, player in-app persistido, mobile views otimizadas, checkmarks de progresso por seção testados).
+- **Feito e validado:** Cockpit V2 completo. A rota antiga (tabs) foi substituída em definitivo (rollout REALIZADO na rota principal `/trilhas/[id]`, `TrilhaSala.tsx` original removido, `trilhas-v2` deletado). URL de produção confirmada: `https://aivur-app.pages.dev/trilhas/[id]`.
 - **Feito (Aguardando teste E2E):** Correção de confiabilidade do `/api/ai/gerar-trilha` (Schema Zod estrito + Fixer Prompt de reparo inteligente). Teste E2E bloqueado por erro 401/429 na `GROQ_API_KEY`.
 - **Feito (Aguardando aprovação visual):** Fase 4 (Flashcards com cores dinâmicas Frente/Verso - Opção A). Implementada com sucesso em Light Mode (confirmado) e Dark Mode. A validação visual do Dark Mode (texto navy forte sobre creme) está com PENDÊNCIA ABERTA no lado do usuário (as 2 primeiras tentativas de screenshot falharam, pendente verificação da 3ª).
-- TrilhaSala.tsx original e rotas antigas: **intocados**.
 
 ### Backlog Priorizado (Próximos Passos)
 1. 🔴 **GROQ_API_KEY (Externo):** Resolver erro 401/429 no `.env.local` e painel Groq.
@@ -278,4 +277,3 @@ O TrilhaSala.tsx original apresentava bugs recorrentes de layout (coluna direita
 5. 🔵 **Fase 3:** Refatorar layout de questões para o "padrão banca".
 6. 🔵 **Débito Técnico CSS:** Refatorar `--elite-*` (variáveis com nomenclatura invertida entre temas).
 7. 🔵 **Fase 5:** Módulo de retenção (streak, progresso gamificado do edital).
-8. 🔵 **Rollout:** Trocar o Hub para apontar definitivamente para o `/trilhas-v2/`.

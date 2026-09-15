@@ -685,7 +685,8 @@ export default function TrilhaSalaV2() {
           backface-visibility: hidden;
           border-radius: var(--radius-xl);
           border: 1.5px solid var(--color-border);
-          background: var(--color-surface);
+          background: var(--color-cream);
+          color: var(--color-navy);
           padding: 1.75rem 1.5rem 1.5rem;
           display: flex;
           flex-direction: column;
@@ -697,7 +698,9 @@ export default function TrilhaSalaV2() {
         }
         .v2-fc-face--back {
           transform: rotateY(180deg);
-          background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+          background: var(--color-navy);
+          color: var(--color-white);
+
           border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
         }
         .v2-fc-badge {

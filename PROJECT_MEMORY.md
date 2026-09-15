@@ -276,6 +276,7 @@ O TrilhaSala.tsx original apresentava bugs recorrentes de layout (coluna direita
 4. Testar o Fixer Prompt E2E assim que houver chave válida.
 5. Fase 2: Geração lazy por aba.
 6. Fase 3: Layout de questões padrão banca.
-7. Fase 4: Flashcards com cores dinâmicas frente/verso.
-8. Fase 5: Módulo de retenção.
+7. ✅ Fase 4: Flashcards com cores dinâmicas frente/verso (Opção A: Cream/Navy).
+8. ✅ Fase 5: Módulo de retenção (Checkmarks de progresso no Cockpit V2).
 9. ✅ Limpar scripts e arquivos legados/soltos. (Scripts úteis movidos para `/scripts/dev-tools/` e lixo removido).
+10. **DÉBITO TÉCNICO CSS:** As variáveis `--elite-cream` e `--elite-navy` em `globals.css` invertem de valor literal entre os temas para sustentar componentes legados hardcoded. Isso gera nomenclatura confusa (o nome descreve a cor literal, não o papel semântico). Candidato a refatoração futura para usar `*-inverse` e afins.

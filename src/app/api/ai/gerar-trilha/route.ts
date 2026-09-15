@@ -205,20 +205,21 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
     const data = await groqResponse.json() as any;
     const messageContent = data.choices[0]?.message?.content;
 
-    // 4. Extração de JSON centralizada via ai-protocols (extractCleanJson)
+    const injectMissingFields = (json: any, titleStr: string) => {
+      json.titulo = titleStr;
+      if (json.flashcards && Array.isArray(json.flashcards)) {
+        json.flashcards.forEach((f: any, i: number) => { f.id = `fc_${Date.now()}_${i}`; });
+      }
+      if (json.questoes && Array.isArray(json.questoes)) {
+        json.questoes.forEach((q: any, i: number) => { q.id = `q_${Date.now()}_${i}`; });
+      }
+    };
+
     let parsedJson: any;
     try {
       const jsonString = extractCleanJson(messageContent || "");
       parsedJson = JSON.parse(jsonString);
-      
-      // Injeta campos exigidos pelo TrilhaSchema mas que a IA não gera
-      parsedJson.titulo = title;
-      if (parsedJson.flashcards && Array.isArray(parsedJson.flashcards)) {
-        parsedJson.flashcards.forEach((f: any, i: number) => { f.id = `fc_${Date.now()}_${i}`; });
-      }
-      if (parsedJson.questoes && Array.isArray(parsedJson.questoes)) {
-        parsedJson.questoes.forEach((q: any, i: number) => { q.id = `q_${Date.now()}_${i}`; });
-      }
+      injectMissingFields(parsedJson, title);
     } catch (err) {
       console.error("Falha ao fazer parse do JSON final:", err);
       return NextResponse.json(
@@ -282,6 +283,7 @@ Devolva o mesmo JSON perfeitamente válido, e NADA MAIS. Sem markdown fora do JS
         try {
           const cleanFixerJson = extractCleanJson(fixerContent || "");
           const parsedFixerJson = JSON.parse(cleanFixerJson);
+          injectMissingFields(parsedFixerJson, title);
           const fixerParseResult = StrictTrilhaSchema.safeParse(parsedFixerJson);
           
           if (fixerParseResult.success) {

@@ -21,12 +21,7 @@ export async function GET(request: Request) {
   const apiKey = process.env.YOUTUBE_API_KEY;
 
   if (!apiKey) {
-    return NextResponse.json({ 
-      error: 'YouTube API key is missing',
-      debug_type: typeof apiKey,
-      debug_val: apiKey === "" ? "empty_string" : apiKey,
-      env_keys: Object.keys(process.env || {})
-    }, { status: 500 });
+    return NextResponse.json({ error: 'YouTube API key is missing' }, { status: 500 });
   }
 
   try {

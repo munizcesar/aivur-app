@@ -292,13 +292,13 @@ export default function TrilhaSalaV2() {
   const params = useParams();
   const id     = params.id as string;
 
-  const { registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults } = useStudyStore();
+  const { registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults, selectedVideoByTrilha, setSelectedVideo } = useStudyStore();
 
   // Same data source as TrilhaSala — no duplication
   const trilha = TRILHAS_MOCK.find(t => t.id === id) || customTrilhas.find(t => t.id === id);
 
   const [openSection, setOpenSection] = useState<SectionId | null>(null);
-  const [isPlayingId, setIsPlayingId] = useState<string | null>(null);
+  const [forceGallery, setForceGallery] = useState(false);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
 
   const formatViews = (views: number) => {
@@ -309,6 +309,7 @@ export default function TrilhaSalaV2() {
 
   useEffect(() => {
     if (openSection === "video" && trilha) {
+      setForceGallery(false);
       if (!videoResultsCache[trilha.id] && !isLoadingVideo) {
         setIsLoadingVideo(true);
         fetch(`/api/youtube-search?query=${encodeURIComponent(trilha.titulo)}`)
@@ -901,53 +902,59 @@ export default function TrilhaSalaV2() {
                 >
                   <div className="v2-acc-body-inner">
                     {/* ── VIDEO ──────────────────────────────── */}
-                    {sId === "video" && (
-                      <div className="v2-video-wrapper">
-                        {isPlayingId ? (
-                          <>
-                            <div className="v2-video-iframe-box">
-                              <iframe
-                                src={`https://www.youtube.com/embed/${isPlayingId}?rel=0&modestbranding=1&autoplay=1`}
-                                title="Video Player"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                              />
-                            </div>
-                            <button className="v2-btn-outline" style={{ alignSelf: 'flex-start' }} onClick={() => setIsPlayingId(null)}>
-                              ← Voltar para opções
-                            </button>
-                          </>
-                        ) : (
-                          <div className="v2-video-gallery">
-                            {!videoResultsCache[trilha.id] ? (
-                              <>
-                                {[1, 2, 3, 4].map(i => (
-                                  <div key={i} className="v2-skeleton-card">
-                                    <div className="v2-skeleton-thumb" />
-                                    <div className="v2-skeleton-text">
-                                      <div className="v2-skeleton-line" style={{ width: '90%' }} />
-                                      <div className="v2-skeleton-line" style={{ width: '60%' }} />
-                                      <div className="v2-skeleton-line" style={{ width: '40%' }} />
+                    {sId === "video" && (() => {
+                      const activeVideoId = !forceGallery ? selectedVideoByTrilha[trilha.id] : null;
+                      return (
+                        <div className="v2-video-wrapper">
+                          {activeVideoId ? (
+                            <>
+                              <div className="v2-video-iframe-box">
+                                <iframe
+                                  src={`https://www.youtube.com/embed/${activeVideoId}?rel=0&modestbranding=1&autoplay=1`}
+                                  title="Video Player"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
+                              <button className="v2-btn-outline" style={{ alignSelf: 'flex-start' }} onClick={() => setForceGallery(true)}>
+                                ← Ver outras opções
+                              </button>
+                            </>
+                          ) : (
+                            <div className="v2-video-gallery">
+                              {!videoResultsCache[trilha.id] ? (
+                                <>
+                                  {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className="v2-skeleton-card">
+                                      <div className="v2-skeleton-thumb" />
+                                      <div className="v2-skeleton-text">
+                                        <div className="v2-skeleton-line" style={{ width: '90%' }} />
+                                        <div className="v2-skeleton-line" style={{ width: '60%' }} />
+                                        <div className="v2-skeleton-line" style={{ width: '40%' }} />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </>
+                              ) : (
+                                videoResultsCache[trilha.id].map((v: any) => (
+                                  <div key={v.videoId} className="v2-video-card" onClick={() => {
+                                    setSelectedVideo(trilha.id, v.videoId);
+                                    setForceGallery(false);
+                                  }}>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={v.thumbnail} alt={v.title} className="v2-video-thumb" />
+                                    <div className="v2-video-info">
+                                      <h4 className="v2-video-card-title">{v.title}</h4>
+                                      <span className="v2-video-card-meta">{v.channelTitle} • {formatViews(v.viewCount)}</span>
                                     </div>
                                   </div>
-                                ))}
-                              </>
-                            ) : (
-                              videoResultsCache[trilha.id].map((v: any) => (
-                                <div key={v.videoId} className="v2-video-card" onClick={() => setIsPlayingId(v.videoId)}>
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={v.thumbnail} alt={v.title} className="v2-video-thumb" />
-                                  <div className="v2-video-info">
-                                    <h4 className="v2-video-card-title">{v.title}</h4>
-                                    <span className="v2-video-card-meta">{v.channelTitle} • {formatViews(v.viewCount)}</span>
-                                  </div>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* ── RESUMO ─────────────────────────────── */}
                     {sId === "resumo" && (

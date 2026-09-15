@@ -37,6 +37,8 @@ interface StudyStore {
   deleteCustomTrilha: (id: string) => void;
   videoResultsCache: Record<string, any[]>;
   setVideoResults: (trilhaId: string, results: any[]) => void;
+  selectedVideoByTrilha: Record<string, string>;
+  setSelectedVideo: (trilhaId: string, videoId: string | null) => void;
 }
 
 const initialProgress: StudyProgressData = {
@@ -73,6 +75,17 @@ export const useStudyStore = create<StudyStore>()(
       setVideoResults: (trilhaId, results) => set((state) => ({
         videoResultsCache: { ...state.videoResultsCache, [trilhaId]: results }
       })),
+
+      selectedVideoByTrilha: {},
+      setSelectedVideo: (trilhaId, videoId) => set((state) => {
+        const next = { ...state.selectedVideoByTrilha };
+        if (videoId) {
+          next[trilhaId] = videoId;
+        } else {
+          delete next[trilhaId];
+        }
+        return { selectedVideoByTrilha: next };
+      }),
 
       setActiveModule: (id) => set({ activeModuleId: id }),
       selectTopic: (moduleId, topicId) => set({ activeModuleId: moduleId, currentTopicId: topicId, isMobileDrawerOpen: false }),
@@ -135,6 +148,7 @@ export const useStudyStore = create<StudyStore>()(
         progressData: state.progressData,
         completedTopicIds: state.completedTopicIds,
         customTrilhas: state.customTrilhas,
+        selectedVideoByTrilha: state.selectedVideoByTrilha,
       }),
     }
   )

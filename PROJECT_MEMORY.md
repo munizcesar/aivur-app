@@ -265,18 +265,17 @@ O TrilhaSala.tsx original apresentava bugs recorrentes de layout (coluna direita
   - Renderiza <TrilhaSalaV2 /> com key={id}.
 
 ### Status Final da Sessão
-- **Feito e validado**: Cockpit V2 (`/trilhas-v2/[id]`) com layout accordion. Teste de estresse com `t-002` confirmado visualmente (zero quebras de layout).
-- **Feito, aguardando validação ponta a ponta**: Validação com Zod e `Fixer Prompt` no `/api/ai/gerar-trilha`. Código tipado e committado, mas testes bloqueados por erro 401/429 na `GROQ_API_KEY`.
+- **Feito e validado:** Cockpit V2 completo (rollout pendente de aprovação final, galeria de vídeo lazy, player in-app persistido, mobile views otimizadas, checkmarks de progresso por seção testados).
+- **Feito (Aguardando teste E2E):** Correção de confiabilidade do `/api/ai/gerar-trilha` (Schema Zod estrito + Fixer Prompt de reparo inteligente). Teste E2E bloqueado por erro 401/429 na `GROQ_API_KEY`.
+- **Feito (Aguardando aprovação visual):** Fase 4 (Flashcards com cores dinâmicas Frente/Verso - Opção A). Implementada com sucesso em Light Mode (confirmado) e Dark Mode. A validação visual do Dark Mode (texto navy forte sobre creme) está com PENDÊNCIA ABERTA no lado do usuário (as 2 primeiras tentativas de screenshot falharam, pendente verificação da 3ª).
 - TrilhaSala.tsx original e rotas antigas: **intocados**.
 
-### Backlog Pendente (Próximos Passos)
-1. ✅ [Aguardando Aprovação do Usuário] Confirmar visualmente `t-002` no Cockpit V2 com stakeholders antes de trocar o Hub e aposentar o Cockpit antigo. (Screenshots gerados na pasta `scratch/`).
-2. ✅ Decidir abordagem para o vídeo (googleapis vs. scraping de lista de resultados). -> **100% CONCLUÍDO:** Galeria lazy implementada, player in-app e persistência no Zustand, dependência da IA removida.
-3. Resolver problema de chaves Groq (401/429) no `.env.local` e painel Groq.
-4. Testar o Fixer Prompt E2E assim que houver chave válida.
-5. Fase 2: Geração lazy por aba.
-6. Fase 3: Layout de questões padrão banca.
-7. ✅ Fase 4: Flashcards com cores dinâmicas frente/verso (Opção A: Cream/Navy).
-8. ✅ Fase 5: Módulo de retenção (Checkmarks de progresso no Cockpit V2).
-9. ✅ Limpar scripts e arquivos legados/soltos. (Scripts úteis movidos para `/scripts/dev-tools/` e lixo removido).
-10. **DÉBITO TÉCNICO CSS:** As variáveis `--elite-cream` e `--elite-navy` em `globals.css` invertem de valor literal entre os temas para sustentar componentes legados hardcoded. Isso gera nomenclatura confusa (o nome descreve a cor literal, não o papel semântico). Candidato a refatoração futura para usar `*-inverse` e afins.
+### Backlog Priorizado (Próximos Passos)
+1. 🔴 **GROQ_API_KEY (Externo):** Resolver erro 401/429 no `.env.local` e painel Groq.
+2. 🔴 **Confirmar Dark Mode do Flashcard:** Validar visualmente o screenshot da frente do flashcard em tema escuro (texto navy sólido, accordion aberto).
+3. 🟡 **Fixer Prompt E2E:** Testar o motor de autocorreção JSON assim que houver chave de IA válida.
+4. 🔵 **Fase 2:** Geração lazy (sob demanda) das demais abas.
+5. 🔵 **Fase 3:** Refatorar layout de questões para o "padrão banca".
+6. 🔵 **Débito Técnico CSS:** Refatorar `--elite-*` (variáveis com nomenclatura invertida entre temas).
+7. 🔵 **Fase 5:** Módulo de retenção (streak, progresso gamificado do edital).
+8. 🔵 **Rollout:** Trocar o Hub para apontar definitivamente para o `/trilhas-v2/`.

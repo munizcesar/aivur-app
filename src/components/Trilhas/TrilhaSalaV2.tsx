@@ -326,9 +326,14 @@ export default function TrilhaSalaV2() {
           .then((data: any) => {
             if (data.items) {
               setVideoResults(trilha.id, data.items);
+            } else {
+              setVideoResults(trilha.id, []);
             }
           })
-          .catch(err => console.error("Error fetching videos:", err))
+          .catch(err => {
+            console.error("Error fetching videos:", err);
+            setVideoResults(trilha.id, []);
+          })
           .finally(() => setIsLoadingVideo(false));
       }
     }
@@ -891,7 +896,6 @@ export default function TrilhaSalaV2() {
               </svg>
             </button>
             <h1 className="v2-topbar-title">{trilha.titulo}</h1>
-            <span className="v2-topbar-badge">V2</span>
           </div>
         </header>
 
@@ -982,19 +986,25 @@ export default function TrilhaSalaV2() {
                                   ))}
                                 </>
                               ) : (
-                                videoResultsCache[trilha.id].map((v: any) => (
-                                  <div key={v.videoId} className="v2-video-card" onClick={() => {
-                                    setSelectedVideo(trilha.id, v.videoId);
-                                    setForceGallery(false);
-                                  }}>
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={v.thumbnail} alt={v.title} className="v2-video-thumb" />
-                                    <div className="v2-video-info">
-                                      <h4 className="v2-video-card-title">{v.title}</h4>
-                                      <span className="v2-video-card-meta">{v.channelTitle} • {formatViews(v.viewCount)}</span>
+                                videoResultsCache[trilha.id].length > 0 ? (
+                                  videoResultsCache[trilha.id].map((v: any) => (
+                                    <div key={v.videoId} className="v2-video-card" onClick={() => {
+                                      setSelectedVideo(trilha.id, v.videoId);
+                                      setForceGallery(false);
+                                    }}>
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img src={v.thumbnail} alt={v.title} className="v2-video-thumb" />
+                                      <div className="v2-video-info">
+                                        <h4 className="v2-video-card-title">{v.title}</h4>
+                                        <span className="v2-video-card-meta">{v.channelTitle} • {formatViews(v.viewCount)}</span>
+                                      </div>
                                     </div>
+                                  ))
+                                ) : (
+                                  <div className="v2-video-card" style={{ justifyContent: 'center', textAlign: 'center', padding: '2rem' }}>
+                                    <p className="v2-video-card-meta" style={{ fontSize: '0.9rem' }}>Não foi possível carregar sugestões de vídeo agora.</p>
                                   </div>
-                                ))
+                                )
                               )}
                             </div>
                           )}

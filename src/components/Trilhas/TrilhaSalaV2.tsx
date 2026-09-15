@@ -77,14 +77,23 @@ const SECTIONS: SectionMeta[] = [
 ];
 
 // ─── Flashcard sub-component ──────────────────────────────────────────────────
-function FlashcardPanel({ flashcards }: { flashcards: { id: string; frente: string; verso: string }[] }) {
+function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completedTopicIds }: { flashcards: { id: string; frente: string; verso: string }[]; trilhaId: string; toggleTopicCompletion: (id: string) => void; completedTopicIds: string[]; }) {
   const [current, setCurrent] = useState(0);
   const [flipped, setFlipped]  = useState(false);
   const total = flashcards.length;
   const card  = flashcards[current];
 
   const prev = useCallback(() => { setFlipped(false); setCurrent(c => Math.max(0, c - 1)); }, []);
-  const next = useCallback(() => { setFlipped(false); setCurrent(c => Math.min(total - 1, c + 1)); }, [total]);
+  const next = useCallback(() => {
+    setFlipped(false);
+    setCurrent(c => {
+      const nextIdx = Math.min(total - 1, c + 1);
+      if (nextIdx === total - 1 && !completedTopicIds.includes(`${trilhaId}-flashcards`)) {
+        toggleTopicCompletion(`${trilhaId}-flashcards`);
+      }
+      return nextIdx;
+    });
+  }, [total, trilhaId, toggleTopicCompletion, completedTopicIds]);
 
   return (
     <div className="v2-fc-wrapper">
@@ -292,7 +301,7 @@ export default function TrilhaSalaV2() {
   const params = useParams();
   const id     = params.id as string;
 
-  const { registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults, selectedVideoByTrilha, setSelectedVideo } = useStudyStore();
+  const { registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults, selectedVideoByTrilha, setSelectedVideo, progressData, completedTopicIds } = useStudyStore();
 
   // Same data source as TrilhaSala — no duplication
   const trilha = TRILHAS_MOCK.find(t => t.id === id) || customTrilhas.find(t => t.id === id);
@@ -324,6 +333,18 @@ export default function TrilhaSalaV2() {
       }
     }
   }, [openSection, trilha, videoResultsCache, setVideoResults, isLoadingVideo]);
+
+  // Mark Resumo as completed using a simple dwell time (3s) when opened
+  useEffect(() => {
+    if (openSection === "resumo" && trilha) {
+      const timer = setTimeout(() => {
+        if (!completedTopicIds.includes(`${trilha.id}-resumo`)) {
+          toggleTopicCompletion(`${trilha.id}-resumo`);
+        }
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [openSection, trilha, completedTopicIds, toggleTopicCompletion]);
 
   const toggle = useCallback((section: SectionId) => {
     setOpenSection(prev => {
@@ -822,7 +843,8 @@ export default function TrilhaSalaV2() {
 
         .v2-btn-outline {
           display: inline-flex; align-items: center; gap: 0.35rem;
-          padding: 0.45rem 1rem;
+          padding: 0.55rem 1rem;
+          min-height: 44px;
           border-radius: var(--radius-lg);
           background: transparent;
           color: var(--color-text); font-weight: 600; font-size: 0.83rem;
@@ -873,6 +895,19 @@ export default function TrilhaSalaV2() {
         <main className="v2-main">
           {SECTIONS.map(({ id: sId, label, Icon }) => {
             const isOpen = openSection === sId;
+            let isCompleted = false;
+
+            if (sId === "video") {
+              isCompleted = !!selectedVideoByTrilha[trilha.id];
+            } else if (sId === "resumo") {
+              isCompleted = completedTopicIds.includes(`${trilha.id}-resumo`);
+            } else if (sId === "flashcards") {
+              isCompleted = completedTopicIds.includes(`${trilha.id}-flashcards`);
+            } else if (sId === "questoes") {
+              const qIds = trilha.questoes.map((q: any) => String(q.id));
+              isCompleted = qIds.length > 0 && qIds.every((id: string) => progressData.answers[id] !== undefined);
+            }
+
             return (
               <div
                 key={sId}
@@ -891,6 +926,13 @@ export default function TrilhaSalaV2() {
                     <Icon size={16} />
                   </span>
                   <span className="v2-acc-label">{label}</span>
+                  {isCompleted && (
+                    <CheckCircle2
+                      size={18}
+                      style={{ color: "var(--color-slate-blue)", marginRight: "0.5rem" }}
+                      aria-label="Concluído"
+                    />
+                  )}
                   <ChevronDown size={18} className="v2-acc-chevron" />
                 </button>
 
@@ -977,6 +1019,9 @@ export default function TrilhaSalaV2() {
                       <FlashcardPanel
                         // Cast needed since TrilhaFlashcard uses string id
                         flashcards={trilha.flashcards as { id: string; frente: string; verso: string }[]}
+                        trilhaId={trilha.id}
+                        toggleTopicCompletion={toggleTopicCompletion}
+                        completedTopicIds={completedTopicIds}
                       />
                     )}
 

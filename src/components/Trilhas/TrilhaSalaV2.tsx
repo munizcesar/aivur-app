@@ -708,25 +708,26 @@ export default function TrilhaSalaV2() {
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          color: var(--color-text-muted);
-          border: 1px solid var(--color-border);
+          color: inherit;
+          opacity: 0.7;
+          border: 1px solid currentColor;
           border-radius: var(--radius-full);
           padding: 0.1rem 0.5rem;
           align-self: flex-start;
         }
         .v2-fc-badge--back {
-          color: var(--color-primary);
-          border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+          /* Reusing the same style since it inherits the white color now */
         }
         .v2-fc-text {
           font-size: 1rem;
           line-height: 1.65;
-          color: var(--color-text);
-          font-weight: 500;
+          color: inherit;
+          font-weight: 600;
         }
         .v2-fc-hint {
           font-size: 0.72rem;
-          color: var(--color-text-faint);
+          color: inherit;
+          opacity: 0.6;
           margin-top: 0.25rem;
         }
         .v2-fc-nav {

@@ -210,6 +210,15 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
     try {
       const jsonString = extractCleanJson(messageContent || "");
       parsedJson = JSON.parse(jsonString);
+      
+      // Injeta campos exigidos pelo TrilhaSchema mas que a IA não gera
+      parsedJson.titulo = title;
+      if (parsedJson.flashcards && Array.isArray(parsedJson.flashcards)) {
+        parsedJson.flashcards.forEach((f: any, i: number) => { f.id = `fc_${Date.now()}_${i}`; });
+      }
+      if (parsedJson.questoes && Array.isArray(parsedJson.questoes)) {
+        parsedJson.questoes.forEach((q: any, i: number) => { q.id = `q_${Date.now()}_${i}`; });
+      }
     } catch (err) {
       console.error("Falha ao fazer parse do JSON final:", err);
       return NextResponse.json(

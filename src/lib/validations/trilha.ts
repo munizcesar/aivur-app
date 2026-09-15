@@ -7,7 +7,7 @@ export const TrilhaSchema = z.object({
   disciplina: z.string(),
   progresso: z.number().min(0).max(100),
   video: z.object({
-    youtubeId: z.string(),
+    youtubeId: z.string().optional(),
     titulo: z.string(),
     resumo: z.string(),
     resumo_markdown: z.string().optional(),

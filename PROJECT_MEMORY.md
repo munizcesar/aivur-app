@@ -271,10 +271,11 @@ O TrilhaSala.tsx original apresentava bugs recorrentes de layout (coluna direita
 
 ### Backlog Pendente (Próximos Passos)
 1. ✅ [Aguardando Aprovação do Usuário] Confirmar visualmente `t-002` no Cockpit V2 com stakeholders antes de trocar o Hub e aposentar o Cockpit antigo. (Screenshots gerados na pasta `scratch/`).
-2. Resolver problema de chaves Groq (401/429) no `.env.local` e painel Groq.
-3. Testar o Fixer Prompt de ponta a ponta assim que houver chave válida.
-4. Decidir abordagem para o vídeo (googleapis vs. scraping de lista de resultados).
-5. Fase 2: Geração lazy.
-6. Fase 4: Flashcards com cores dinâmicas frente/verso.
-7. Fase 5: Módulo de retenção.
-8. ✅ Limpar scripts e arquivos legados/soltos. (Scripts úteis movidos para `/scripts/dev-tools/` e lixo removido).
+2. ✅ Decidir abordagem para o vídeo (googleapis vs. scraping de lista de resultados). -> **100% CONCLUÍDO:** Galeria lazy implementada, player in-app e persistência no Zustand, dependência da IA removida.
+3. Resolver problema de chaves Groq (401/429) no `.env.local` e painel Groq.
+4. Testar o Fixer Prompt E2E assim que houver chave válida.
+5. Fase 2: Geração lazy por aba.
+6. Fase 3: Layout de questões padrão banca.
+7. Fase 4: Flashcards com cores dinâmicas frente/verso.
+8. Fase 5: Módulo de retenção.
+9. ✅ Limpar scripts e arquivos legados/soltos. (Scripts úteis movidos para `/scripts/dev-tools/` e lixo removido).

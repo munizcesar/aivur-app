@@ -286,34 +286,12 @@ Devolva o mesmo JSON perfeitamente válido, e NADA MAIS. Sem markdown fora do JS
 
     const trilhaId = `t-gerada-${Date.now().toString(36)}`;
     
-    // Busca real no YouTube usando o título gerado
-    let youtubeId = "dQw4w9WgXcQ"; // fallback
-    const searchTitle = validTrilhaData.video?.titulo || title;
-    const ytKey = process.env.YOUTUBE_API_KEY;
-    
-    if (ytKey) {
-      try {
-        const ytRes = await fetch(
-          `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(searchTitle)}&type=video&key=${ytKey}`
-        );
-        if (ytRes.ok) {
-          const ytData = await ytRes.json() as any;
-          if (ytData.items && ytData.items.length > 0) {
-            youtubeId = ytData.items[0].id.videoId;
-          }
-        }
-      } catch (e) {
-        console.error("Erro ao buscar no YouTube", e);
-      }
-    }
-    
     const finalTrilha = {
       id: trilhaId,
       titulo: title,
       disciplina: validTrilhaData.disciplina || "Geral",
       progresso: 0,
       video: {
-        youtubeId: youtubeId,
         titulo: validTrilhaData.video?.titulo || `Aula: ${title}`,
         resumo: validTrilhaData.video?.resumo || "Resumo da aula.",
         resumo_markdown: validTrilhaData.video?.resumo_markdown || ""

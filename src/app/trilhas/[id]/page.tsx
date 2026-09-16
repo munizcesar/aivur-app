@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { TRILHAS_MOCK } from "@/mocks/trilhasMock";
 import TrilhaSalaV2 from "@/components/Trilhas/TrilhaSalaV2";
@@ -7,6 +6,7 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

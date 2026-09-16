@@ -40,7 +40,7 @@ export default function UserTrilhasGrid() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--color-primary)]/15 text-[var(--color-primary)] text-xs font-bold uppercase tracking-wider mb-2">
-            <Compass className="w-3.5 h-3.5" />
+            <Compass className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} aria-hidden="true" />
             Mentor AIVUR 360 · Painel
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-heading)] tracking-tight">
@@ -58,7 +58,7 @@ export default function UserTrilhasGrid() {
       <div className="mb-12">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg sm:text-xl font-bold text-[var(--color-heading)] flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 text-[var(--color-primary)]" />
+            <GraduationCap className="w-5 h-5 shrink-0 text-[var(--color-primary)]" strokeWidth={2.2} aria-hidden="true" />
             Trilhas em Andamento
           </h2>
           {customTrilhas.length > 0 && (
@@ -100,14 +100,14 @@ export default function UserTrilhasGrid() {
                           onClick={() => setEditingCourse({ id: trilha.id, titulo: trilha.titulo })}
                           className="p-1.5 rounded text-[var(--color-text-muted)] hover:text-[var(--color-heading)] hover:bg-[var(--color-bg)]/50 transition-colors"
                         >
-                          <Edit3 className="w-4 h-4" />
+                          <Edit3 className="w-4 h-4 shrink-0" strokeWidth={2.1} aria-hidden="true" />
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeletingCourse(trilha)}
-                          className="p-1.5 rounded text-[var(--color-text-muted)] hover:text-red-400 hover:bg-[var(--color-bg)]/50 transition-colors"
+                          className="p-1.5 rounded text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-bg)]/50 transition-colors"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2.1} aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -136,7 +136,7 @@ export default function UserTrilhasGrid() {
                       className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-surface-offset)] text-[var(--color-heading)] text-xs sm:text-sm font-bold border border-[rgba(107,153,179,0.25)] transition-all group-hover:border-[var(--color-text-muted)]/60"
                     >
                       <span>Acessar Cronograma</span>
-                      <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)]" />
+                      <ArrowRight className="w-4 h-4 shrink-0 text-[var(--color-primary)]" strokeWidth={2.2} aria-hidden="true" />
                     </Link>
                   </div>
                 </div>
@@ -146,7 +146,7 @@ export default function UserTrilhasGrid() {
         ) : (
           <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-surface)]/20 p-8 sm:p-10 text-center backdrop-blur-sm">
             <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/15 flex items-center justify-center mx-auto mb-4 text-[var(--color-primary)]">
-              <Compass className="w-6 h-6" />
+              <Compass className="w-6 h-6 shrink-0" strokeWidth={2.1} aria-hidden="true" />
             </div>
             <h3 className="text-lg font-bold text-[var(--color-heading)] mb-1">
               Você ainda não possui trilhas personalizadas
@@ -173,7 +173,7 @@ export default function UserTrilhasGrid() {
                 onClick={() => setEditingCourse(null)}
                 className="text-[var(--color-text-muted)] hover:text-[var(--color-heading)] p-1"
               >
-                <X className="w-5 h-5" />
+              <X className="w-5 h-5 shrink-0" strokeWidth={2.1} aria-hidden="true" />
               </button>
             </div>
             <input
@@ -223,7 +223,7 @@ export default function UserTrilhasGrid() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-3 text-red-400">
-              <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+              <AlertTriangle className="w-6 h-6 flex-shrink-0" strokeWidth={2.1} aria-hidden="true" />
               <h3 className="text-lg font-bold text-[var(--color-heading)]">Excluir Trilha</h3>
             </div>
             <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mb-5 leading-relaxed">
@@ -254,6 +254,5 @@ export default function UserTrilhasGrid() {
     </div>
   );
 }
-
 
 

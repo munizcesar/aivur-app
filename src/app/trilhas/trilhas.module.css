@@ -45,6 +45,7 @@
   letter-spacing: .14em;
   text-transform: uppercase;
 }
+.eyebrowIcon { width: 15px; height: 15px; flex: 0 0 auto; stroke-width: 2.4; }
 
 .title {
   max-width: 650px;

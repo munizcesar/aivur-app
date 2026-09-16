@@ -76,6 +76,8 @@
 - `src/app/trilhas/[id]/page.tsx` â€” Dynamic route com SSG.
 ## 1. Regras Vigentes
 
+- **Secrets no Cloudflare Pages:** A via confiável para registrar Secrets neste projeto (ex: YOUTUBE_API_KEY) é via terminal `npx wrangler pages secret put NOME_DA_VAR --project-name aivur-app`, e **não** o painel web.
+- **Leitura de Env Vars no Edge (Cloudflare):** Variáveis sensíveis e secrets injetadas no ambiente de produção (`@cloudflare/next-on-pages`) DEVEM ser lidas usando `getRequestContext().env.VAR_NAME` nas rotas `/api/*` rodando no Edge, em vez de depender apenas de `process.env`.
 - **Git â€” Push seguro:** NUNCA usar `git push --force`. Sempre usar `git push --force-with-lease`, que cancela o push automaticamente se o remoto tiver recebido commits novos entre o fetch e o push, evitando sobrescrever/perder trabalho de outra sessÃ£o ou dispositivo sem aviso.
 - **Paleta Institucional (tokens CSS oficiais da marca):**`n  - Fundo branco limpo: #FFFFFF`n  - Azul-marinho profundo: #0A2E45`n  - Vermelho vivo: #C41230`n  - Creme editorial: #FBEBD0`n  - Azul acinzentado: #6B99B3`n  - **Regra:** Usar EXCLUSIVAMENTE variaveis CSS documentadas no globals.css que mapeiam essas cores exatas. PROIBIDO hex hardcoded em componentes.
 - Alternativas devem preservar CSS Grid com primeira coluna fixa de `40px` e segunda coluna flexÃ­vel (`40px 1fr` / `40px_minmax(0,1fr)_24px`).

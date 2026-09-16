@@ -23,7 +23,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TrilhaSalaPage({ params }: Props) {
   const { id } = await params;
-  const trilha = TRILHAS_MOCK.find((t) => t.id === id);
-  if (!trilha) notFound();
   return <TrilhaSalaV2 key={id} />;
 }

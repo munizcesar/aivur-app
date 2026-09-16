@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Sparkles, CheckCircle2 } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
@@ -69,21 +69,21 @@ export default function TrilhasPage() {
               <div
                 key={trilha.id}
                 style={{
-                  borderRadius: "16px", border: "1px solid rgba(140,166,184,0.15)",
-                  background: "rgba(10,46,69,0.35)", padding: "20px",
+                  borderRadius: "16px", border: "1px solid var(--color-border)",
+                  background: "var(--color-surface)", padding: "20px",
                   display: "flex", flexDirection: "column", gap: "12px",
                 }}
               >
                 <div>
                   <span style={{
                     display: "inline-block", padding: "3px 10px", borderRadius: "999px",
-                    background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)",
-                    color: "#d8b75c", fontSize: "11px", fontWeight: 800, letterSpacing: "0.05em",
+                    background: "color-mix(in srgb, var(--color-primary) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)",
+                    color: "var(--color-primary)", fontSize: "11px", fontWeight: 800, letterSpacing: "0.05em",
                     marginBottom: "8px",
                   }}>
                     {trilha.disciplina}
                   </span>
-                  <h3 style={{ margin: 0, color: "#f8ecd7", fontSize: "15px", fontWeight: 700, lineHeight: 1.3 }}>
+                  <h3 style={{ margin: 0, color: "var(--color-heading)", fontSize: "15px", fontWeight: 700, lineHeight: 1.3 }}>
                     {trilha.titulo}
                   </h3>
                 </div>
@@ -91,20 +91,20 @@ export default function TrilhasPage() {
                 {/* Progress bar */}
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
-                    <span style={{ fontSize: "11px", color: "#8ca6b8", fontWeight: 600 }}>Progresso</span>
-                    <span style={{ fontSize: "11px", color: trilha.progresso > 0 ? "#10b981" : "#8ca6b8", fontWeight: 700 }}>
+                    <span style={{ fontSize: "11px", color: "var(--color-text-muted)", fontWeight: 600 }}>Progresso</span>
+                    <span style={{ fontSize: "11px", color: trilha.progresso > 0 ? "var(--color-primary)" : "var(--color-text-muted)", fontWeight: 700 }}>
                       {trilha.progresso}%
                     </span>
                   </div>
-                  <div style={{ height: "5px", borderRadius: "999px", background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                  <div style={{ height: "5px", borderRadius: "999px", background: "var(--color-surface-offset)", overflow: "hidden" }}>
                     <div style={{
                       height: "100%", width: `${trilha.progresso}%`, borderRadius: "999px",
-                      background: "linear-gradient(90deg, #10b981, #34d399)",
+                      background: "var(--color-primary)",
                     }} />
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: "8px", fontSize: "11px", color: "#8ca6b8" }}>
+                <div style={{ display: "flex", gap: "8px", fontSize: "11px", color: "var(--color-text-muted)" }}>
                   <span>🃏 {trilha.flashcards.length} cards</span>
                   <span>·</span>
                   <span>📝 {trilha.questoes.length} questões</span>
@@ -115,8 +115,8 @@ export default function TrilhasPage() {
                   style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     padding: "9px 16px", borderRadius: "10px", marginTop: "auto",
-                    background: "rgba(10,46,69,0.8)", border: "1px solid rgba(140,166,184,0.25)",
-                    color: "#f8ecd7", fontSize: "13px", fontWeight: 700, textDecoration: "none",
+                    background: "var(--color-primary)", border: "1px solid var(--color-primary)",
+                    color: "white", fontSize: "13px", fontWeight: 700, textDecoration: "none",
                   }}
                 >
                   Abrir Aula →
@@ -131,5 +131,3 @@ export default function TrilhasPage() {
     </div>
   );
 }
-
-

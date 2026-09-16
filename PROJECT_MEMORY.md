@@ -74,9 +74,16 @@
   - Runtime guard no body: `typeof` checks antes de desestruturar â†’ 400 se invÃ¡lido.
   - Fallback mock garantido (3 questÃµes) se Groq falhar.
 - `src/app/trilhas/[id]/page.tsx` â€” Dynamic route com SSG.
-## 1. Regras Vigentes
+## 1. Protocolo de Integridade de Execução
 
-- **Secrets no Cloudflare Pages:** A via confiável para registrar Secrets neste projeto (ex: YOUTUBE_API_KEY) é via terminal `npx wrangler pages secret put NOME_DA_VAR --project-name aivur-app`, e **não** o painel web.
+- **Nunca assuma o sucesso sem validação real:** Se um script, deploy ou teste automatizado disser "sucesso", o agente não deve assumir sucesso final antes de confirmar os efeitos no ambiente real de produção ou antes do usuário validar. O agente é passível de falhas arquiteturais ou alucinações de teste.
+- **Transparência Absoluta em Diagnósticos:** Ao investigar problemas complexos, o agente deve relatar a causa raiz baseada em evidências em código e logs. Sem "achismos". Se não sabe a causa, deve assumir "Ainda investigando".
+- **Git - Push Seguro Exclusivo:** O comando `git push --force` é ESTRITAMENTE PROIBIDO. Todo overwrite deve usar **exclusivamente** `git push --force-with-lease`.
+- **Configuração de Segredos:** Secrets sensíveis (Cloudflare) NUNCA vão para `.env.local` de produção. Só via painel/CLI (`wrangler pages secret put`).
+- **Edge Runtime:** Variáveis dinâmicas de ambiente devem ser lidas via `getRequestContext().env` no Next.js on Pages (Edge), nunca via `process.env`.
+- **Validação Cruzada de Ambiente (Client vs Server):** Ficar atento a discrepâncias como persistência em `localStorage` (Zustand client-side) tentando ser lida por Server Components.
+
+## 2. Regras Vigentes- **Secrets no Cloudflare Pages:** A via confiável para registrar Secrets neste projeto (ex: YOUTUBE_API_KEY) é via terminal `npx wrangler pages secret put NOME_DA_VAR --project-name aivur-app`, e **não** o painel web.
 - **Leitura de Env Vars no Edge (Cloudflare):** Variáveis sensíveis e secrets injetadas no ambiente de produção (`@cloudflare/next-on-pages`) DEVEM ser lidas usando `getRequestContext().env.VAR_NAME` nas rotas `/api/*` rodando no Edge, em vez de depender apenas de `process.env`.
 - **Git â€” Push seguro:** NUNCA usar `git push --force`. Sempre usar `git push --force-with-lease`, que cancela o push automaticamente se o remoto tiver recebido commits novos entre o fetch e o push, evitando sobrescrever/perder trabalho de outra sessÃ£o ou dispositivo sem aviso.
 - **Paleta Institucional (tokens CSS oficiais da marca):**`n  - Fundo branco limpo: #FFFFFF`n  - Azul-marinho profundo: #0A2E45`n  - Vermelho vivo: #C41230`n  - Creme editorial: #FBEBD0`n  - Azul acinzentado: #6B99B3`n  - **Regra:** Usar EXCLUSIVAMENTE variaveis CSS documentadas no globals.css que mapeiam essas cores exatas. PROIBIDO hex hardcoded em componentes.

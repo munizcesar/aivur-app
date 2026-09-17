@@ -36,6 +36,7 @@ export default function CriarTrilhaView({
   const [title, setTitle] = useState(initialTitle);
   const [text, setText] = useState(initialText);
   const [file, setFile] = useState<File | null>(null);
+  const [inputType, setInputType] = useState<"text" | "pdf">("text");
 
   useEffect(() => {
     if (initialTitle) setTitle(initialTitle);
@@ -157,10 +158,10 @@ export default function CriarTrilhaView({
           <button
             type="button"
             onClick={() => router.push("/trilhas")}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[var(--color-navy)]/40 hover:bg-[var(--color-navy)] text-[var(--color-cream)] text-sm font-semibold transition-all duration-150 hover:border-[rgba(107,153,179,0.6)] active:scale-95 shadow-sm"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-[var(--color-slate-blue)] hover:text-[var(--color-cream)] text-sm font-semibold transition-colors duration-150"
           >
-            <FolderCheck className="w-4 h-4 text-[var(--color-slate-blue)]" />
-            <span>Verificar minhas trilhas</span>
+            <FolderCheck className="w-4 h-4" />
+            <span>Voltar para trilhas</span>
           </button>
         </div>
       </div>
@@ -174,62 +175,74 @@ export default function CriarTrilhaView({
 
       {step === "input" && (
         <form onSubmit={handleGenerate} className="space-y-6">
-          <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-navy)]/30 p-6 md:p-8 backdrop-blur-sm space-y-6">
+          <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-navy)]/30 p-6 md:p-8 backdrop-blur-sm space-y-8">
+            {/* Passo 1 */}
             <div>
-              <label className="block text-sm font-bold text-[var(--color-cream)] mb-2">
-                Nome do Concurso / Trilha *
-              </label>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-primary)] text-white text-xs font-bold">1</span>
+                <label className="block text-base font-bold text-[var(--color-cream)]">
+                  Nome do Concurso / Trilha
+                </label>
+              </div>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Polícia Federal — Agente Administrativo 2026"
-                className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[var(--color-bg)]/70 text-[#F8FAFC] placeholder:text-slate-500 text-sm md:text-base focus:border-[var(--color-red)] focus:ring-1 focus:ring-[var(--color-red)] outline-none transition-colors"
+                className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[var(--color-bg)]/70 text-[#F8FAFC] placeholder:text-slate-500 text-sm md:text-base focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-colors"
                 required
               />
             </div>
 
+            {/* Passo 2 */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-bold text-[var(--color-cream)]">
-                  Edital, Matérias ou Tópicos de Estudo
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-primary)] text-white text-xs font-bold">2</span>
+                <label className="block text-base font-bold text-[var(--color-cream)]">
+                  Fonte de Dados
                 </label>
-                <span className="text-xs text-[var(--color-slate-blue)]">
-                  Cole o anexo de conteúdo programático
-                </span>
               </div>
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Cole aqui os tópicos completos do edital, súmulas, leis específicas ou a lista de assuntos que você precisa cobrir..."
-                rows={8}
-                className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[var(--color-bg)]/70 text-[#F8FAFC] placeholder:text-slate-500 text-sm leading-relaxed focus:border-[var(--color-red)] focus:ring-1 focus:ring-[var(--color-red)] outline-none transition-colors resize-y"
-              />
-            </div>
 
-            <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-[rgba(107,153,179,0.2)]"></div>
-              <span className="flex-shrink mx-4 text-xs uppercase tracking-widest text-[var(--color-slate-blue)] font-bold">
-                ou envie o documento
-              </span>
-              <div className="flex-grow border-t border-[rgba(107,153,179,0.2)]"></div>
-            </div>
+              {/* Tabs */}
+              <div className="flex flex-wrap gap-2 mb-4 p-1 rounded-lg bg-[var(--color-bg)]/50 border border-[rgba(107,153,179,0.1)] w-fit">
+                <button
+                  type="button"
+                  onClick={() => setInputType("text")}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${inputType === "text" ? "bg-[var(--color-surface)] text-[var(--color-cream)] shadow-sm" : "text-[var(--color-slate-blue)] hover:text-[var(--color-cream)]"}`}
+                >
+                  <FileText className="w-4 h-4" />
+                  Colar Texto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputType("pdf")}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${inputType === "pdf" ? "bg-[var(--color-surface)] text-[var(--color-cream)] shadow-sm" : "text-[var(--color-slate-blue)] hover:text-[var(--color-cream)]"}`}
+                >
+                  <UploadCloud className="w-4 h-4" />
+                  Upload de PDF
+                </button>
+              </div>
 
-            <div>
-              <label className="block text-sm font-bold text-[var(--color-cream)] mb-2">
-                Upload de Edital em PDF
-              </label>
-              <div className="relative border-2 border-dashed border-[rgba(107,153,179,0.3)] hover:border-[var(--color-red)] rounded-xl p-6 text-center transition-colors bg-[var(--color-bg)]/30 cursor-pointer">
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              {/* Tab Content */}
+              {inputType === "text" ? (
+                <textarea
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Cole aqui os tópicos completos do edital, súmulas, leis específicas ou a lista de assuntos que você precisa cobrir..."
+                  rows={8}
+                  className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[var(--color-bg)]/70 text-[#F8FAFC] placeholder:text-slate-500 text-sm leading-relaxed focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-colors resize-y"
                 />
-                <div className="flex flex-col items-center justify-center gap-2 pointer-events-none">
-                  <UploadCloud className="w-8 h-8 text-[var(--color-slate-blue)]" />
+              ) : (
+                <div className="relative flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[rgba(107,153,179,0.3)] hover:border-[var(--color-primary)] rounded-xl p-8 text-center transition-colors bg-[var(--color-bg)]/30 cursor-pointer min-h-[220px]">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <UploadCloud className="w-10 h-10 text-[var(--color-slate-blue)]" />
                   {file ? (
-                    <div className="text-sm font-semibold text-emerald-400">
+                    <div className="text-sm font-semibold text-[var(--color-primary)]">
                       Arquivo selecionado: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
                     </div>
                   ) : (
@@ -243,7 +256,7 @@ export default function CriarTrilhaView({
                     </>
                   )}
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -254,9 +267,10 @@ export default function CriarTrilhaView({
             <button
               ref={submitButtonRef}
               type="submit"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-[var(--color-red)] hover:bg-[#6B0000] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-cream)] text-base font-bold shadow-[2px_2px_0px_#6B0000] focus:ring-4 focus:ring-[var(--color-red)]/50 active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer outline-none"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-[var(--color-primary)] hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-base font-bold shadow-sm focus:ring-4 focus:ring-[var(--color-primary)]/50 active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer outline-none"
             >
-              <Sparkles className="w-5 h-5 text-[var(--color-slate-blue)]" />
+              <Sparkles className="w-5 h-5 text-white/70" />
+              <span>Gerar Trilha com IA</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </button>
           </div>
@@ -304,9 +318,9 @@ export default function CriarTrilhaView({
             </div>
             <button
               onClick={handleSave}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[var(--color-red)] hover:bg-[#6B0000] text-[var(--color-cream)] font-bold text-sm shadow-[2px_2px_0px_#6B0000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[var(--color-primary)] hover:opacity-90 text-white font-bold text-sm shadow-sm transition-all"
             >
-              <CheckCircle2 className="w-4 h-4 text-[var(--color-red)]" />
+              <CheckCircle2 className="w-4 h-4" />
               <span>Salvar e Iniciar Trilha</span>
             </button>
           </div>

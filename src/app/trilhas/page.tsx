@@ -67,53 +67,44 @@ export default function TrilhasPage() {
             
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(268px, 1fr))", gap: "14px" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {TRILHAS_MOCK.map((trilha) => (
               <div
                 key={trilha.id}
-                style={{
-                  borderRadius: "16px", border: "1px solid var(--color-border)",
-                  background: "var(--color-surface)", padding: "20px",
-                  display: "flex", flexDirection: "column", gap: "12px",
-                }}
+                className="flex flex-col gap-3 p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]"
               >
                 <div>
-                  <span style={{
-                    display: "inline-block", padding: "3px 10px", borderRadius: "999px",
-                    background: "color-mix(in srgb, var(--color-primary) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)",
-                    color: "var(--color-primary)", fontSize: "11px", fontWeight: 800, letterSpacing: "0.05em",
-                    marginBottom: "8px",
-                  }}>
+                  <span className="inline-block px-2.5 py-1 mb-2 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-[var(--color-primary)] text-[11px] font-extrabold tracking-wider">
                     {trilha.disciplina}
                   </span>
-                  <h3 style={{ margin: 0, color: "var(--color-heading)", fontSize: "15px", fontWeight: 700, lineHeight: 1.3 }}>
+                  <h3 className="m-0 text-[15px] font-bold leading-snug text-[var(--color-heading)]">
                     {trilha.titulo}
                   </h3>
                 </div>
 
                 {/* Progress bar */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
-                    <span style={{ fontSize: "11px", color: "var(--color-text-muted)", fontWeight: 600 }}>Progresso</span>
-                    <span style={{ fontSize: "11px", color: trilha.progresso > 0 ? "var(--color-primary)" : "var(--color-text-muted)", fontWeight: 700 }}>
+                  <div className="flex justify-between mb-1.5">
+                    <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">Progresso</span>
+                    <span className={`text-[11px] font-bold ${trilha.progresso > 0 ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`}>
                       {trilha.progresso}%
                     </span>
                   </div>
-                  <div style={{ height: "5px", borderRadius: "999px", background: "var(--color-surface-offset)", overflow: "hidden" }}>
-                    <div style={{
-                      height: "100%", width: `${trilha.progresso}%`, borderRadius: "999px",
-                      background: "var(--color-primary)",
-                    }} />
+                  <div className="h-[5px] overflow-hidden rounded-full bg-[var(--color-surface-offset)]">
+                    <div
+                      className="h-full rounded-full bg-[var(--color-primary)] transition-all"
+                      style={{ width: `${trilha.progresso}%` }}
+                    />
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: "8px", fontSize: "11px", color: "var(--color-text-muted)" }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                <div className="flex gap-2 text-[11px] text-[var(--color-text-muted)]">
+                  <span className="inline-flex items-center gap-1">
                     <BookOpen size={14} strokeWidth={2.2} aria-hidden="true" />
                     {trilha.flashcards.length} cards
                   </span>
                   <span aria-hidden="true">·</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <span className="inline-flex items-center gap-1">
                     <ListChecks size={14} strokeWidth={2.2} aria-hidden="true" />
                     {trilha.questoes.length} questões
                   </span>
@@ -121,12 +112,7 @@ export default function TrilhasPage() {
 
                 <Link
                   href={`/trilhas/${trilha.id}`}
-                  style={{
-                    display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    padding: "9px 16px", borderRadius: "10px", marginTop: "auto",
-                    background: "var(--color-primary)", border: "1px solid var(--color-primary)",
-                    color: "white", fontSize: "13px", fontWeight: 700, textDecoration: "none",
-                  }}
+                  className="inline-flex items-center justify-center px-4 py-2 mt-auto text-[13px] font-bold text-white no-underline transition-opacity rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] hover:opacity-90"
                 >
                   Abrir Aula →
                 </Link>

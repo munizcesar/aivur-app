@@ -57,7 +57,7 @@ export default function UserTrilhasGrid() {
       {/* LISTA */}
       <div className="mb-12">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--color-heading)] flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-[var(--color-heading)] flex items-center gap-2">
             <GraduationCap className="w-5 h-5 shrink-0 text-[var(--color-primary)]" strokeWidth={2.2} aria-hidden="true" />
             Trilhas em Andamento
           </h2>
@@ -219,10 +219,10 @@ export default function UserTrilhasGrid() {
           onClick={() => setDeletingCourse(null)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-red-800/60 bg-[var(--color-surface)] p-6 shadow-2xl"
+            className="w-full max-w-md rounded-xl border border-[var(--color-red)]/30 bg-[var(--color-surface)] p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-3 mb-3 text-red-400">
+            <div className="flex items-center gap-3 mb-3 text-[var(--color-red)]">
               <AlertTriangle className="w-6 h-6 flex-shrink-0" strokeWidth={2.1} aria-hidden="true" />
               <h3 className="text-lg font-bold text-[var(--color-heading)]">Excluir Trilha</h3>
             </div>
@@ -243,7 +243,7 @@ export default function UserTrilhasGrid() {
                   deleteCustomTrilha(deletingCourse.id);
                   setDeletingCourse(null);
                 }}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-[var(--color-heading)] text-xs font-bold shadow-[2px_2px_0px_#6B0000]"
+                className="px-4 py-2 rounded-lg bg-[var(--color-red)] hover:opacity-90 text-white text-xs font-bold transition-opacity"
               >
                 Sim, excluir trilha
               </button>

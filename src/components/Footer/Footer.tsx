@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import styles from "./Footer.module.css";
 
 
 export default function Footer() {
+  const { theme } = useTheme();
   const openAdminIngest = () => {
     // Custom event to trigger admin modal in the future
     const event = new CustomEvent("openAdminModal");
@@ -13,13 +15,21 @@ export default function Footer() {
   };
 
   return (
-    <footer className={`${styles.siteFooter} bg-[#091422]`}>
+    <footer className={styles.siteFooter}>
       <div className="container">
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
             <div className={styles.logoRow}>
               <Link className="flex items-center shrink-0" href="/trilhas">
-                <Image alt="AIVUR" src="/assets/logo-aivur-dark.webp" width={102} height={34} priority style={{ height: 34, width: 'auto', maxWidth: 102 }} className="object-contain" />
+                <Image
+                  alt="AIVUR"
+                  src={theme === "light" ? "/assets/logo-aivur-light.webp" : "/assets/logo-aivur-dark.webp"}
+                  width={102}
+                  height={34}
+                  priority
+                  style={{ height: 34, width: 'auto', maxWidth: 102 }}
+                  className="object-contain"
+                />
               </Link>
               <button 
                 onClick={openAdminIngest} 

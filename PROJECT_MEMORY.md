@@ -279,10 +279,11 @@ O TrilhaSala.tsx original apresentava bugs recorrentes de layout (coluna direita
 - **Feito (Aguardando aprovação visual):** Fase 4 (Flashcards com cores dinâmicas Frente/Verso - Opção A). Implementada com sucesso em Light Mode (confirmado) e Dark Mode. A validação visual do Dark Mode (texto navy forte sobre creme) está com PENDÊNCIA ABERTA no lado do usuário (as 2 primeiras tentativas de screenshot falharam, pendente verificação da 3ª).
 
 ### Backlog Priorizado (Próximos Passos)
-1. 🔴 **GROQ_API_KEY (Externo):** Resolver erro 401/429 no `.env.local` e painel Groq.
-2. 🔴 **Confirmar Dark Mode do Flashcard:** Validar visualmente o screenshot da frente do flashcard em tema escuro (texto navy sólido, accordion aberto).
-3. 🟡 **Fixer Prompt E2E:** Testar o motor de autocorreção JSON assim que houver chave de IA válida.
-4. 🔵 **Fase 2:** Geração lazy (sob demanda) das demais abas.
-5. 🔵 **Fase 3:** Refatorar layout de questões para o "padrão banca".
-6. 🔵 **Débito Técnico CSS:** Refatorar `--elite-*` (variáveis com nomenclatura invertida entre temas).
-7. 🔵 **Fase 5:** Módulo de retenção (streak, progresso gamificado do edital).
+1. 🔧 **GROQ_API_KEY (Externo):** Resolver erro 401/429 no `.env.local` e painel Groq.
+2. 🔧 **Confirmar Dark Mode do Flashcard:** Validar visualmente o screenshot da frente do flashcard em tema escuro (texto navy sólido, accordion aberto).
+3. 🧪 **Fixer Prompt E2E:** Testar o motor de autocorreção JSON assim que houver chave de IA válida.
+4. 🔧 **Fase 2:** Geração lazy (sob demanda) das demais abas.
+5. 🔧 **Fase 3:** Refatorar layout de questões para o "padrão banca".
+6. 🔧 **Débito Técnico CSS:** Refatorar `--elite-*` (variáveis com nomenclatura invertida entre temas).
+7. 🔧 **Fase 5:** Módulo de retenção (streak, progresso gamificado do edital).
+8. 🔧 **Integração D1 (Schema):** `QuestoesPanel/TrilhaSalaV2.tsx` ainda recebe ID no formato do mock (t-XXX); quando a trilha passar a usar o formato oficial do catálogo (p1/m3/etc.), a prop de ID muda de fonte, mas a lógica de fetch ao D1 já implementada hoje não precisa mudar.

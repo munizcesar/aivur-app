@@ -155,22 +155,74 @@ function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completed
 // ─── Question sub-component ───────────────────────────────────────────────────
 function QuestoesPanel({
   questoes,
-  trilhaId,
+  topicoId,
   registerAnswer,
   toggleTopicCompletion,
 }: {
   questoes: TrilhaQuestao[];
-  trilhaId: string;
+  topicoId: string;
   registerAnswer: (id: string, correct: boolean) => void;
   toggleTopicCompletion: (id: string) => void;
 }) {
+  const [d1Questoes, setD1Questoes] = useState<TrilhaQuestao[] | null>(null);
+  const [isLoadingD1, setIsLoadingD1] = useState(true);
+
   const [currentQ, setCurrentQ]     = useState(0);
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showEnd, setShowEnd]         = useState(false);
 
-  const q      = questoes[currentQ];
-  const acerto = isSubmitted && selectedOpt === q.corretaIdx;
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoadingD1(true);
+    fetch(`/api/questoes?topicoId=${topicoId}`)
+      .then(res => res.json())
+      .then((data: any) => {
+        if (!isMounted) return;
+        if (data.questoes && data.questoes.length > 0) {
+          const mapped = data.questoes.map((q: any) => {
+            const isCE = q.tipo_questao === "CERTO_ERRADO";
+            let opcoes: string[] = [];
+            let corretaIdx = 0;
+
+            if (isCE) {
+              opcoes = ["Certo", "Errado"];
+              corretaIdx = q.correta === "CERTO" ? 0 : 1;
+            } else {
+              opcoes = [q.alternativa_a, q.alternativa_b, q.alternativa_c, q.alternativa_d, q.alternativa_e].filter(Boolean);
+              const mapping: Record<string, number> = { "A": 0, "B": 1, "C": 2, "D": 3, "E": 4 };
+              corretaIdx = mapping[q.correta] ?? 0;
+            }
+
+            return {
+              id: String(q.id),
+              enunciado: q.enunciado,
+              opcoes,
+              corretaIdx,
+              tipo_questao: q.tipo_questao,
+              justificativa: q.justificativa || "Sem justificativa."
+            };
+          });
+          setD1Questoes(mapped);
+        } else {
+          setD1Questoes(null);
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar questões do D1:", err);
+        if (isMounted) setD1Questoes(null);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingD1(false);
+      });
+
+    return () => { isMounted = false; };
+  }, [topicoId]);
+
+  const activeQuestoes = d1Questoes ?? questoes;
+  
+  const q      = activeQuestoes[currentQ];
+  const acerto = isSubmitted && selectedOpt === q?.corretaIdx;
 
   if (showEnd) {
     return (
@@ -198,7 +250,7 @@ function QuestoesPanel({
     <div className="v2-q-wrapper">
       <div className="v2-q-header">
         <span className="v2-q-label">Questão de Fixação</span>
-        <span className="v2-q-counter">{currentQ + 1} de {questoes.length}</span>
+        <span className="v2-q-counter">{currentQ + 1} de {activeQuestoes.length}</span>
       </div>
 
       <div className="v2-q-card">
@@ -1045,7 +1097,7 @@ export default function TrilhaSalaV2() {
                     {sId === "questoes" && (
                       <QuestoesPanel
                         questoes={trilha.questoes as TrilhaQuestao[]}
-                        trilhaId={trilha.id}
+                        topicoId={trilha.id}
                         registerAnswer={registerAnswer}
                         toggleTopicCompletion={toggleTopicCompletion}
                       />

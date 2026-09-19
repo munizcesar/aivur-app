@@ -2,14 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import styles from "./Footer.module.css";
 
-
 export default function Footer() {
-  const { theme } = useTheme();
   const openAdminIngest = () => {
-    // Custom event to trigger admin modal in the future
     const event = new CustomEvent("openAdminModal");
     window.dispatchEvent(event);
   };
@@ -20,29 +16,35 @@ export default function Footer() {
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
             <div className={styles.logoRow}>
-              <Link className="flex items-center shrink-0" href="/trilhas">
+              <Link className={styles.logoLink} href="/trilhas" aria-label="AIVUR — Trilhas de estudo">
                 <Image
                   alt="AIVUR"
-                  src={theme === "light" ? "/assets/logo-aivur-light.webp" : "/assets/logo-aivur-dark.webp"}
-                  width={102}
-                  height={34}
+                  src="/assets/logo-aivur-light.webp"
+                  width={152}
+                  height={51}
                   priority
-                  style={{ height: 34, width: 'auto', maxWidth: 102 }}
-                  className="object-contain"
+                  className={`${styles.footerLogoImage} ${styles.lightLogo}`}
+                />
+                <Image
+                  alt=""
+                  src="/assets/logo-aivur-dark.webp"
+                  width={152}
+                  height={51}
+                  priority
+                  className={`${styles.footerLogoImage} ${styles.darkLogo}`}
+                  aria-hidden="true"
                 />
               </Link>
-              <button 
-                onClick={openAdminIngest} 
-                className={styles.adminButton}
-              >
+              <button type="button" onClick={openAdminIngest} className={styles.adminButton}>
                 Admin
               </button>
             </div>
             <p className={styles.footerTagline}>Inteligência que evolui resultados.</p>
           </div>
-          <div className={styles.footerMeta}>
+
+          <div className={styles.footerMeta} aria-label="Informações do AIVUR">
             <span>Powered by <strong>Groq AI</strong></span>
-            <span className={styles.footerDivider}>·</span>
+            <span className={styles.footerDivider} aria-hidden="true">•</span>
             <span>© {new Date().getFullYear()} AIVUR</span>
           </div>
         </div>

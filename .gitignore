@@ -45,3 +45,5 @@ scratch/
 
 content/pdfs-entrada/
 content/pdfs-processados-local/
+
+content/questoes-staging/*-rascunho.json

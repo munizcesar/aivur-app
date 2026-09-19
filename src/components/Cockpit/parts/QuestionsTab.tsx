@@ -37,6 +37,7 @@ interface Question {
   enunciado: string;
   alternativas: Option[];
   comentario: string;
+  tipo_questao?: "MULTIPLA_ESCOLHA" | "CERTO_ERRADO";
 }
 
 const letters = ["A", "B", "C", "D", "E"];
@@ -68,6 +69,7 @@ function AnswerOption({
   answer,
   mobile = false,
   resolving = false,
+  questionTipo,
   onSelect,
 }: {
   option: Option;
@@ -75,6 +77,7 @@ function AnswerOption({
   answer?: AnswerState;
   mobile?: boolean;
   resolving?: boolean;
+  questionTipo?: "MULTIPLA_ESCOLHA" | "CERTO_ERRADO";
   onSelect: () => void;
 }) {
   const selected = answer?.selected === index;
@@ -100,6 +103,8 @@ function AnswerOption({
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${correct ? "border-emerald-500 bg-emerald-500 text-white" : incorrect ? "border-rose-500 bg-rose-500 text-white" : selected ? "border-[#C9A84C] bg-[#C9A84C] text-[#0B1929]" : "border-[var(--color-border)] bg-[var(--color-surface-offset)] text-[var(--color-text-muted)]"}`}>
         {resolving && selected ? (
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0B1929]/30 border-t-[#0B1929]" />
+        ) : questionTipo === "CERTO_ERRADO" ? (
+          option.texto.charAt(0).toUpperCase()
         ) : (
           letters[index]
         )}
@@ -154,7 +159,7 @@ function DesktopQuestion({ question, index, answer, pending, resolving, onSelect
       </header>
       <Metadata question={question} />
       <p className="mt-4 max-w-4xl text-[15px] font-medium leading-7 text-[var(--color-text)]">{question.enunciado}</p>
-      <div className="mt-4 grid max-w-4xl gap-2">{question.alternativas.map((option, optionIndex) => <AnswerOption key={option.texto} option={option} index={optionIndex} answer={answer ?? (pending === undefined ? undefined : { selected: pending, submitted: false })} resolving={resolving} onSelect={() => onSelect(optionIndex)} />)}</div>
+      <div className="mt-4 grid max-w-4xl gap-2">{question.alternativas.map((option, optionIndex) => <AnswerOption key={option.texto} option={option} index={optionIndex} answer={answer ?? (pending === undefined ? undefined : { selected: pending, submitted: false })} resolving={resolving} questionTipo={question.tipo_questao} onSelect={() => onSelect(optionIndex)} />)}</div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <button type="button" disabled={answer?.submitted || pending === undefined || resolving} onClick={onSubmit} className="inline-flex items-center gap-2 rounded-md bg-[#C9A84C] px-4 py-2 text-sm font-bold text-[#0B1929] transition-colors hover:bg-[#d4b65e] disabled:cursor-default disabled:opacity-60">{resolving ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0B1929]/30 border-t-[#0B1929]" /> : answer?.submitted ? <Check size={16} className="shrink-0 flex-none" /> : null}{resolving ? "Validando..." : answer?.submitted ? "Respondida" : "Responder"}</button>
         <span className="text-xs text-[var(--color-text-faint)]">{answer?.submitted ? "Resposta registrada" : "Selecione uma alternativa"}</span>
@@ -223,20 +228,27 @@ export default function QuestionsTab() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ label: selectedTopic.titulo, subject: activeModule?.titulo }),
         });
-        const data = await response.json() as { questoes?: Array<{ id: string; enunciado: string; alternativas: Record<string, string>; correta: string; justificativa: string }>; error?: string };
+        const data = await response.json() as { questoes?: Array<{ id: string; enunciado: string; alternativas: Record<string, string>; correta: string; justificativa: string; tipo_questao?: "MULTIPLA_ESCOLHA" | "CERTO_ERRADO" }>; error?: string };
         if (!response.ok) throw new Error(data.error || "Não foi possível gerar questões.");
-        const mapped = (data.questoes ?? []).map((item, index): Question => ({
-          id: item.id,
-          codigo: `IA-${index + 1}`,
+        const mapped = (data.questoes ?? []).map((item, index): Question => {
+          const isCertoErrado = item.tipo_questao === "CERTO_ERRADO";
+          return {
+            id: item.id,
+            codigo: `IA-${index + 1}`,
           banca: "Gerada com IA",
           ano: new Date().getFullYear().toString(),
           orgao: activeModule?.titulo ?? "AIVUR",
           prova: selectedTopic.titulo,
           tags: [activeModule?.titulo ?? "Geral", selectedTopic.titulo],
           enunciado: item.enunciado,
-          alternativas: Object.entries(item.alternativas).map(([key, texto]) => ({ texto: `${key}) ${texto}`, isCorreta: key === item.correta })),
+          tipo_questao: item.tipo_questao ?? "MULTIPLA_ESCOLHA",
+          alternativas: Object.entries(item.alternativas).map(([key, texto]) => ({
+            texto: isCertoErrado ? texto : `${key}) ${texto}`,
+            isCorreta: key === item.correta
+          })),
           comentario: item.justificativa,
-        }));
+        };
+      });
         if (!cancelled) setQuestions(mapped);
       } catch (requestError) {
         if (!cancelled) setError(requestError instanceof Error ? requestError.message : "Erro ao gerar questões.");

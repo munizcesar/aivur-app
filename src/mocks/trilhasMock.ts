@@ -1,4 +1,4 @@
-﻿// Mock data for the Trilhas module — simulates API return
+// Mock data for the Trilhas module — simulates API return
 
 export interface TrilhaVideo {
   youtubeId: string;
@@ -19,6 +19,7 @@ export interface TrilhaQuestao {
   opcoes: string[];
   corretaIdx: number;
   justificativa: string;
+  tipo_questao?: "MULTIPLA_ESCOLHA" | "CERTO_ERRADO";
 }
 
 export interface Trilha {

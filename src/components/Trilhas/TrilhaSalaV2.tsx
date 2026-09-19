@@ -231,7 +231,9 @@ function QuestoesPanel({
                 onClick={() => setSelectedOpt(i)}
                 className={cls}
               >
-                <span className={letterCls}>{["A", "B", "C", "D", "E"][i]}</span>
+                <span className={letterCls}>
+                  {q.tipo_questao === "CERTO_ERRADO" ? alt.charAt(0).toUpperCase() : ["A", "B", "C", "D", "E"][i]}
+                </span>
                 <span className="v2-q-opt-text">{alt}</span>
                 <span className="v2-q-icon">
                   {isCorrect       && <CheckCircle2 size={18} className="v2-icon-correct" />}

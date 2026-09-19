@@ -4,7 +4,7 @@ import { callGroqWithFallback } from "@/lib/groq";
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { getDomainRules, extractCleanJson } from '@/lib/ai-protocols';
 
-// FunÃ§Ã£o auxiliar para resolver bindings e env no Edge
+// Função auxiliar para resolver bindings e env no Edge
 function resolveEnv(): any {
   try {
     const ctx = getRequestContext();
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Falta label" }, { status: 400 });
     }
 
-    // 1. Busca o contexto vetorial na nossa rota de busca (mesma lÃ³gica da teoria)
+    // 1. Busca o contexto vetorial na nossa rota de busca (mesma lógica da teoria)
     const reqUrl = new URL(req.url);
     const searchUrl = `${reqUrl.origin}/api/rag/search?q=${encodeURIComponent(label)}`;
     
@@ -53,33 +53,33 @@ export async function POST(req: Request) {
     }
 
     // 2. System Prompt + Protocolo de Confiabilidade centralizado
-    const systemPrompt = `VocÃª atua como um Elaborador SÃªnior de Concursos para Guardas Municipais e Carreiras Policiais.
-Sua missÃ£o Ã© gerar 2 questÃµes inÃ©ditas de mÃºltipla escolha com alto rigor tÃ©cnico.
+    const systemPrompt = `Você atua como um Elaborador Sênior de Concursos para Guardas Municipais e Carreiras Policiais.
+Sua missão é gerar 2 questões inéditas de múltipla escolha com alto rigor técnico.
 
-TÃ³pico: ${label}
-MatÃ©ria: ${subject || "Geral"}
-Dificuldade: ${dificuldade || "MÃ©dia"}
+Tópico: ${label}
+Matéria: ${subject || "Geral"}
+Dificuldade: ${dificuldade || "Média"}
 Banca: ${banca || "SH Dias / Estilo Municipal"}
 
 REGRAS DE OURO (Siga estritamente):
-1. PADRONIZAÃ‡ÃƒO DAS ALTERNATIVAS: Gere SEMPRE e EXATAMENTE 4 alternativas (A, B, C e D).
-2. O PERFIL DO EXAMINADOR: Os enunciados DEVEM trazer cenÃ¡rios prÃ¡ticos (aplicaÃ§Ã£o de leis, estatutos em delegacias, regras de trÃ¢nsito, matemÃ¡tica policial). Evite perguntas teÃ³ricas.
-3. CASCAS DE BANANA OBRIGATÃ“RIAS: Pelo menos UMA alternativa incorreta em cada questÃ£o deve ser uma pegadinha altamente plausÃ­vel.
-4. JUSTIFICATIVA SOCRÃTICA: Explique rapidamente o motivo da correta e destrua a pegadinha. Seja CONCISO para economizar tokens.
+1. PADRONIZAÇÃO DAS ALTERNATIVAS: Gere SEMPRE e EXATAMENTE 4 alternativas (A, B, C e D).
+2. O PERFIL DO EXAMINADOR: Os enunciados DEVEM trazer cenários práticos (aplicação de leis, estatutos em delegacias, regras de trânsito, matemática policial). Evite perguntas teóricas.
+3. CASCAS DE BANANA OBRIGATÓRIAS: Pelo menos UMA alternativa incorreta em cada questão deve ser uma pegadinha altamente plausível.
+4. JUSTIFICATIVA SOCRÁTICA: Explique rapidamente o motivo da correta e destrua a pegadinha. Seja CONCISO para economizar tokens.
 5. CONTEXTO VETORIAL: Use OBRIGATORIAMENTE o [CONTEXTO VETORIAL] abaixo.
-6. PENSAMENTO DIRETO: Mantenha qualquer bloco <think> extremamente curto (mÃ¡x 200 palavras). VÃ¡ direto Ã  geraÃ§Ã£o do JSON.
+6. PENSAMENTO DIRETO: Mantenha qualquer bloco <think> extremamente curto (máx 200 palavras). Vá direto à geração do JSON.
 
 [CONTEXTO VETORIAL]:
-${contextText || "Nenhum contexto especÃ­fico encontrado na base. Utilize seu conhecimento de ponta."}
+${contextText || "Nenhum contexto específico encontrado na base. Utilize seu conhecimento de ponta."}
 
-FORMATO JSON IMPLACÃVEL:
-VocÃª DEVE retornar APENAS UM JSON VÃLIDO no exato formato abaixo e ABSOLUTAMENTE NENHUM TEXTO ADICIONAL (sem tags markdown, sem blocos <think>, apenas o objeto JSON puramente encodado).
+FORMATO JSON IMPLACÁVEL:
+Você DEVE retornar APENAS UM JSON VÁLIDO no exato formato abaixo e ABSOLUTAMENTE NENHUM TEXTO ADICIONAL (sem tags markdown, sem blocos <think>, apenas o objeto JSON puramente encodado).
 
 {
   "questoes": [
     {
       "id": "gerar-um-id-unico-aqui",
-      "enunciado": "Texto da questÃ£o situacional...",
+      "enunciado": "Texto da questão situacional...",
       "alternativas": {
         "A": "Texto da alternativa A",
         "B": "Texto da alternativa B",
@@ -87,7 +87,7 @@ VocÃª DEVE retornar APENAS UM JSON VÃLIDO no exato formato abaixo e ABSOLUT
         "D": "Texto da alternativa D"
       },
       "correta": "B",
-      "justificativa": "ExplicaÃ§Ã£o matadora da correta e destruiÃ§Ã£o da pegadinha..."
+      "justificativa": "Explicação matadora da correta e destruição da pegadinha..."
     }
   ]
 }
@@ -106,9 +106,7 @@ ${getDomainRules(subject || "")}`;
       apiKey: groqApiKey
     });
 
-    if (typeof result !== "string" || !result) {
-      throw new Error("Resposta vazia ou inválida da API Groq");
-    }
+    if (!result) throw new Error("Resposta vazia da API Groq");
 
     // 4. Extração de JSON centralizada via ai-protocols (extractCleanJson)
     const cleanResult = extractCleanJson(result);
@@ -131,7 +129,7 @@ ${getDomainRules(subject || "")}`;
 
     return NextResponse.json(json);
   } catch (error: any) {
-    console.error("Erro na rota de QuestÃµes (RAG + Qwen):", error);
+    console.error("Erro na rota de Questões (RAG + Qwen):", error);
     
     const env = resolveEnv();
     return NextResponse.json({ 
@@ -140,4 +138,3 @@ ${getDomainRules(subject || "")}`;
     }, { status: 500 });
   }
 }
-

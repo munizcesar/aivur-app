@@ -13,6 +13,20 @@ const DIR_PROCESSADOS = path.join(process.cwd(), 'content', 'pdfs-processados-lo
   }
 });
 
+function getPdfFilesRecursively(dir: string, fileList: string[] = []): string[] {
+  if (!fs.existsSync(dir)) return fileList;
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    if (fs.statSync(filePath).isDirectory()) {
+      getPdfFilesRecursively(filePath, fileList);
+    } else if (file.toLowerCase().endsWith('.pdf')) {
+      fileList.push(filePath);
+    }
+  }
+  return fileList;
+}
+
 function extrairMetadados(texto: string) {
   // Limpar texto para facilitar regex
   const textToUpper = texto.toUpperCase();
@@ -44,16 +58,22 @@ function extrairMetadados(texto: string) {
 }
 
 async function run() {
-  const files = fs.readdirSync(DIR_ENTRADA).filter(f => f.toLowerCase().endsWith('.pdf'));
+  const pdfPaths = getPdfFilesRecursively(DIR_ENTRADA);
 
-  if (files.length === 0) {
+  if (pdfPaths.length === 0) {
     console.log('Nenhum PDF encontrado em content/pdfs-entrada/');
     return;
   }
 
-  for (const file of files) {
-    console.log(`\nProcessando: ${file}...`);
-    const inputPath = path.join(DIR_ENTRADA, file);
+  for (const inputPath of pdfPaths) {
+    const relativePath = path.relative(DIR_ENTRADA, inputPath);
+    const parsedPath = path.parse(relativePath);
+    
+    let pastaOrigem = parsedPath.dir;
+    // Normalizar separadores de pasta (para manter json consistente no Windows e Linux)
+    pastaOrigem = pastaOrigem.split(path.sep).join('/');
+
+    console.log(`\nProcessando: ${relativePath}...`);
     
     try {
       const dataBuffer = fs.readFileSync(inputPath);
@@ -63,30 +83,37 @@ async function run() {
       const metadados = extrairMetadados(texto);
 
       const rascunho = {
-        _arquivo_origem: file,
+        _arquivo_origem: parsedPath.base,
+        _pasta_origem: pastaOrigem || null,
         banca: metadados.banca,
         ano: metadados.ano,
         edital_ref: metadados.edital_ref,
         texto_bruto: texto
       };
 
-      const outName = path.basename(file, '.pdf') + '-rascunho.json';
+      const outNamePrefix = pastaOrigem ? pastaOrigem.replace(/\//g, '_') + '_' : '';
+      const outName = `${outNamePrefix}${parsedPath.name}-rascunho.json`;
       const outPath = path.join(DIR_STAGING, outName);
       
       fs.writeFileSync(outPath, JSON.stringify(rascunho, null, 2), 'utf-8');
       console.log(`✅ Rascunho salvo em: ${outPath}`);
 
-      // Mover original
-      const processadoPath = path.join(DIR_PROCESSADOS, file);
+      // Mover original recriando estrutura de subpastas
+      const processadoPath = path.join(DIR_PROCESSADOS, relativePath);
+      const processadoDir = path.dirname(processadoPath);
+      if (!fs.existsSync(processadoDir)) {
+        fs.mkdirSync(processadoDir, { recursive: true });
+      }
+
       fs.renameSync(inputPath, processadoPath);
       console.log(`📦 Movido para processados: ${processadoPath}`);
 
       if (!metadados.banca || !metadados.ano || !metadados.edital_ref) {
-        console.log(`⚠️  Aviso: Metadados incompletos para ${file}. Revisão manual será necessária no JSON.`);
+        console.log(`⚠️  Aviso: Metadados incompletos para ${relativePath}. Revisão manual será necessária no JSON.`);
       }
 
     } catch (err) {
-      console.error(`❌ Erro ao processar ${file}:`, err);
+      console.error(`❌ Erro ao processar ${relativePath}:`, err);
     }
   }
 }

@@ -13,6 +13,11 @@ binding = "D1_DB"
 database_name = "aivur-db"
 database_id = "0c75d334-f109-46b6-8e3b-d2e47164a157"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "aivur-questoes"
+database_id = "c89abdb7-6f74-424d-9012-6551e6e1a5d2"
+
 # Binding para o Banco de Dados Vetorial
 [[vectorize]]
 binding = "VECTORIZE"

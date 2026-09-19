@@ -75,10 +75,26 @@ async function run() {
 
     console.log(`\nProcessando: ${relativePath}...`);
     
-    try {
-      const dataBuffer = fs.readFileSync(inputPath);
+      const outNamePrefix = pastaOrigem ? pastaOrigem.replace(/\//g, '_') + '_' : '';
+      const outName = `${outNamePrefix}${parsedPath.name}-rascunho.json`;
+      const outPath = path.join(DIR_STAGING, outName);
+      
+      const processadoPath = path.join(DIR_PROCESSADOS, relativePath);
+
+      if (fs.existsSync(outPath) || fs.existsSync(processadoPath)) {
+        console.log(`⚠️  Já existe: ${relativePath} — pulado`);
+        continue;
+      }
+      
+      try {
+        const dataBuffer = fs.readFileSync(inputPath);
       const data = await pdfParse(dataBuffer);
       const texto = data.text;
+
+      if (!texto || texto.trim().length === 0) {
+        console.log(`⚠️  Sem texto extraível (possível PDF escaneado): ${relativePath}`);
+        continue;
+      }
 
       const metadados = extrairMetadados(texto);
 
@@ -91,15 +107,10 @@ async function run() {
         texto_bruto: texto
       };
 
-      const outNamePrefix = pastaOrigem ? pastaOrigem.replace(/\//g, '_') + '_' : '';
-      const outName = `${outNamePrefix}${parsedPath.name}-rascunho.json`;
-      const outPath = path.join(DIR_STAGING, outName);
-      
       fs.writeFileSync(outPath, JSON.stringify(rascunho, null, 2), 'utf-8');
       console.log(`✅ Rascunho salvo em: ${outPath}`);
 
       // Mover original recriando estrutura de subpastas
-      const processadoPath = path.join(DIR_PROCESSADOS, relativePath);
       const processadoDir = path.dirname(processadoPath);
       if (!fs.existsSync(processadoDir)) {
         fs.mkdirSync(processadoDir, { recursive: true });

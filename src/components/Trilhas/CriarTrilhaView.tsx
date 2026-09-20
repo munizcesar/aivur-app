@@ -142,7 +142,7 @@ export default function CriarTrilhaView({
     <div className="w-full max-w-[1000px] mx-auto px-4 py-6 md:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--color-red)]/15 text-[var(--color-red)] text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#C9A84C]/15 text-[#C9A84C] text-xs font-bold uppercase tracking-wider mb-2">
             <Sparkles className="w-3.5 h-3.5" />
             Mentor AIVUR 360 · Criação
           </div>
@@ -179,7 +179,7 @@ export default function CriarTrilhaView({
             {/* Passo 1 */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-primary)] text-white text-xs font-bold">1</span>
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#C9A84C] text-white text-xs font-bold">1</span>
                 <label className="block text-base font-bold text-[var(--color-cream)]">
                   Nome do Concurso / Trilha
                 </label>
@@ -197,7 +197,7 @@ export default function CriarTrilhaView({
             {/* Passo 2 */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-primary)] text-white text-xs font-bold">2</span>
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#C9A84C] text-white text-xs font-bold">2</span>
                 <label className="block text-base font-bold text-[var(--color-cream)]">
                   Fonte de Dados
                 </label>

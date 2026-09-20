@@ -51,7 +51,7 @@ export default function UserTrilhasGrid() {
       {/* CABEÇALHO */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--color-primary)]/15 text-[var(--color-primary)] text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#C9A84C]/15 text-[#C9A84C] text-xs font-bold uppercase tracking-wider mb-2">
             <Compass className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} aria-hidden="true" />
             Mentor AIVUR 360 · Painel
           </div>
@@ -70,7 +70,7 @@ export default function UserTrilhasGrid() {
       <div className="mb-12">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--color-heading)] flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 shrink-0 text-[var(--color-primary)]" strokeWidth={2.2} aria-hidden="true" />
+            <GraduationCap className="w-5 h-5 shrink-0 text-[#C9A84C]" strokeWidth={2.2} aria-hidden="true" />
             Trilhas em Andamento
           </h2>
           {validTrilhas.length > 0 && (
@@ -135,7 +135,7 @@ export default function UserTrilhasGrid() {
                       </div>
                       <div className="w-full h-2 rounded-full bg-[var(--color-bg)]/80 overflow-hidden border border-[rgba(107,153,179,0.15)]">
                         <div
-                          className="h-full bg-[var(--color-primary)] transition-all duration-500 rounded-full"
+                          className="h-full bg-[#C9A84C] transition-all duration-500 rounded-full"
                           style={{ width: `${percent}%` }}
                         />
                       </div>
@@ -157,7 +157,7 @@ export default function UserTrilhasGrid() {
           </div>
         ) : (
           <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-surface)]/20 p-8 sm:p-10 text-center backdrop-blur-sm">
-            <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/15 flex items-center justify-center mx-auto mb-4 text-[var(--color-primary)]">
+            <div className="w-12 h-12 rounded-full bg-[#C9A84C]/15 flex items-center justify-center mx-auto mb-4 text-[#C9A84C]">
               <Compass className="w-6 h-6 shrink-0" strokeWidth={2.1} aria-hidden="true" />
             </div>
             <h3 className="text-lg font-bold text-[var(--color-heading)] mb-1">

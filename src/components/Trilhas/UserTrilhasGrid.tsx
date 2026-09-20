@@ -29,7 +29,19 @@ export default function UserTrilhasGrid() {
   
   useEffect(() => {
     setIsHydrated(true);
-  }, []);
+
+    // Validação defensiva: checar schema antigo (falta de array 'questoes')
+    // Removemos do store as trilhas corrompidas para evitar crashes futuros.
+    customTrilhas.forEach(trilha => {
+      if (!trilha.questoes || !Array.isArray(trilha.questoes)) {
+        console.warn(`[UserTrilhasGrid] Descartando trilha corrompida/antiga (ID: ${trilha.id} - ${trilha.titulo}). Falta a propriedade 'questoes' (array).`);
+        deleteCustomTrilha(trilha.id);
+      }
+    });
+  }, [customTrilhas, deleteCustomTrilha]);
+
+  // Apenas as válidas
+  const validTrilhas = customTrilhas.filter(t => t.questoes && Array.isArray(t.questoes));
 
   const [editingCourse, setEditingCourse] = useState<{ id: string; titulo: string } | null>(null);
   const [deletingCourse, setDeletingCourse] = useState<TrilhaTemplateType | null>(null);
@@ -61,9 +73,9 @@ export default function UserTrilhasGrid() {
             <GraduationCap className="w-5 h-5 shrink-0 text-[var(--color-primary)]" strokeWidth={2.2} aria-hidden="true" />
             Trilhas em Andamento
           </h2>
-          {customTrilhas.length > 0 && (
+          {validTrilhas.length > 0 && (
             <span className="text-xs text-[var(--color-text-muted)] font-semibold">
-              {customTrilhas.length} trilha{customTrilhas.length !== 1 ? "s" : ""} ativa{customTrilhas.length !== 1 ? "s" : ""}
+              {validTrilhas.length} trilha{validTrilhas.length !== 1 ? "s" : ""} ativa{validTrilhas.length !== 1 ? "s" : ""}
             </span>
           )}
         </div>
@@ -72,9 +84,9 @@ export default function UserTrilhasGrid() {
           <div className="p-8 text-center rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-surface)]/20 text-[var(--color-text-muted)] animate-pulse">
             Carregando suas trilhas ativas...
           </div>
-        ) : customTrilhas.length > 0 ? (
+        ) : validTrilhas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {customTrilhas.map((trilha) => {
+            {validTrilhas.map((trilha) => {
               // Calcula progresso pelas questoes e flashcards se quiser, mas por simplicidade usaremos trilha.progresso ou progressData.
               let questoesAcertadas = 0;
               trilha.questoes.forEach(q => {

@@ -11,7 +11,7 @@
 .hero {
   position: relative;
   border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(135deg, var(--color-surface), var(--color-surface-offset));
+  background: linear-gradient(135deg, #020C14, #0B1929);
 }
 
 .heroInner,

@@ -317,7 +317,7 @@ function QuestoesPanel({
                 const correct = selectedOpt === q.corretaIdx;
                 setIsSubmitted(true);
                 registerAnswer(String(q.id), correct);
-                trackEvent("question_answered_v2", { question_id: String(q.id), correct, trilha_id: trilhaId });
+                trackEvent("question_answered_v2", { question_id: String(q.id), correct, trilha_id: topicoId });
               }}
               className="v2-btn-primary"
             >
@@ -332,8 +332,8 @@ function QuestoesPanel({
                   setSelectedOpt(null);
                   setCurrentQ(q => q + 1);
                 } else {
-                  toggleTopicCompletion(trilhaId);
-                  trackEvent("module_completed_v2", { trilha_id: trilhaId });
+                  toggleTopicCompletion(topicoId);
+                  trackEvent("module_completed_v2", { trilha_id: topicoId });
                   setShowEnd(true);
                 }
               }}

@@ -6,6 +6,7 @@ import Footer from "@/components/Footer/Footer";
 import SideDrawer from "@/components/SideDrawer/SideDrawer";
 import { TRILHAS_MOCK } from "@/mocks/trilhasMock";
 import UserTrilhasGrid from '@/components/Trilhas/UserTrilhasGrid';
+import TrilhasErrorBoundary from '@/components/Trilhas/TrilhasErrorBoundary';
 import styles from './trilhas.module.css';
 
 export const metadata: Metadata = {
@@ -51,7 +52,9 @@ export default function TrilhasPage() {
           </div>
         </section>
 
-        <UserTrilhasGrid />
+        <TrilhasErrorBoundary>
+          <UserTrilhasGrid />
+        </TrilhasErrorBoundary>
 
         {/* ── Microlearning Trilhas Grid ── */}
         <section

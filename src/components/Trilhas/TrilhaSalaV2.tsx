@@ -472,7 +472,7 @@ export default function TrilhaSalaV2() {
         }
         .v2-back-btn:hover {
           background: var(--color-primary);
-          color: #fff;
+          color: var(--color-white);
           border-color: transparent;
         }
         .v2-topbar-title {
@@ -551,7 +551,7 @@ export default function TrilhaSalaV2() {
         }
         .v2-acc-item--open .v2-acc-icon-wrap {
           background: var(--color-primary);
-          color: #fff;
+          color: var(--color-white);
         }
         .v2-acc-label {
           flex: 1;
@@ -824,8 +824,8 @@ export default function TrilhaSalaV2() {
         .v2-q-opt:hover:not(:disabled) { border-color: var(--color-primary); }
         .v2-q-opt:disabled { cursor: default; }
         .v2-q-opt--selected { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface)); }
-        .v2-q-opt--correct  { border-color: #10b981; background: color-mix(in srgb, #10b981 10%, var(--color-surface)); }
-        .v2-q-opt--wrong    { border-color: #f43f5e; background: color-mix(in srgb, #f43f5e 10%, var(--color-surface)); }
+        .v2-q-opt--correct  { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 10%, var(--color-surface)); }
+        .v2-q-opt--wrong    { border-color: var(--color-red); background: color-mix(in srgb, var(--color-red) 10%, var(--color-surface)); }
 
         .v2-q-letter {
           display: flex; align-items: center; justify-content: center;
@@ -838,13 +838,13 @@ export default function TrilhaSalaV2() {
           flex-shrink: 0;
           transition: background var(--transition), color var(--transition), border-color var(--transition);
         }
-        .v2-q-letter--selected { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
-        .v2-q-letter--correct  { background: #10b981; color: #fff; border-color: #10b981; }
-        .v2-q-letter--wrong    { background: #f43f5e; color: #fff; border-color: #f43f5e; }
+        .v2-q-letter--selected { background: var(--color-primary); color: var(--color-white); border-color: var(--color-primary); }
+        .v2-q-letter--correct  { background: var(--color-success); color: var(--color-white); border-color: var(--color-success); }
+        .v2-q-letter--wrong    { background: var(--color-red); color: var(--color-white); border-color: var(--color-red); }
         .v2-q-opt-text { font-size: 0.9rem; line-height: 1.5; padding-top: 0.2rem; }
         .v2-q-icon { display: flex; align-items: center; justify-content: center; padding-top: 0.1rem; }
-        .v2-icon-correct { color: #10b981; }
-        .v2-icon-wrong   { color: #f43f5e; }
+        .v2-icon-correct { color: var(--color-success); }
+        .v2-icon-wrong   { color: var(--color-red); }
 
         /* Feedback */
         .v2-q-feedback {
@@ -862,19 +862,19 @@ export default function TrilhaSalaV2() {
           opacity: 1;
           padding: 1rem 1.25rem;
         }
-        .v2-q-feedback--correct { background: color-mix(in srgb, #10b981 10%, transparent); border-color: color-mix(in srgb, #10b981 30%, transparent); }
-        .v2-q-feedback--wrong   { background: color-mix(in srgb, #f43f5e 10%, transparent); border-color: color-mix(in srgb, #f43f5e 30%, transparent); }
+        .v2-q-feedback--correct { background: color-mix(in srgb, var(--color-success) 10%, transparent); border-color: color-mix(in srgb, var(--color-success) 30%, transparent); }
+        .v2-q-feedback--wrong   { background: color-mix(in srgb, var(--color-red) 10%, transparent); border-color: color-mix(in srgb, var(--color-red) 30%, transparent); }
         .v2-q-feedback--hidden  { max-height: 0; opacity: 0; padding: 0; }
         .v2-q-feedback-label { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 0.5rem; }
-        .v2-q-feedback-label--correct { color: #10b981; }
-        .v2-q-feedback-label--wrong   { color: #f43f5e; }
+        .v2-q-feedback-label--correct { color: var(--color-success); }
+        .v2-q-feedback-label--wrong   { color: var(--color-red); }
         .v2-q-feedback-text { font-size: 0.9rem; line-height: 1.6; color: var(--color-text); }
 
         .v2-q-actions { display: flex; justify-content: flex-end; }
 
         /* End state */
         .v2-end-state { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 2.5rem 1rem; text-align: center; }
-        .v2-end-icon  { color: #10b981; }
+        .v2-end-icon  { color: var(--color-success); }
         .v2-end-title { font-size: 1.35rem; font-weight: 700; color: var(--color-heading, var(--color-text)); }
         .v2-end-sub   { color: var(--color-text-muted); font-size: 0.95rem; }
 
@@ -884,7 +884,7 @@ export default function TrilhaSalaV2() {
           padding: 0.6rem 1.5rem;
           border-radius: var(--radius-lg);
           background: var(--color-primary);
-          color: #fff; font-weight: 700; font-size: 0.9rem;
+          color: var(--color-white); font-weight: 700; font-size: 0.9rem;
           border: none; cursor: pointer;
           transition: background var(--transition), opacity var(--transition);
           font-family: inherit;

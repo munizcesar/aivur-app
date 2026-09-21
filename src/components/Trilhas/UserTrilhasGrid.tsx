@@ -47,15 +47,15 @@ export default function UserTrilhasGrid() {
   const [deletingCourse, setDeletingCourse] = useState<TrilhaTemplateType | null>(null);
 
   return (
-    <div className="w-full max-w-[1100px] mx-auto px-4 md:px-0 mb-12">
+    <div className="w-full py-8 mb-12">
       {/* CABEÇALHO */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#C9A84C]/15 text-[#C9A84C] text-xs font-bold uppercase tracking-wider mb-2">
-            <Compass className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--color-navy)] text-[var(--color-cream)] text-xs font-bold uppercase tracking-wider mb-2">
+            <Compass className="shrink-0" size={14} strokeWidth={2.25} aria-hidden="true" />
             Mentor AIVUR 360 · Painel
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-heading)] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[var(--color-heading)] tracking-tight">
             Minhas Trilhas Ativas
           </h1>
           <p className="text-sm sm:text-base text-[var(--color-text-muted)] mt-1 max-w-xl">
@@ -69,8 +69,8 @@ export default function UserTrilhasGrid() {
       {/* LISTA */}
       <div className="mb-12">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--color-heading)] flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 shrink-0 text-[#C9A84C]" strokeWidth={2.2} aria-hidden="true" />
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--color-heading)] flex items-center gap-2">
+            <GraduationCap className="shrink-0 text-[var(--color-cream)]" size={20} strokeWidth={2.2} aria-hidden="true" />
             Trilhas em Andamento
           </h2>
           {validTrilhas.length > 0 && (
@@ -135,7 +135,7 @@ export default function UserTrilhasGrid() {
                       </div>
                       <div className="w-full h-2 rounded-full bg-[var(--color-bg)]/80 overflow-hidden border border-[rgba(107,153,179,0.15)]">
                         <div
-                          className="h-full bg-[#C9A84C] transition-all duration-500 rounded-full"
+                          className="h-full bg-[var(--color-cream)] transition-all duration-500 rounded-full"
                           style={{ width: `${percent}%` }}
                         />
                       </div>
@@ -157,8 +157,8 @@ export default function UserTrilhasGrid() {
           </div>
         ) : (
           <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-surface)]/20 p-8 sm:p-10 text-center backdrop-blur-sm">
-            <div className="w-12 h-12 rounded-full bg-[#C9A84C]/15 flex items-center justify-center mx-auto mb-4 text-[#C9A84C]">
-              <Compass className="w-6 h-6 shrink-0" strokeWidth={2.1} aria-hidden="true" />
+            <div className="w-12 h-12 rounded-full bg-[var(--color-navy)] flex items-center justify-center mx-auto mb-4 text-[var(--color-cream)]">
+              <Compass className="shrink-0" size={24} strokeWidth={2.1} aria-hidden="true" />
             </div>
             <h3 className="text-lg font-bold text-[var(--color-heading)] mb-1">
               Você ainda não possui trilhas personalizadas
@@ -216,7 +216,7 @@ export default function UserTrilhasGrid() {
                     setEditingCourse(null);
                   }
                 }}
-                className="px-4 py-2 rounded-lg bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-[var(--color-heading)] text-xs font-bold shadow-[2px_2px_0px_#6B0000]"
+                className="px-4 py-2 rounded-lg bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-[var(--color-heading)] text-xs font-bold shadow-sm"
               >
                 Salvar Alteração
               </button>

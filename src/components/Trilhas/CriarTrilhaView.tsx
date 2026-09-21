@@ -142,8 +142,8 @@ export default function CriarTrilhaView({
     <div className="w-full max-w-[1000px] mx-auto px-4 py-6 md:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#C9A84C]/15 text-[#C9A84C] text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--color-navy)] text-[var(--color-cream)] text-xs font-bold uppercase tracking-wider mb-2">
+            <Sparkles size={14} className="shrink-0" />
             Mentor AIVUR 360 · Criação
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -160,7 +160,7 @@ export default function CriarTrilhaView({
             onClick={() => router.push("/trilhas")}
             className="inline-flex items-center justify-center gap-2 px-4 py-2 text-[var(--color-slate-blue)] hover:text-[var(--color-cream)] text-sm font-semibold transition-colors duration-150"
           >
-            <FolderCheck className="w-4 h-4" />
+            <FolderCheck size={16} className="shrink-0" />
             <span>Voltar para trilhas</span>
           </button>
         </div>
@@ -168,7 +168,7 @@ export default function CriarTrilhaView({
 
       {error && (
         <div className="mb-6 p-4 rounded-lg bg-red-950/40 border border-red-800/60 text-red-200 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-[var(--color-red)] flex-shrink-0 mt-0.5" />
+          <AlertCircle size={20} className="text-[var(--color-red)] shrink-0 mt-0.5" />
           <div className="text-sm leading-relaxed">{error}</div>
         </div>
       )}
@@ -179,7 +179,7 @@ export default function CriarTrilhaView({
             {/* Passo 1 */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#C9A84C] text-white text-xs font-bold">1</span>
+                <span className="flex items-center justify-center shrink-0 w-6 h-6 rounded-full bg-[var(--color-navy)] text-[var(--color-cream)] text-xs font-bold">1</span>
                 <label className="block text-base font-bold text-[var(--color-cream)]">
                   Nome do Concurso / Trilha
                 </label>
@@ -189,7 +189,7 @@ export default function CriarTrilhaView({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Polícia Federal — Agente Administrativo 2026"
-                className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[var(--color-bg)]/70 text-[#F8FAFC] placeholder:text-slate-500 text-sm md:text-base focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-colors"
+                className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[var(--color-bg)]/70 text-[var(--color-text)] placeholder:text-slate-500 text-sm md:text-base focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-colors"
                 required
               />
             </div>
@@ -197,7 +197,7 @@ export default function CriarTrilhaView({
             {/* Passo 2 */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#C9A84C] text-white text-xs font-bold">2</span>
+                <span className="flex items-center justify-center shrink-0 w-6 h-6 rounded-full bg-[var(--color-navy)] text-[var(--color-cream)] text-xs font-bold">2</span>
                 <label className="block text-base font-bold text-[var(--color-cream)]">
                   Fonte de Dados
                 </label>
@@ -210,7 +210,7 @@ export default function CriarTrilhaView({
                   onClick={() => setInputType("text")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${inputType === "text" ? "bg-[var(--color-surface)] text-[var(--color-cream)] shadow-sm" : "text-[var(--color-slate-blue)] hover:text-[var(--color-cream)]"}`}
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText size={16} className="shrink-0" />
                   Colar Texto
                 </button>
                 <button
@@ -218,7 +218,7 @@ export default function CriarTrilhaView({
                   onClick={() => setInputType("pdf")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${inputType === "pdf" ? "bg-[var(--color-surface)] text-[var(--color-cream)] shadow-sm" : "text-[var(--color-slate-blue)] hover:text-[var(--color-cream)]"}`}
                 >
-                  <UploadCloud className="w-4 h-4" />
+                  <UploadCloud size={16} className="shrink-0" />
                   Upload de PDF
                 </button>
               </div>
@@ -230,7 +230,7 @@ export default function CriarTrilhaView({
                   onChange={(e) => setText(e.target.value)}
                   placeholder="Cole aqui os tópicos completos do edital, súmulas, leis específicas ou a lista de assuntos que você precisa cobrir..."
                   rows={8}
-                  className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[var(--color-bg)]/70 text-[#F8FAFC] placeholder:text-slate-500 text-sm leading-relaxed focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-colors resize-y"
+                  className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[var(--color-bg)]/70 text-[var(--color-text)] placeholder:text-slate-500 text-sm leading-relaxed focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-colors resize-y"
                 />
               ) : (
                 <div className="relative flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[rgba(107,153,179,0.3)] hover:border-[var(--color-primary)] rounded-xl p-8 text-center transition-colors bg-[var(--color-bg)]/30 cursor-pointer min-h-[220px]">
@@ -240,7 +240,7 @@ export default function CriarTrilhaView({
                     onChange={(e) => setFile(e.target.files?.[0] || null)}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  <UploadCloud className="w-10 h-10 text-[var(--color-slate-blue)]" />
+                  <UploadCloud size={40} className="text-[var(--color-slate-blue)] shrink-0" />
                   {file ? (
                     <div className="text-sm font-semibold text-[var(--color-primary)]">
                       Arquivo selecionado: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
@@ -271,7 +271,7 @@ export default function CriarTrilhaView({
             >
               <Sparkles className="w-5 h-5 text-white/70" />
               <span>Gerar Trilha com IA</span>
-              <ArrowRight className="w-4 h-4 ml-1" />
+              <ArrowRight size={16} className="ml-1 shrink-0" />
             </button>
           </div>
         </form>
@@ -309,7 +309,7 @@ export default function CriarTrilhaView({
                   title="Clique para editar o nome"
                 >
                   {draftTrilha.titulo}
-                  <Edit2 className="w-4 h-4 text-[var(--color-slate-blue)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Edit2 size={16} className="text-[var(--color-slate-blue)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                 </h2>
               )}
               <p className="text-xs text-[var(--color-slate-blue)] mt-1">
@@ -320,7 +320,7 @@ export default function CriarTrilhaView({
               onClick={handleSave}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[var(--color-primary)] hover:opacity-90 text-white font-bold text-sm shadow-sm transition-all"
             >
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircle2 size={16} className="shrink-0" />
               <span>Salvar e Iniciar Trilha</span>
             </button>
           </div>

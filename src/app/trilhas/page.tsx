@@ -30,7 +30,7 @@ export default function TrilhasPage() {
                   Plano de estudos
                 </span>
                 <h1 id="trilhas-title" className={styles.title}>
-                  Suas Trilhas <span className={styles.titleAccent}>de Estudo</span>
+                  Suas Trilhas <span className={`${styles.titleAccent} whitespace-nowrap`}>de Estudo</span>
                 </h1>
                 <p className={styles.description}>
                   Evolua pelo edital com disciplina. Marque tópicos concluídos e acompanhe sua taxa de retenção em tempo real.
@@ -52,9 +52,11 @@ export default function TrilhasPage() {
           </div>
         </section>
 
-        <TrilhasErrorBoundary>
-          <UserTrilhasGrid />
-        </TrilhasErrorBoundary>
+        <section className={styles.content} style={{ paddingTop: '2rem' }}>
+          <TrilhasErrorBoundary>
+            <UserTrilhasGrid />
+          </TrilhasErrorBoundary>
+        </section>
 
         {/* ── Microlearning Trilhas Grid ── */}
         <section
@@ -77,7 +79,7 @@ export default function TrilhasPage() {
                 className="flex flex-col gap-3 p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]"
               >
                 <div>
-                  <span className="inline-block px-2.5 py-1 mb-2 rounded-full bg-[#C9A84C]/10 border border-[#C9A84C]/30 text-[#C9A84C] text-[11px] font-extrabold tracking-wider">
+                  <span className="inline-block px-2.5 py-1 mb-2 rounded-full bg-[var(--color-navy)] border border-[var(--color-cream)]/20 text-[var(--color-cream)] text-[11px] font-extrabold tracking-wider">
                     {trilha.disciplina}
                   </span>
                   <h3 className="m-0 text-[15px] font-bold leading-snug text-[var(--color-heading)]">
@@ -89,13 +91,13 @@ export default function TrilhasPage() {
                 <div>
                   <div className="flex justify-between mb-1.5">
                     <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">Progresso</span>
-                    <span className={`text-[11px] font-bold ${trilha.progresso > 0 ? 'text-[#C9A84C]' : 'text-[var(--color-text-muted)]'}`}>
+                    <span className={`text-[11px] font-bold ${trilha.progresso > 0 ? 'text-[var(--color-cream)]' : 'text-[var(--color-text-muted)]'}`}>
                       {trilha.progresso}%
                     </span>
                   </div>
                   <div className="h-[5px] overflow-hidden rounded-full bg-[var(--color-surface-offset)]">
                     <div
-                      className="h-full rounded-full bg-[#C9A84C] transition-all"
+                      className="h-full rounded-full bg-[var(--color-cream)] transition-all"
                       style={{ width: `${trilha.progresso}%` }}
                     />
                   </div>

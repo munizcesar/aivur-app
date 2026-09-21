@@ -11,12 +11,12 @@
 .hero {
   position: relative;
   border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(135deg, #020C14, #0B1929);
+  background: linear-gradient(135deg, var(--color-bg), var(--color-navy));
 }
 
 .heroInner,
 .content {
-  width: min(1120px, calc(100% - 32px));
+  width: min(1120px, calc(100% - 48px));
   margin: 0 auto;
 }
 

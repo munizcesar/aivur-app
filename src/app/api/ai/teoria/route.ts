@@ -1,6 +1,6 @@
 export const runtime = 'edge';
 import { NextResponse } from "next/server";
-import { callGroqWithFallback } from "@/lib/groq";
+import { callGroqWithFallback, getGroqKeysFromEnv } from "@/lib/groq";
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { getDomainRules, extractCleanMarkdown } from '@/lib/ai-protocols';
 
@@ -18,7 +18,7 @@ function resolveEnv(): any {
 export async function POST(req: Request) {
   try {
     const env = resolveEnv();
-    const groqApiKey = env?.GROQ_API_KEY;
+    const groqApiKeys = getGroqKeysFromEnv(env);
 
     const body = await req.json() as { tema?: string; label?: string; subject?: string };
     
@@ -68,7 +68,7 @@ ${getDomainRules(subject)}`;
       model: "qwen/qwen3.6-27b",
       temperature: 0.3,
       max_tokens: 5000,
-      apiKey: groqApiKey
+      apiKeys: groqApiKeys
     });
 
     // 4. Limpeza centralizada via ai-protocols (extractCleanMarkdown)

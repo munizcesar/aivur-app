@@ -1,10 +1,24 @@
 export const runtime = 'edge';
 
 import { NextResponse } from "next/server";
-import { callGroqWithFallback } from "@/lib/groq";
+import { callGroqWithFallback, getGroqKeysFromEnv } from "@/lib/groq";
+import { getRequestContext } from '@cloudflare/next-on-pages';
 import { AIExpansionSchema } from "@/lib/validations/trilha";
 
+// Padrão de resolução de env para Edge Runtime / Cloudflare Pages
+function resolveEnv(): Record<string, string | undefined> {
+  try {
+    const ctx = getRequestContext();
+    if (ctx?.env) return ctx.env as any;
+  } catch (_) {}
+  const g = globalThis as any;
+  if (g.GROQ_API_KEY) return g;
+  return process.env as any;
+}
+
 export async function POST(req: Request) {
+  const env = resolveEnv();
+  const groqApiKeys = getGroqKeysFromEnv(env);
   try {
     const raw: unknown = await req.json();
 
@@ -46,7 +60,7 @@ Retorne SOMENTE este JSON, sem texto adicional:
 
     const content = await callGroqWithFallback(
       [{ role: "user", content: prompt }],
-      { model: "llama3-8b-8192", temperature: 0.4, response_format: { type: "json_object" } }
+      { model: "llama3-8b-8192", temperature: 0.4, response_format: { type: "json_object" }, apiKeys: groqApiKeys }
     );
     
     if (!content) throw new Error("Retorno vazio da IA");

@@ -1,6 +1,6 @@
 export const runtime = 'edge';
 import { NextResponse } from "next/server";
-import { callGroqWithFallback } from "@/lib/groq";
+import { callGroqWithFallback, getGroqKeysFromEnv } from "@/lib/groq";
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { getDomainRules, extractCleanJson } from '@/lib/ai-protocols';
 
@@ -18,7 +18,7 @@ function resolveEnv(): any {
 export async function POST(req: Request) {
   try {
     const env = resolveEnv();
-    const groqApiKey = env?.GROQ_API_KEY;
+    const groqApiKeys = getGroqKeysFromEnv(env);
 
     const { label, subject, nicho, context } = await req.json() as {
       label?: string;
@@ -93,7 +93,7 @@ ${getDomainRules(subject || "")}`;
       model: "qwen/qwen3.6-27b",
       temperature: 0.2,
       max_tokens: 3000,
-      apiKey: groqApiKey
+      apiKeys: groqApiKeys
     });
 
     if (!result) throw new Error("Resposta vazia da API Groq");

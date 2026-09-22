@@ -26,22 +26,34 @@ import type { CourseTemplate } from "@/data/courses/templates";
 export default function UserTrilhasGrid() {
   const { customTrilhas, deleteCustomTrilha, updateCustomTrilha, progressData } = useStudyStore();
   const [isHydrated, setIsHydrated] = useState(false);
+  const [dataResetMessage, setDataResetMessage] = useState<string | null>(null);
   
   useEffect(() => {
     setIsHydrated(true);
 
-    // Validação defensiva: checar schema antigo (falta de array 'questoes')
-    // Removemos do store as trilhas corrompidas para evitar crashes futuros.
+    // Validação defensiva: checar schema antigo e propriedades obrigatórias
+    let purged = false;
     customTrilhas.forEach(trilha => {
-      if (!trilha.questoes || !Array.isArray(trilha.questoes)) {
-        console.warn(`[UserTrilhasGrid] Descartando trilha corrompida/antiga (ID: ${trilha.id} - ${trilha.titulo}). Falta a propriedade 'questoes' (array).`);
-        deleteCustomTrilha(trilha.id);
+      if (
+        !trilha ||
+        !trilha.id ||
+        !trilha.titulo ||
+        !trilha.questoes || 
+        !Array.isArray(trilha.questoes)
+      ) {
+        console.warn(`[UserTrilhasGrid] Descartando trilha corrompida/antiga (ID: ${trilha?.id || 'desconhecido'}).`);
+        if (trilha?.id) deleteCustomTrilha(trilha.id);
+        purged = true;
       }
     });
+
+    if (purged) {
+      setDataResetMessage("Algumas trilhas antigas foram resetadas por incompatibilidade de formato.");
+    }
   }, [customTrilhas, deleteCustomTrilha]);
 
   // Apenas as válidas
-  const validTrilhas = customTrilhas.filter(t => t.questoes && Array.isArray(t.questoes));
+  const validTrilhas = customTrilhas.filter(t => t && t.id && t.titulo && t.questoes && Array.isArray(t.questoes));
 
   const [editingCourse, setEditingCourse] = useState<{ id: string; titulo: string } | null>(null);
   const [deletingCourse, setDeletingCourse] = useState<TrilhaTemplateType | null>(null);
@@ -55,16 +67,27 @@ export default function UserTrilhasGrid() {
             <Compass className="shrink-0" size={14} strokeWidth={2.25} aria-hidden="true" />
             Mentor AIVUR 360 · Painel
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[var(--color-heading)] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[var(--color-heading)] tracking-tight break-words whitespace-normal">
             Minhas Trilhas Ativas
           </h1>
-          <p className="text-sm sm:text-base text-[var(--color-text-muted)] mt-1 max-w-xl">
+          <p className="text-sm sm:text-base text-[var(--color-text-muted)] mt-1 max-w-xl break-words whitespace-normal">
             Acompanhe o checklist de metas do seu concurso e monitore sua taxa de retenção.
           </p>
         </div>
 
         
       </div>
+
+      {/* MENSAGEM DE RESET SE HOUVER */}
+      {dataResetMessage && (
+        <div className="mb-6 p-4 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-text)] text-sm flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] shrink-0 mt-0.5" />
+          <p>{dataResetMessage}</p>
+          <button onClick={() => setDataResetMessage(null)} className="ml-auto text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* LISTA */}
       <div className="mb-12">
@@ -103,7 +126,7 @@ export default function UserTrilhasGrid() {
                 >
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className="text-base sm:text-lg font-bold text-[var(--color-heading)] group-hover:text-[var(--color-heading)] transition-colors leading-snug line-clamp-2">
+                      <h3 className="text-base sm:text-lg font-bold text-[var(--color-heading)] group-hover:text-[var(--color-heading)] transition-colors leading-snug line-clamp-2 break-words whitespace-normal">
                         {trilha.titulo}
                       </h3>
                       <div className="flex items-center gap-1 flex-shrink-0">

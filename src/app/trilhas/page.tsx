@@ -58,18 +58,19 @@ export default function TrilhasPage() {
           </TrilhasErrorBoundary>
         </section>
 
-        {/* ── Microlearning Trilhas Grid ── */}
+        {/* ── Microlearning Trilhas Grid (EXEMPLOS MOCK) ── */}
         <section
           aria-labelledby="micro-title"
           className={styles.content}
           style={{ paddingTop: 0 }}
         >
+          <hr className="mb-10 mt-2 border-t border-[rgba(107,153,179,0.2)]" />
+          
           <div className={styles.sectionHeader}>
             <div>
-              <h2 id="micro-title" className={styles.sectionTitle}>Trilhas de Microlearning</h2>
-              <p className={styles.sectionHint}>Aulas curtas com vídeo, flashcards 3D e questões de fixação.</p>
+              <h2 id="micro-title" className={styles.sectionTitle}>Exemplos de Trilhas</h2>
+              <p className={styles.sectionHint}>Explore exemplos de trilhas de microlearning. (Estes são dados de demonstração)</p>
             </div>
-            
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -91,14 +92,14 @@ export default function TrilhasPage() {
                 <div>
                   <div className="flex justify-between mb-1.5">
                     <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">Progresso</span>
-                    <span className={`text-[11px] font-bold ${trilha.progresso > 0 ? 'text-[var(--color-cream)]' : 'text-[var(--color-text-muted)]'}`}>
-                      {trilha.progresso}%
+                    <span className={`text-[11px] font-bold ${trilha.progresso > 0 ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`}>
+                      {trilha.progresso > 0 ? `${trilha.progresso}%` : 'Não iniciado'}
                     </span>
                   </div>
-                  <div className="h-[5px] overflow-hidden rounded-full bg-[var(--color-surface-offset)]">
+                  <div className="h-[5px] overflow-hidden rounded-full bg-[var(--color-surface-offset)] border border-[rgba(107,153,179,0.15)]">
                     <div
-                      className="h-full rounded-full bg-[var(--color-cream)] transition-all"
-                      style={{ width: `${trilha.progresso}%` }}
+                      className="h-full rounded-full bg-[var(--color-primary)] transition-all"
+                      style={{ width: `${trilha.progresso > 0 ? trilha.progresso : 0}%` }}
                     />
                   </div>
                 </div>

@@ -20,16 +20,16 @@ export default function Footer() {
                 <Image
                   alt="AIVUR"
                   src="/assets/logo-aivur-light.webp"
-                  width={152}
-                  height={51}
+                  width={120}
+                  height={40}
                   priority
                   className={`${styles.footerLogoImage} ${styles.lightLogo}`}
                 />
                 <Image
                   alt=""
                   src="/assets/logo-aivur-dark.webp"
-                  width={152}
-                  height={51}
+                  width={120}
+                  height={40}
                   priority
                   className={`${styles.footerLogoImage} ${styles.darkLogo}`}
                   aria-hidden="true"

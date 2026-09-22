@@ -31,15 +31,15 @@
 
 .logoLink {
   display: inline-flex;
-  width: 152px;
-  min-width: 152px;
-  height: 51px;
+  width: 120px;
+  min-width: 120px;
+  height: 40px;
   align-items: center;
 }
 
 .footerLogoImage {
   display: block;
-  width: 152px;
+  width: 120px;
   height: auto;
   max-width: 100%;
   object-fit: contain;

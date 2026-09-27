@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 
 export default function TrilhasPage() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh", background: "var(--color-bg)" }}>
+    // O background imersivo é aplicado dentro do TrilhasCockpitV2.
+    // O shell aqui apenas segura Header/Footer sem sobrepor o design escuro do Cockpit.
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
       <Header />
       <main style={{ flex: 1 }}>
         <TrilhasCockpitV2 />

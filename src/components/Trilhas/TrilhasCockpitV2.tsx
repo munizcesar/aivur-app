@@ -7,20 +7,31 @@ import {
   useState,
   type FormEvent,
   type KeyboardEvent,
+  type DragEvent,
 } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Sparkles, Link2, FileText, BookMarked, AlertCircle } from "lucide-react";
+import {
+  Sparkles,
+  Link2,
+  FileUp,
+  PenLine,
+  AlertCircle,
+  Upload,
+  X,
+  FileText,
+  ChevronRight,
+} from "lucide-react";
 import { useStudyStore, type GenerationStatus } from "@/store/useStudyStore";
-import type { TrilhaSourceType } from "@/mocks/trilhasMock";
 import { TrilhaSchema } from "@/lib/validations/trilha";
 
-// ─── Generation step labels ───────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 const STEP_LABELS: Record<GenerationStatus, string> = {
   idle:               "",
-  extracting_context: "Analisando o contexto do edital…",
+  extracting_context: "Lendo e extraindo o contexto…",
   structuring_data:   "Estruturando flashcards e questões…",
-  finalizing:         "Finalizando e validando a trilha…",
-  error:              "Erro ao gerar. Tente novamente.",
+  finalizing:         "Validando e finalizando a trilha…",
+  error:              "Algo deu errado. Tente novamente.",
 };
 
 const STEP_ORDER: GenerationStatus[] = [
@@ -29,101 +40,196 @@ const STEP_ORDER: GenerationStatus[] = [
   "finalizing",
 ];
 
-// ─── Source detection ─────────────────────────────────────────────────────────
-function detectSource(input: string): TrilhaSourceType {
-  if (/^https?:\/\/(www\.)?youtu(be\.com|\.be)/i.test(input.trim())) return "youtube";
-  if (/youtu\.be|youtube\.com/i.test(input)) return "youtube";
-  if (input.trim().length > 500) return "edital";
-  if (/^https?:\/\//i.test(input.trim())) return "text";
-  return "text";
+// ─── Tab types ────────────────────────────────────────────────────────────────
+type InputTab = "link" | "pdf" | "text";
+
+interface TabDef {
+  id: InputTab;
+  label: string;
+  Icon: React.ElementType;
+  placeholder: string;
 }
 
-// ─── Spinner component ────────────────────────────────────────────────────────
+const TABS: TabDef[] = [
+  { id: "link", label: "Link",   Icon: Link2,    placeholder: "Cole um link do YouTube ou qualquer URL…" },
+  { id: "pdf",  label: "PDF",    Icon: FileUp,   placeholder: "" },
+  { id: "text", label: "Texto",  Icon: PenLine,  placeholder: "Cole o texto do edital, apostila ou anotações…" },
+];
+
+// ─── Spinner ──────────────────────────────────────────────────────────────────
 function Spinner() {
   return (
     <span
       role="status"
       aria-label="Carregando"
-      style={{
-        display: "inline-block",
-        width: "1.1rem",
-        height: "1.1rem",
-        border: "2.5px solid currentColor",
-        borderTopColor: "transparent",
-        borderRadius: "50%",
-        animation: "ckv2-spin 0.7s linear infinite",
-        flexShrink: 0,
-      }}
+      className="inline-block w-[1.1rem] h-[1.1rem] border-[2.5px] border-current border-t-transparent rounded-full animate-spin shrink-0"
     />
   );
 }
 
-// ─── Progress dots ────────────────────────────────────────────────────────────
-function ProgressDots({ status }: { status: GenerationStatus }) {
-  const currentIdx = STEP_ORDER.indexOf(status);
+// ─── Progress bar ─────────────────────────────────────────────────────────────
+function ProgressBar({ status }: { status: GenerationStatus }) {
+  const idx = STEP_ORDER.indexOf(status);
+  const pct = idx === -1 ? 0 : Math.round(((idx + 1) / STEP_ORDER.length) * 100);
   return (
-    <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-      {STEP_ORDER.map((step, i) => (
-        <span
-          key={step}
-          style={{
-            width: i === currentIdx ? "1.5rem" : "0.45rem",
-            height: "0.45rem",
-            borderRadius: "999px",
-            background:
-              i < currentIdx
-                ? "var(--color-primary)"
-                : i === currentIdx
-                ? "var(--color-primary)"
-                : "var(--color-border)",
-            opacity: i > currentIdx ? 0.4 : 1,
-            transition: "all 0.35s ease",
-          }}
-        />
-      ))}
+    <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden">
+      <div
+        className="h-full rounded-full transition-all duration-700 ease-out"
+        style={{
+          width: `${pct}%`,
+          background: "linear-gradient(90deg, var(--color-primary), var(--color-ai))",
+        }}
+      />
     </div>
   );
 }
 
-// ─── Source badge helper ──────────────────────────────────────────────────────
-const SOURCE_ICONS: Record<TrilhaSourceType, React.ElementType> = {
-  youtube: Link2,
-  text:    FileText,
-  edital:  BookMarked,
-  system:  Sparkles,
-};
+// ─── Dropzone ─────────────────────────────────────────────────────────────────
+function PdfDropzone({
+  file,
+  onFile,
+  disabled,
+}: {
+  file: File | null;
+  onFile: (f: File | null) => void;
+  disabled: boolean;
+}) {
+  const [isDragging, setIsDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleDrop = useCallback(
+    (e: DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsDragging(false);
+      if (disabled) return;
+      const dropped = e.dataTransfer.files[0];
+      if (dropped?.type === "application/pdf") onFile(dropped);
+    },
+    [disabled, onFile]
+  );
+
+  const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (!disabled) setIsDragging(true);
+  }, [disabled]);
+
+  const handleDragLeave = useCallback(() => setIsDragging(false), []);
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const picked = e.target.files?.[0] ?? null;
+      if (picked?.type === "application/pdf") onFile(picked);
+      e.target.value = "";
+    },
+    [onFile]
+  );
+
+  return (
+    <div
+      id="ckv2-dropzone"
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-label="Área de upload de PDF. Clique ou arraste um arquivo."
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onClick={() => !disabled && inputRef.current?.click()}
+      onKeyDown={(e) => e.key === "Enter" && !disabled && inputRef.current?.click()}
+      className={[
+        "relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed",
+        "min-h-[180px] cursor-pointer select-none transition-all duration-200 group",
+        isDragging
+          ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 scale-[1.01]"
+          : "border-white/20 hover:border-[var(--color-primary)]/60 hover:bg-white/5",
+        disabled ? "opacity-50 cursor-not-allowed" : "",
+      ].join(" ")}
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept="application/pdf"
+        className="sr-only"
+        tabIndex={-1}
+        onChange={handleChange}
+        disabled={disabled}
+      />
+
+      {file ? (
+        <>
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 border border-white/20 max-w-[90%]">
+            <FileText size={20} className="shrink-0 text-[var(--color-primary)]" />
+            <span className="text-sm font-semibold text-white/90 truncate">{file.name}</span>
+            <span className="text-xs text-white/50 shrink-0">
+              {(file.size / 1024 / 1024).toFixed(1)} MB
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onFile(null); }}
+            className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors"
+            aria-label="Remover arquivo"
+          >
+            <X size={13} />
+            Remover
+          </button>
+        </>
+      ) : (
+        <>
+          <div className={[
+            "flex items-center justify-center w-14 h-14 rounded-2xl transition-all duration-200",
+            "bg-white/5 border border-white/10 group-hover:bg-[var(--color-primary)]/15 group-hover:border-[var(--color-primary)]/30",
+            isDragging ? "bg-[var(--color-primary)]/20 border-[var(--color-primary)]/40 scale-110" : "",
+          ].join(" ")}>
+            <Upload size={24} className={isDragging ? "text-[var(--color-primary)]" : "text-white/40 group-hover:text-[var(--color-primary)]"} />
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-semibold text-white/80">
+              {isDragging ? "Solte o arquivo aqui" : "Arraste ou clique para enviar"}
+            </p>
+            <p className="text-xs text-white/40 mt-0.5">Apenas arquivos PDF • Máx. 10 MB</p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 // ─── Main Cockpit ─────────────────────────────────────────────────────────────
 export default function TrilhasCockpitV2() {
   const router = useRouter();
-  const { generationStatus, setGenerationStatus, generationError, setGenerationError, addCustomTrilha } = useStudyStore();
+  const {
+    generationStatus,
+    setGenerationStatus,
+    generationError,
+    setGenerationError,
+    addCustomTrilha,
+  } = useStudyStore();
+
+  const [activeTab, setActiveTab]   = useState<InputTab>("link");
+  const [inputValue, setInputValue]  = useState("");
+  const [inputTitle, setInputTitle]  = useState("");
+  const [pdfFile, setPdfFile]        = useState<File | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [inputValue, setInputValue] = useState("");
-  const [inputTitle, setInputTitle] = useState("");
-  const detectedSource = detectSource(inputValue);
-  const SourceIcon = SOURCE_ICONS[detectedSource];
-
   const isGenerating = generationStatus !== "idle" && generationStatus !== "error";
-  const hasContent   = inputValue.trim().length > 0;
+
+  const hasContent =
+    activeTab === "pdf"
+      ? pdfFile !== null
+      : inputValue.trim().length > 0;
 
   // Auto-resize textarea
   const resizeTextarea = useCallback(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 320)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 280)}px`;
   }, []);
 
-  useEffect(() => {
-    resizeTextarea();
-  }, [inputValue, resizeTextarea]);
+  useEffect(() => { resizeTextarea(); }, [inputValue, resizeTextarea]);
 
-  // Prevent submit on Enter (allow Shift+Enter for newlines)
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-    }
+    if (e.key === "Enter" && !e.shiftKey) e.preventDefault();
   }, []);
 
   const handleSubmit = useCallback(
@@ -131,368 +237,457 @@ export default function TrilhasCockpitV2() {
       e.preventDefault();
       if (!hasContent || isGenerating) return;
 
-      // Step 1 — visual feedback imediato antes do fetch
       setGenerationStatus("extracting_context");
-
-      // Avança para step 2 após 600ms (simula leitura de contexto)
-      const step2Timer = setTimeout(() => setGenerationStatus("structuring_data"), 600);
+      const step2Timer = setTimeout(() => setGenerationStatus("structuring_data"), 800);
 
       try {
-        const res = await fetch("/api/trilhas/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            input:      inputValue.trim(),
-            titulo:     inputTitle.trim() || undefined,
-            sourceType: detectedSource,
-          }),
-        });
+        let res: Response;
+
+        if (activeTab === "pdf" && pdfFile) {
+          // ── FormData path (PDF upload) ────────────────────────────────────
+          const fd = new FormData();
+          fd.append("file", pdfFile);
+          if (inputTitle.trim()) fd.append("titulo", inputTitle.trim());
+          fd.append("sourceType", "edital");
+
+          res = await fetch("/api/trilhas/generate", {
+            method: "POST",
+            // Content-Type omitido intencionalmente — browser define multipart/form-data + boundary
+            body: fd,
+          });
+        } else {
+          // ── JSON path (link / texto livre) ────────────────────────────────
+          res = await fetch("/api/trilhas/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              input:      inputValue.trim(),
+              titulo:     inputTitle.trim() || undefined,
+              sourceType: activeTab === "link" ? "youtube" : "text",
+            }),
+          });
+        }
 
         clearTimeout(step2Timer);
         setGenerationStatus("finalizing");
 
         if (res.status === 401) throw new Error("Sessão expirada. Faça login novamente.");
         if (res.status === 429) throw new Error("Limite de gerações atingido. Aguarde e tente novamente.");
+
         if (!res.ok) {
-          const errJson = await res.json().catch(() => ({})) as { error?: string };
-          throw new Error(errJson.error || `Erro ${res.status} na geração.`);
+          const err = await res.json().catch(() => ({})) as { error?: string };
+          throw new Error(err.error || `Erro ${res.status} na geração.`);
         }
 
         const raw = await res.json();
 
-        // ── ACOPLAMENTO ZOD (client-side guard) ───────────────────────────────
-        // Valida o payload retornado pela API antes de injetar no Zustand.
-        // Protege contra respostas malformadas que possam corromper o estado global.
+        // ── ACOPLAMENTO ZOD (client-side guard) ───────────────────────────
+        // Barreira final antes de injetar no store global.
         const parsed = TrilhaSchema.safeParse(raw);
         if (!parsed.success) {
-          console.error("[CockpitV2] Client-side Zod validation failed:", parsed.error.issues);
+          console.error("[CockpitV2] Zod client validation failed:", parsed.error.issues);
           throw new Error("Trilha gerada com formato inválido. Tente novamente.");
         }
 
-        // Persiste no store local (fallback offline + acesso imediato na rota)
         addCustomTrilha(parsed.data);
         setGenerationStatus("idle");
         router.push(`/trilhas/${parsed.data.id}`);
-      } catch (err: any) {
+      } catch (err: unknown) {
         clearTimeout(step2Timer);
+        const msg = err instanceof Error ? err.message : "Erro desconhecido.";
         console.error("[CockpitV2] Generation failed:", err);
         setGenerationStatus("error");
-        setGenerationError(err?.message ?? "Erro desconhecido. Tente novamente.");
-        // Auto-reset para idle após 5s — libera o form sem recarregar a página
+        setGenerationError(msg);
         setTimeout(() => { setGenerationStatus("idle"); setGenerationError(null); }, 5000);
       }
     },
-    [hasContent, isGenerating, inputValue, inputTitle, detectedSource, setGenerationStatus, setGenerationError, addCustomTrilha, router]
+    [
+      hasContent, isGenerating, activeTab, inputValue, inputTitle, pdfFile,
+      setGenerationStatus, setGenerationError, addCustomTrilha, router,
+    ]
   );
 
   return (
     <>
+      {/* ── Scoped CSS ────────────────────────────────────────────────────── */}
       <style>{`
-        @keyframes ckv2-spin {
-          to { transform: rotate(360deg); }
+        @keyframes ckv2-float {
+          0%, 100% { transform: translateY(0px); }
+          50%       { transform: translateY(-10px); }
         }
-        @keyframes ckv2-fadein {
-          from { opacity: 0; transform: translateY(8px); }
+        @keyframes ckv2-glow-pulse {
+          0%, 100% { opacity: 0.4; }
+          50%       { opacity: 0.75; }
+        }
+        @keyframes ckv2-fadein-up {
+          from { opacity: 0; transform: translateY(16px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .ckv2-shell {
-          min-height: 100dvh;
-          background: var(--color-bg);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 2rem 1rem 5rem;
-          font-family: var(--font-body, system-ui, sans-serif);
+        .ckv2-mascot { animation: ckv2-float 4.5s ease-in-out infinite; }
+        .ckv2-glow   { animation: ckv2-glow-pulse 3s ease-in-out infinite; }
+        .ckv2-fadein { animation: ckv2-fadein-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .ckv2-panel {
+          background: linear-gradient(
+            145deg,
+            rgba(10, 46, 69, 0.72) 0%,
+            rgba(10, 46, 69, 0.55) 100%
+          );
+          backdrop-filter: blur(24px) saturate(160%);
+          -webkit-backdrop-filter: blur(24px) saturate(160%);
+          border: 1px solid rgba(255,255,255,0.10);
+          box-shadow:
+            0 0 0 1px rgba(255,255,255,0.06) inset,
+            0 32px 64px rgba(0,0,0,0.35),
+            0 8px 24px rgba(0,0,0,0.25);
         }
-        .ckv2-center {
-          width: 100%;
-          max-width: 660px;
-          display: flex;
-          flex-direction: column;
-          gap: 2.5rem;
-          animation: ckv2-fadein 0.45s ease;
-        }
-        .ckv2-headline {
-          text-align: center;
-        }
-        .ckv2-eyebrow {
+        .ckv2-tab {
+          position: relative;
           display: inline-flex;
           align-items: center;
           gap: 0.4rem;
-          font-size: 0.7rem;
-          font-weight: 800;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: var(--color-primary);
-          border: 1.5px solid var(--color-primary);
-          border-radius: 999px;
-          padding: 0.25rem 0.75rem;
-          margin-bottom: 1.25rem;
+          padding: 0.45rem 1rem;
+          font-size: 0.82rem;
+          font-weight: 600;
+          border-radius: 0.625rem;
+          cursor: pointer;
+          border: none;
+          background: transparent;
+          color: rgba(255,255,255,0.45);
+          transition: color 0.18s, background 0.18s;
+          white-space: nowrap;
         }
-        .ckv2-title {
-          font-size: clamp(1.8rem, 5vw, 2.75rem);
-          font-weight: 800;
-          color: var(--color-heading, var(--color-text));
-          line-height: 1.15;
-          letter-spacing: -0.02em;
-          margin: 0 0 0.75rem;
+        .ckv2-tab:hover   { color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.06); }
+        .ckv2-tab--active { color: #fff; background: rgba(255,255,255,0.12); }
+        .ckv2-tab--active::after {
+          content: '';
+          position: absolute;
+          bottom: -1px;
+          left: 50%; transform: translateX(-50%);
+          width: 60%; height: 2px;
+          border-radius: 2px;
+          background: var(--color-primary);
         }
-        .ckv2-sub {
-          font-size: 1rem;
-          color: var(--color-text-muted);
-          line-height: 1.65;
-          margin: 0;
-          max-width: 480px;
-          margin-inline: auto;
-        }
-        .ckv2-card {
-          background: var(--color-surface);
-          border: 1.5px solid var(--color-border);
-          border-radius: 1.5rem;
-          padding: 1.5rem;
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-          box-shadow: 0 4px 24px -6px rgba(0,0,0,0.08);
-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .ckv2-card:focus-within {
-          border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent),
-                      0 4px 24px -6px rgba(0,0,0,0.08);
-        }
-        .ckv2-title-input {
+        .ckv2-input-base {
           width: 100%;
           background: transparent;
           border: none;
           outline: none;
-          font-size: 1rem;
-          font-weight: 700;
-          color: var(--color-heading, var(--color-text));
-          font-family: inherit;
-          padding: 0;
-          border-bottom: 1.5px solid var(--color-border);
-          padding-bottom: 0.75rem;
+          font-family: var(--font-body, system-ui, sans-serif);
+          color: rgba(255,255,255,0.90);
+          caret-color: var(--color-primary);
         }
-        .ckv2-title-input::placeholder { color: var(--color-text-muted); font-weight: 500; }
+        .ckv2-input-base::placeholder { color: rgba(255,255,255,0.28); }
+        .ckv2-title-field {
+          font-size: 0.95rem;
+          font-weight: 600;
+          padding-bottom: 0.65rem;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+          margin-bottom: 0.1rem;
+        }
         .ckv2-textarea {
-          width: 100%;
           resize: none;
-          background: transparent;
-          border: none;
-          outline: none;
-          font-size: 0.975rem;
-          line-height: 1.7;
-          color: var(--color-text);
-          font-family: inherit;
-          min-height: 6rem;
-          max-height: 320px;
+          font-size: 0.92rem;
+          line-height: 1.75;
+          min-height: 5.5rem;
+          max-height: 280px;
           overflow-y: auto;
-          field-sizing: content;
         }
-        .ckv2-textarea::placeholder { color: var(--color-text-muted); }
-        .ckv2-toolbar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 0.75rem;
-          flex-wrap: wrap;
-        }
-        .ckv2-source-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.35rem;
-          font-size: 0.7rem;
-          font-weight: 700;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: var(--color-primary);
-          background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-          border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
-          border-radius: 999px;
-          padding: 0.2rem 0.6rem;
-          transition: opacity 0.2s;
-        }
-        .ckv2-btn {
+        .ckv2-btn-generate {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           gap: 0.5rem;
-          padding: 0.7rem 1.4rem;
-          border-radius: 0.9rem;
-          font-size: 0.9rem;
+          padding: 0.8rem 1.75rem;
+          border-radius: 0.875rem;
+          font-size: 0.92rem;
           font-weight: 700;
           border: none;
           cursor: pointer;
-          transition: opacity 0.15s, transform 0.15s;
-          background: var(--color-primary);
           color: #fff;
-          min-width: 9rem;
+          background: linear-gradient(135deg, var(--color-primary) 0%, #B54D39 100%);
+          box-shadow: 0 4px 18px -4px rgba(217,107,84,0.55);
+          transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+          letter-spacing: -0.01em;
+          white-space: nowrap;
         }
-        .ckv2-btn:disabled {
-          opacity: 0.55;
-          cursor: not-allowed;
-          transform: none !important;
-        }
-        .ckv2-btn:not(:disabled):hover { opacity: 0.88; transform: translateY(-1px); }
-        .ckv2-btn:not(:disabled):active { transform: scale(0.97); }
-        .ckv2-feedback {
+        .ckv2-btn-generate:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: none; }
+        .ckv2-btn-generate:not(:disabled):hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 8px 24px -4px rgba(217,107,84,0.5); }
+        .ckv2-btn-generate:not(:disabled):active { transform: scale(0.97); }
+        .ckv2-feedback-card {
+          background: rgba(10, 46, 69, 0.6);
+          backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 1.25rem;
+          padding: 1.75rem;
           display: flex;
           flex-direction: column;
-          align-items: center;
           gap: 1rem;
-          padding: 1.25rem 1.5rem;
-          background: var(--color-surface);
-          border: 1.5px solid var(--color-border);
-          border-radius: 1.25rem;
-          animation: ckv2-fadein 0.3s ease;
-        }
-        .ckv2-feedback-row {
-          display: flex;
           align-items: center;
-          gap: 0.65rem;
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: var(--color-text);
-        }
-        .ckv2-feedback-label {
-          font-size: 0.85rem;
-          color: var(--color-text-muted);
           text-align: center;
+          animation: ckv2-fadein-up 0.35s ease both;
         }
-        .ckv2-error {
+        .ckv2-error-toast {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: var(--color-error, #C41230);
           padding: 0.75rem 1rem;
-          background: color-mix(in srgb, var(--color-error, #C41230) 8%, transparent);
-          border: 1px solid color-mix(in srgb, var(--color-error, #C41230) 25%, transparent);
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #fff;
+          background: rgba(196, 18, 48, 0.85);
+          border: 1px solid rgba(196, 18, 48, 0.4);
           border-radius: 0.75rem;
-          animation: ckv2-fadein 0.25s ease;
+          backdrop-filter: blur(8px);
+          animation: ckv2-fadein-up 0.25s ease both;
         }
-        .ckv2-skeleton-bar {
-          height: 0.65rem;
+        .ckv2-skel {
+          height: 0.55rem;
           border-radius: 999px;
-          background: var(--color-border);
-          animation: ckv2-pulse 1.4s ease-in-out infinite;
+          background: rgba(255,255,255,0.1);
+          animation: ckv2-skel-pulse 1.4s ease-in-out infinite;
         }
-        @keyframes ckv2-pulse {
+        @keyframes ckv2-skel-pulse {
           0%, 100% { opacity: 1; }
-          50%       { opacity: 0.45; }
+          50%       { opacity: 0.35; }
+        }
+        .ckv2-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.07em;
+          text-transform: uppercase;
+          color: var(--color-primary);
+          border: 1.5px solid rgba(217,107,84,0.35);
+          border-radius: 999px;
+          padding: 0.2rem 0.65rem;
+          background: rgba(217,107,84,0.1);
         }
       `}</style>
 
-      <div className="ckv2-shell">
-        <div className="ckv2-center">
+      {/* ── Page Shell ───────────────────────────────────────────────────── */}
+      <div
+        className="relative min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center px-4 py-16"
+        style={{
+          background: "linear-gradient(160deg, #091422 0%, #0E1F30 45%, #0A1018 100%)",
+        }}
+      >
+        {/* Decorative blobs */}
+        <div
+          className="ckv2-glow pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 w-[680px] h-[400px] rounded-full blur-[120px]"
+          style={{ background: "radial-gradient(ellipse, rgba(217,107,84,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="pointer-events-none absolute bottom-0 right-0 w-[500px] h-[350px] rounded-full blur-[100px]"
+          style={{ background: "radial-gradient(ellipse, rgba(10,46,69,0.6) 0%, transparent 70%)" }}
+        />
 
-          {/* ── Headline ── */}
-          <div className="ckv2-headline">
-            <span className="ckv2-eyebrow">
-              <Sparkles size={12} />
-              Cockpit de Geração
-            </span>
-            <h1 className="ckv2-title">
-              Sua próxima trilha,<br />
-              <span style={{ color: "var(--color-primary)" }}>em segundos.</span>
-            </h1>
-            <p className="ckv2-sub">
-              Cole um link do YouTube, texto de edital ou qualquer conteúdo.<br />
-              A IA gera flashcards e questões automaticamente.
-            </p>
+        {/* ── Main flex layout: mascot + panel ─────────────────────────── */}
+        <div className="relative z-10 w-full max-w-[1040px] flex flex-col lg:flex-row items-center gap-8 lg:gap-12 ckv2-fadein">
+
+          {/* ── Mascot column ───────────────────────────────────────────── */}
+          <div className="flex flex-col items-center lg:items-end gap-4 lg:w-[320px] shrink-0">
+            <div className="ckv2-mascot">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/aivur/trilhas.png"
+                alt="Aivo, o assistente de trilhas da AIVUR"
+                width={280}
+                height={280}
+                className="w-[200px] sm:w-[240px] lg:w-[280px] h-auto object-contain drop-shadow-2xl"
+              />
+            </div>
+            {/* Mascot speech bubble */}
+            <div
+              className="hidden lg:block px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm font-medium text-white/80 max-w-[240px] text-center leading-snug"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.10)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              Cole um edital, link ou texto e eu monto sua trilha de estudos! 🎯
+            </div>
           </div>
 
-          {/* ── Input Card ── */}
-          {!isGenerating && (
-            <form onSubmit={handleSubmit}>
-              <div className="ckv2-card">
+          {/* ── Cockpit Panel ────────────────────────────────────────────── */}
+          <div className="ckv2-panel rounded-3xl w-full max-w-[600px] p-6 sm:p-8 flex flex-col gap-5">
+
+            {/* Header */}
+            <div className="flex flex-col gap-2">
+              <span className="ckv2-chip">
+                <Sparkles size={11} />
+                Cockpit de Geração
+              </span>
+              <h1
+                className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight m-0"
+                style={{ color: "#fff", fontFamily: "var(--font-display, system-ui)" }}
+              >
+                Gere sua trilha{" "}
+                <span style={{ color: "var(--color-primary)" }}>em segundos.</span>
+              </h1>
+            </div>
+
+            {!isGenerating ? (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+
+                {/* Title field */}
                 <input
-                  id="ckv2-title-input"
-                  className="ckv2-title-input"
+                  id="ckv2-title"
                   type="text"
-                  placeholder="Título da trilha (opcional)"
+                  className="ckv2-input-base ckv2-title-field"
+                  placeholder="Título da trilha (opcional — a IA sugere um automaticamente)"
                   value={inputTitle}
                   onChange={(e) => setInputTitle(e.target.value)}
-                  disabled={isGenerating}
                   maxLength={120}
                   autoComplete="off"
-                />
-                <textarea
-                  id="ckv2-main-input"
-                  ref={textareaRef}
-                  className="ckv2-textarea"
-                  placeholder="Cole aqui o link do YouTube, trecho do edital ou texto que deseja transformar em trilha…"
-                  value={inputValue}
-                  onChange={(e) => { setInputValue(e.target.value); resizeTextarea(); }}
-                  onKeyDown={handleKeyDown}
                   disabled={isGenerating}
-                  aria-label="Conteúdo para geração de trilha"
                 />
-                <div className="ckv2-toolbar">
-                  {hasContent && (
-                    <span className="ckv2-source-badge">
-                      <SourceIcon size={11} />
-                      {detectedSource === "youtube"  && "YouTube"}
-                      {detectedSource === "edital"   && "Edital"}
-                      {detectedSource === "text"     && "Texto"}
-                      {detectedSource === "system"   && "Sistema"}
-                    </span>
+
+                {/* Tab bar */}
+                <div
+                  className="flex items-center gap-1 p-1 rounded-xl"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  role="tablist"
+                  aria-label="Tipo de entrada"
+                >
+                  {TABS.map((t) => (
+                    <button
+                      key={t.id}
+                      id={`ckv2-tab-${t.id}`}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeTab === t.id}
+                      aria-controls={`ckv2-panel-${t.id}`}
+                      onClick={() => { setActiveTab(t.id); setInputValue(""); setPdfFile(null); }}
+                      className={`ckv2-tab ${activeTab === t.id ? "ckv2-tab--active" : ""}`}
+                    >
+                      <t.Icon size={13} className="shrink-0 flex-none" />
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab panels */}
+                <div className="flex flex-col gap-3 min-h-[140px]">
+                  {/* Link tab */}
+                  {activeTab === "link" && (
+                    <div
+                      id="ckv2-panel-link"
+                      role="tabpanel"
+                      aria-labelledby="ckv2-tab-link"
+                      className="ckv2-fadein"
+                    >
+                      <textarea
+                        id="ckv2-input-link"
+                        ref={textareaRef}
+                        className="ckv2-input-base ckv2-textarea w-full"
+                        placeholder={TABS[0].placeholder}
+                        value={inputValue}
+                        onChange={(e) => { setInputValue(e.target.value); resizeTextarea(); }}
+                        onKeyDown={handleKeyDown}
+                        disabled={isGenerating}
+                        aria-label="URL do YouTube ou link"
+                        rows={3}
+                      />
+                    </div>
                   )}
-                  {!hasContent && <span />}
+
+                  {/* PDF tab */}
+                  {activeTab === "pdf" && (
+                    <div
+                      id="ckv2-panel-pdf"
+                      role="tabpanel"
+                      aria-labelledby="ckv2-tab-pdf"
+                      className="ckv2-fadein"
+                    >
+                      <PdfDropzone
+                        file={pdfFile}
+                        onFile={setPdfFile}
+                        disabled={isGenerating}
+                      />
+                    </div>
+                  )}
+
+                  {/* Text tab */}
+                  {activeTab === "text" && (
+                    <div
+                      id="ckv2-panel-text"
+                      role="tabpanel"
+                      aria-labelledby="ckv2-tab-text"
+                      className="ckv2-fadein"
+                    >
+                      <textarea
+                        id="ckv2-input-text"
+                        ref={textareaRef}
+                        className="ckv2-input-base ckv2-textarea w-full"
+                        placeholder={TABS[2].placeholder}
+                        value={inputValue}
+                        onChange={(e) => { setInputValue(e.target.value); resizeTextarea(); }}
+                        onKeyDown={handleKeyDown}
+                        disabled={isGenerating}
+                        aria-label="Texto livre para geração de trilha"
+                        rows={5}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div style={{ height: "1px", background: "rgba(255,255,255,0.07)" }} />
+
+                {/* Footer toolbar */}
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <p className="text-xs text-white/35 leading-snug max-w-[220px]">
+                    A IA lê o conteúdo e monta flashcards + questões automaticamente.
+                  </p>
                   <button
                     id="ckv2-generate-btn"
                     type="submit"
-                    className="ckv2-btn"
+                    className="ckv2-btn-generate"
                     disabled={!hasContent || isGenerating}
                     aria-label="Gerar trilha estratégica com IA"
                   >
-                    <Sparkles size={16} />
+                    <Sparkles size={16} className="shrink-0 flex-none" />
                     Gerar Trilha
+                    <ChevronRight size={15} className="shrink-0 flex-none opacity-70" />
                   </button>
                 </div>
-              </div>
 
-              {/* Error toast — mensagem granular do servidor, auto-dismiss em 5s */}
-              {generationStatus === "error" && (
-                <div
-                  className="ckv2-error"
-                  role="alert"
-                  aria-live="assertive"
-                  id="ckv2-error-toast"
-                >
-                  <AlertCircle size={16} />
-                  {generationError ?? STEP_LABELS.error}
-                </div>
-              )}
-            </form>
-          )}
-
-          {/* ── Generation Feedback (Progressive) ── */}
-          {isGenerating && (
-            <div className="ckv2-feedback" role="status" aria-live="polite">
-              <div className="ckv2-feedback-row">
-                <Spinner />
-                <span>{STEP_LABELS[generationStatus]}</span>
-              </div>
-              <ProgressDots status={generationStatus} />
-              <p className="ckv2-feedback-label">
-                Isso costuma levar entre 5 e 15 segundos. Não feche a tela.
-              </p>
-              {/* Skeleton placeholder cards */}
-              <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {[1, 2, 3].map((i) => (
-                  <div key={i} style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-                    <div className="ckv2-skeleton-bar" style={{ width: `${85 - i * 12}%` }} />
-                    <div className="ckv2-skeleton-bar" style={{ width: `${65 - i * 8}%`, opacity: 0.6 }} />
+                {/* Error toast */}
+                {generationStatus === "error" && (
+                  <div className="ckv2-error-toast" role="alert" aria-live="assertive" id="ckv2-error-toast">
+                    <AlertCircle size={16} className="shrink-0 flex-none" />
+                    {generationError ?? STEP_LABELS.error}
                   </div>
-                ))}
+                )}
+              </form>
+            ) : (
+              /* ── Generation feedback ──────────────────────────────────── */
+              <div className="ckv2-feedback-card">
+                <Spinner />
+                <div className="flex flex-col gap-1 w-full">
+                  <p className="text-sm font-semibold text-white/85">
+                    {STEP_LABELS[generationStatus]}
+                  </p>
+                  <ProgressBar status={generationStatus} />
+                </div>
+                <p className="text-xs text-white/35">
+                  Isso leva entre 8 e 20 segundos. Não feche a janela.
+                </p>
+                {/* Skeleton cards */}
+                <div className="w-full flex flex-col gap-2.5 mt-1">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex flex-col gap-1.5">
+                      <div className="ckv2-skel" style={{ width: `${88 - i * 14}%` }} />
+                      <div className="ckv2-skel" style={{ width: `${68 - i * 10}%`, opacity: 0.6 }} />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
+            )}
+          </div>
         </div>
       </div>
     </>

@@ -173,14 +173,45 @@ export async function POST(req: Request) {
   }
 
   // 3. Parse & validate body
-  let body: GenerateRequestBody;
-  try {
-    body = await req.json() as GenerateRequestBody;
-  } catch {
-    return NextResponse.json({ error: 'Body inválido.' }, { status: 400 });
-  }
+  const contentType = req.headers.get('content-type') || '';
+  let input = '';
+  let rawTitulo = '';
+  let sourceType: TrilhaSourceType = 'text';
 
-  const { input, titulo: rawTitulo, sourceType = 'text' } = body;
+  try {
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      const file = formData.get('file') as File | null;
+      rawTitulo = formData.get('titulo') as string || '';
+      sourceType = (formData.get('sourceType') as TrilhaSourceType) || 'edital';
+
+      if (!file) {
+        return NextResponse.json({ error: 'Nenhum arquivo enviado.' }, { status: 400 });
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        return NextResponse.json({ error: 'O arquivo excede o limite de 5MB.' }, { status: 413 });
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      // Extração edge-safe usando Uint8Array e btoa
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = '';
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      const base64 = btoa(binary);
+      input = `[DOCUMENTO PDF (BASE64)]: data:application/pdf;base64,${base64}`;
+
+    } else {
+      const body = await req.json() as GenerateRequestBody;
+      input = body.input || '';
+      rawTitulo = body.titulo || '';
+      sourceType = body.sourceType || 'text';
+    }
+  } catch (err) {
+    return NextResponse.json({ error: 'Erro ao processar o corpo da requisição.' }, { status: 400 });
+  }
 
   if (!input || typeof input !== 'string' || input.trim().length < 10) {
     return NextResponse.json(

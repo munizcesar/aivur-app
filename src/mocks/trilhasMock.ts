@@ -22,6 +22,16 @@ export interface TrilhaQuestao {
   tipo_questao?: "MULTIPLA_ESCOLHA" | "CERTO_ERRADO";
 }
 
+export type TrilhaSourceType = 'youtube' | 'text' | 'edital' | 'system';
+
+export type TrilhaGenerationStatus =
+  | 'idle'
+  | 'extracting_context'
+  | 'structuring_data'
+  | 'finalizing'
+  | 'error'
+  | 'done';
+
 export interface Trilha {
   id: string;
   titulo: string;
@@ -30,6 +40,11 @@ export interface Trilha {
   video: TrilhaVideo;
   flashcards: TrilhaFlashcard[];
   questoes: TrilhaQuestao[];
+  // ── Hub metadata ──────────────────────────────────────────
+  sourceType?: TrilhaSourceType;
+  sourceUrl?: string;
+  isPublic?: boolean;
+  generationStatus?: TrilhaGenerationStatus;
 }
 
 export const TRILHAS_MOCK: Trilha[] = [

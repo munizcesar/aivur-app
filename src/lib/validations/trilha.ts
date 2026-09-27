@@ -53,6 +53,16 @@ export const TrilhaSchema = z.object({
   questoes: z
     .array(QuestaoSchema)
     .min(3, "Mínimo de 3 questões por bloco de fixação"),
+  // ── Hub metadata (optional para compatibilidade com dados legados / mocks) ──
+  // ACOPLAMENTO ZOD: Novos campos adicionados ao schema para validação
+  // na borda da API antes da injeção no store.
+  sourceType: z.enum(['youtube', 'text', 'edital', 'system']).optional(),
+  sourceUrl: z.string().url().optional(),
+  isPublic: z.boolean().optional().default(false),
+  generationStatus: z
+    .enum(['idle', 'extracting_context', 'structuring_data', 'finalizing', 'error', 'done'])
+    .optional()
+    .default('done'),
 });
 
 export type TrilhaTemplateType = z.infer<typeof TrilhaSchema>;

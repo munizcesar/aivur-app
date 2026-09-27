@@ -5,13 +5,6 @@ import type { StudyModule } from "@/mocks/studyPathMock";
 
 export type StudyTab = "video" | "resumo" | "flashcards" | "questoes";
 
-export type GenerationStatus =
-  | 'idle'
-  | 'extracting_context'
-  | 'structuring_data'
-  | 'finalizing'
-  | 'error';
-
 export interface StudyProgressData {
   answered: number;
   correct: number;
@@ -48,11 +41,6 @@ interface StudyStore {
   setSelectedVideo: (trilhaId: string, videoId: string | null) => void;
   questoesCache: Record<string, { data: import("@/mocks/trilhasMock").TrilhaQuestao[]; timestamp: number }>;
   setQuestoesCache: (topicoId: string, questoes: import("@/mocks/trilhasMock").TrilhaQuestao[]) => void;
-  // ── Generation state ──────────────────────────────────────────
-  generationStatus: GenerationStatus;
-  setGenerationStatus: (status: GenerationStatus) => void;
-  generationError: string | null;
-  setGenerationError: (msg: string | null) => void;
 }
 
 const initialProgress: StudyProgressData = {
@@ -119,12 +107,6 @@ export const useStudyStore = create<StudyStore>()(
       setQuestoesCache: (topicoId, questoes) => set((state) => ({ 
         questoesCache: { ...state.questoesCache, [topicoId]: { data: questoes, timestamp: Date.now() } } 
       })),
-
-      generationStatus: 'idle' as const,
-      setGenerationStatus: (status) => set({ generationStatus: status }),
-
-      generationError: null,
-      setGenerationError: (msg) => set({ generationError: msg }),
 
       registerAnswer: async (questionId, isCorrect) => {
         const previousAnswer = get().progressData.answers[questionId];

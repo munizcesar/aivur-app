@@ -287,19 +287,3 @@ O TrilhaSala.tsx original apresentava bugs recorrentes de layout (coluna direita
 6. 🔧 **Débito Técnico CSS:** Refatorar `--elite-*` (variáveis com nomenclatura invertida entre temas).
 7. 🔧 **Fase 5:** Módulo de retenção (streak, progresso gamificado do edital).
 8. 🔧 **Integração D1 (Schema):** `QuestoesPanel/TrilhaSalaV2.tsx` ainda recebe ID no formato do mock (t-XXX); quando a trilha passar a usar o formato oficial do catálogo (p1/m3/etc.), a prop de ID muda de fonte, mas a lógica de fetch ao D1 já implementada hoje não precisa mudar.
-
-## 14. Reconstrução do Setor de Trilhas — 4 Fases (2026-09-27)
-
-### Arquivos Refatorados
-- `src/app/trilhas/page.tsx` — Layout limpo: coluna central única `max-w-4xl` (Header → Cockpit → hr → Hub → Footer). Removido gradiente hardcoded `linear-gradient(160deg, #091422...)` e `max-w-[1040px]`; fundo agora via `bg-[var(--color-bg)]`.
-- `src/components/Trilhas/TrilhasCockpitV2.tsx` — Mascote dinâmico por aba (`/mascote-link.png`, `/mascote-pdf.png`, `/mascote-texto.png`) renderizado NO TOPO do card (não esmaga o input), com fallback automático para `/images/aivur/trilhas.png` via `onError`. Dropzone PDF real (drag & drop). Submit envia `FormData` (PDF) ou `application/json` (Link/Texto). Steps progressivos + botão travado durante geração; toast de erro imediato + destrave em 5s. Glassmorphism via `color-mix()` sobre `var(--color-navy)` — zero hex hardcoded.
-- `src/app/api/trilhas/generate/route.ts` — Motor edge-safe: parser híbrido por `content-type`. PDF: 5MB máximo (413), `arrayBuffer()` → base64 chunked (0x8000, evita estouro de stack) → **document input multimodal do Groq** (`meta-llama/llama-4-scout/maverick`) — substitui a pseudo-extração antiga que enviava base64 como texto (o LLM não conseguia ler o conteúdo real do PDF). Texto/Link: chat padrão com `llama-3.3-70b`. Zod `safeParse` com fixer prompt. D1: `is_public: 0` amarrado ao `userId`. Catch global → JSON `{ error }` estruturado (400/401/413/422/502/500/503).
-- `src/app/api/trilhas/hub/route.ts` — Blindagem anti-quebra: SEM 401/500. Sessão ausente, D1 ausente ou query falha → `{ minhasTrilhas: [], cursosOficiais: [] }` com 200. DTO tipado com mapeamento seguro de linhas.
-- `src/components/Trilhas/HubTrilhasGrid.tsx` — Tabs "Minhas Trilhas" / "Cursos Aivur" com `role="tablist"`, 6 skeletons elegantes, grid 3 colunas, largura 100% do pai (alinhada ao Cockpit), fetch com guard `cancelled` (evita setState pós-unmount), progresso clamp 0-100.
-
-### Pendências do Usuário
-1. **Mascotes por aba:** adicionar `public/mascote-link.png`, `public/mascote-pdf.png`, `public/mascote-texto.png`. Enquanto não existirem, o fallback renderiza `/images/aivur/trilhas.png` (nada quebra).
-2. **Extração de PDF:** o motor agora usa document input multimodal do Groq (llama-4-scout). Se os modelos ficarem indisponíveis, o erro 502 orienta o usuário a colar o texto — sem quebra silenciosa.
-
-### Verificação
-- `npx tsc -p tsconfig.json --noEmit` → **exit 0** (zero erros).

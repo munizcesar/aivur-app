@@ -467,12 +467,7 @@ export default function TrilhasCockpitV2() {
       `}</style>
 
       {/* ── Page Shell ───────────────────────────────────────────────────── */}
-      <div
-        className="relative min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center px-4 py-16"
-        style={{
-          background: "linear-gradient(160deg, #091422 0%, #0E1F30 45%, #0A1018 100%)",
-        }}
-      >
+      <div className="relative overflow-hidden flex flex-col items-center justify-center px-4 py-12">
         {/* Decorative blobs */}
         <div
           className="ckv2-glow pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 w-[680px] h-[400px] rounded-full blur-[120px]"

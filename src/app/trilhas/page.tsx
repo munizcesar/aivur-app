@@ -13,19 +13,11 @@ export const metadata: Metadata = {
 
 export default function TrilhasPage() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
+    <div className="flex flex-col min-h-[100dvh] bg-[var(--color-bg)]">
       <Header />
-      <main 
-        style={{ 
-          flex: 1, 
-          background: "linear-gradient(160deg, #091422 0%, #0E1F30 45%, #0A1018 100%)" 
-        }}
-      >
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 flex flex-col gap-12">
         <TrilhasCockpitV2 />
-        
-        {/* Separador elegante com fade */}
-        <div className="w-full max-w-[1040px] mx-auto h-[1px] my-4 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        
+        <hr className="border-t border-white/10" />
         <HubTrilhasGrid />
       </main>
       <Footer />

@@ -164,8 +164,12 @@ function QuestoesPanel({
   registerAnswer: (id: string, correct: boolean) => void;
   toggleTopicCompletion: (id: string) => void;
 }) {
-  const [d1Questoes, setD1Questoes] = useState<TrilhaQuestao[] | null>(null);
-  const [isLoadingD1, setIsLoadingD1] = useState(true);
+  const { questoesCache, setQuestoesCache } = useStudyStore();
+  const cacheEntry = questoesCache[topicoId];
+  const isCacheValid = cacheEntry && (Date.now() - cacheEntry.timestamp < 5 * 60 * 1000);
+
+  const [d1Questoes, setD1Questoes] = useState<TrilhaQuestao[] | null>(isCacheValid ? cacheEntry.data : null);
+  const [isLoadingD1, setIsLoadingD1] = useState(!isCacheValid);
 
   const [currentQ, setCurrentQ]     = useState(0);
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
@@ -173,6 +177,8 @@ function QuestoesPanel({
   const [showEnd, setShowEnd]         = useState(false);
 
   useEffect(() => {
+    if (isCacheValid) return;
+
     let isMounted = true;
     setIsLoadingD1(true);
     fetch(`/api/questoes?topicoId=${topicoId}`)
@@ -204,6 +210,7 @@ function QuestoesPanel({
             };
           });
           setD1Questoes(mapped);
+          setQuestoesCache(topicoId, mapped);
         } else {
           setD1Questoes(null);
         }
@@ -217,7 +224,21 @@ function QuestoesPanel({
       });
 
     return () => { isMounted = false; };
-  }, [topicoId]);
+  }, [topicoId, isCacheValid, setQuestoesCache]);
+
+  if (isLoadingD1) {
+    return (
+      <div className="v2-q-wrapper">
+         <div className="v2-skeleton-card" style={{ flexDirection: 'column', padding: '1.5rem', gap: '1rem', width: '100%', boxSizing: 'border-box' }}>
+           <div className="v2-skeleton-line" style={{ width: '30%', height: '1.2rem' }} />
+           <div className="v2-skeleton-line" style={{ width: '100%', height: '4rem', marginTop: '1rem' }} />
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
+             {[1,2,3,4].map(i => <div key={i} className="v2-skeleton-line" style={{ width: '100%', height: '3rem', borderRadius: '0.5rem' }} />)}
+           </div>
+         </div>
+      </div>
+    );
+  }
 
   const activeQuestoes = d1Questoes ?? questoes;
   
@@ -355,7 +376,7 @@ export default function TrilhaSalaV2() {
   const params = useParams();
   const id     = params.id as string;
 
-  const { registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults, selectedVideoByTrilha, setSelectedVideo, progressData, completedTopicIds } = useStudyStore();
+  const { error, registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults, selectedVideoByTrilha, setSelectedVideo, progressData, completedTopicIds } = useStudyStore();
 
   // Same data source as TrilhaSala — no duplication
   const trilha = TRILHAS_MOCK.find(t => t.id === id) || customTrilhas.find(t => t.id === id);
@@ -426,8 +447,38 @@ export default function TrilhaSalaV2() {
 
   return (
     <>
+      {error && (
+        <div className="v2-toast-error">
+          <XCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
       {/* Inject scoped styles — zero dependency on external CSS modules */}
       <style>{`
+        /* ── Toasts ───────────────────────────────────────────── */
+        .v2-toast-error {
+          position: fixed;
+          bottom: 2rem;
+          left: 50%;
+          transform: translateX(-50%);
+          background: var(--color-error, #C41230);
+          color: white;
+          padding: 0.75rem 1.5rem;
+          border-radius: var(--radius-full);
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+          z-index: 100;
+          animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          font-weight: 600;
+          font-size: 0.9rem;
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translate(-50%, 1.5rem); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
         /* ── Layout shell ─────────────────────────────────────── */
         .v2-shell {
           min-height: 100dvh;

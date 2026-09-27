@@ -29,8 +29,8 @@ interface StudyStore {
   setIsSidebarOpen: (isOpen: boolean) => void;
   toggleMobileDrawer: () => void;
   loadStudyPath: () => Promise<void>;
-  registerAnswer: (questionId: string, isCorrect: boolean) => void;
-  toggleTopicCompletion: (topicId: string) => void;
+  registerAnswer: (questionId: string, isCorrect: boolean) => Promise<void>;
+  toggleTopicCompletion: (topicId: string) => Promise<void>;
   customTrilhas: import("@/lib/validations/trilha").TrilhaTemplateType[];
   addCustomTrilha: (trilha: import("@/lib/validations/trilha").TrilhaTemplateType) => void;
   updateCustomTrilha: (id: string, updates: Partial<import("@/lib/validations/trilha").TrilhaTemplateType>) => void;
@@ -39,6 +39,8 @@ interface StudyStore {
   setVideoResults: (trilhaId: string, results: any[]) => void;
   selectedVideoByTrilha: Record<string, string>;
   setSelectedVideo: (trilhaId: string, videoId: string | null) => void;
+  questoesCache: Record<string, { data: import("@/mocks/trilhasMock").TrilhaQuestao[]; timestamp: number }>;
+  setQuestoesCache: (topicoId: string, questoes: import("@/mocks/trilhasMock").TrilhaQuestao[]) => void;
 }
 
 const initialProgress: StudyProgressData = {
@@ -50,7 +52,7 @@ const initialProgress: StudyProgressData = {
 
 export const useStudyStore = create<StudyStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       activeModuleId: null,
       currentTopicId: null,
       activeTab: "resumo",
@@ -101,19 +103,23 @@ export const useStudyStore = create<StudyStore>()(
           set({ error: err.message || "Erro ao carregar dados", isLoading: false });
         }
       },
-      registerAnswer: (questionId, isCorrect) =>
-        set((state) => {
-          const previousAnswer = state.progressData.answers[questionId];
-          const answers = { ...state.progressData.answers, [questionId]: isCorrect };
+      questoesCache: {},
+      setQuestoesCache: (topicoId, questoes) => set((state) => ({ 
+        questoesCache: { ...state.questoesCache, [topicoId]: { data: questoes, timestamp: Date.now() } } 
+      })),
 
-          if (previousAnswer === isCorrect) {
-            return { progressData: { ...state.progressData, answers } };
-          }
+      registerAnswer: async (questionId, isCorrect) => {
+        const previousAnswer = get().progressData.answers[questionId];
+        if (previousAnswer === isCorrect) return;
+
+        // Optimistic Update
+        set((state) => {
+          const answers = { ...state.progressData.answers, [questionId]: isCorrect };
 
           if (previousAnswer !== undefined) {
             return {
               progressData: {
-                answered: state.progressData.answered,
+                ...state.progressData,
                 correct: state.progressData.correct + (isCorrect ? 1 : -1),
                 incorrect: state.progressData.incorrect + (isCorrect ? -1 : 1),
                 answers,
@@ -123,19 +129,87 @@ export const useStudyStore = create<StudyStore>()(
 
           return {
             progressData: {
+              ...state.progressData,
               answered: state.progressData.answered + 1,
               correct: state.progressData.correct + (isCorrect ? 1 : 0),
               incorrect: state.progressData.incorrect + (isCorrect ? 0 : 1),
               answers,
             },
           };
-        }),
-      toggleTopicCompletion: (topicId) =>
+        });
+
+        // Backend Sync (Delta) & Rollback Granular
+        try {
+          const res = await fetch("/api/sync/push", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "REGISTER_ANSWER",
+              payload: { questionId, isCorrect },
+              updatedAt: Date.now(),
+            }),
+          });
+          if (!res.ok) throw new Error("Sync failed");
+        } catch (err) {
+          console.error("[StudyStore] Rollback on registerAnswer:", err);
+          set((state) => {
+            const newAnswers = { ...state.progressData.answers };
+            let newCorrect = state.progressData.correct;
+            let newIncorrect = state.progressData.incorrect;
+            let newAnswered = state.progressData.answered;
+            
+            if (previousAnswer === undefined) {
+              delete newAnswers[questionId];
+              newAnswered -= 1;
+              newCorrect -= (isCorrect ? 1 : 0);
+              newIncorrect -= (isCorrect ? 0 : 1);
+            } else {
+              newAnswers[questionId] = previousAnswer;
+              newCorrect += (previousAnswer ? 1 : -1);
+              newIncorrect += (previousAnswer ? -1 : 1);
+            }
+            
+            return { 
+              progressData: { answered: newAnswered, correct: newCorrect, incorrect: newIncorrect, answers: newAnswers }, 
+              error: "Falha ao sincronizar resposta. Ação revertida localmente." 
+            };
+          });
+          setTimeout(() => set({ error: null }), 4000);
+        }
+      },
+      toggleTopicCompletion: async (topicId) => {
+        const wasCompleted = get().completedTopicIds.includes(topicId);
+
+        // Optimistic Update
         set((state) => ({
-          completedTopicIds: state.completedTopicIds.includes(topicId)
+          completedTopicIds: wasCompleted
             ? state.completedTopicIds.filter((id) => id !== topicId)
             : [...state.completedTopicIds, topicId],
-        })),
+        }));
+
+        // Backend Sync (Delta) & Rollback Granular
+        try {
+          const res = await fetch("/api/sync/push", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "TOGGLE_TOPIC",
+              payload: { topicId, isCompleted: !wasCompleted },
+              updatedAt: Date.now(),
+            }),
+          });
+          if (!res.ok) throw new Error("Sync failed");
+        } catch (err) {
+          console.error("[StudyStore] Rollback on toggleTopicCompletion:", err);
+          set((state) => ({ 
+            completedTopicIds: wasCompleted
+              ? [...state.completedTopicIds, topicId]
+              : state.completedTopicIds.filter((id) => id !== topicId), 
+            error: "Falha ao salvar conclusão do tópico. Tente novamente." 
+          }));
+          setTimeout(() => set({ error: null }), 4000);
+        }
+      },
     }),
     {
       name: "aivur-study-store",

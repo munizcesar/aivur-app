@@ -10,6 +10,7 @@ export default function MaterialPage() {
   const { customTrilhas, deleteCustomTrilha, updateCustomTrilha } = useStudyStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const startEditing = (id: string, currentTitle: string) => {
     setEditingId(id);
@@ -69,11 +70,7 @@ export default function MaterialPage() {
                         <Edit2 size={16} className="shrink-0" />
                       </button>
                       <button 
-                        onClick={() => {
-                          if (confirm('Tem certeza que deseja excluir este material?')) {
-                            deleteCustomTrilha(trilha.id);
-                          }
-                        }}
+                        onClick={() => setDeleteId(trilha.id)}
                         className="p-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-red)] rounded-md hover:bg-[var(--color-red)]/10 transition-colors"
                         title="Deletar"
                       >
@@ -119,6 +116,35 @@ export default function MaterialPage() {
           </div>
         )}
       </main>
+
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-bg)]/80 backdrop-blur-sm">
+          <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6 w-full max-w-sm shadow-xl flex flex-col items-center text-center">
+            <Trash2 size={40} className="text-[var(--color-red)] mb-4 opacity-90" />
+            <h3 className="text-xl font-bold text-[var(--color-heading)] mb-2">Excluir Material?</h3>
+            <p className="text-[var(--color-text-muted)] mb-6 text-sm leading-relaxed">
+              Esta ação removerá todo o progresso, questões e flashcards desta trilha. Não pode ser desfeita.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
+              <button 
+                onClick={() => setDeleteId(null)}
+                className="w-full py-2.5 px-4 rounded-lg font-bold border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-bg)] transition-colors"
+              >
+                Manter
+              </button>
+              <button 
+                onClick={() => {
+                  deleteCustomTrilha(deleteId);
+                  setDeleteId(null);
+                }}
+                className="w-full py-2.5 px-4 rounded-lg font-bold bg-[var(--color-red)] text-white hover:opacity-90 transition-opacity"
+              >
+                Deletar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

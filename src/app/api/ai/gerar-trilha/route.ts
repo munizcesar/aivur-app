@@ -84,8 +84,11 @@ export async function POST(req: Request) {
       );
     }
 
-    if (text.length > 50000) {
-      text = text.slice(0, 50000);
+    if (text.length > 40000) {
+      return NextResponse.json(
+        { error: "O conteúdo excedeu o limite máximo de 40.000 caracteres. Por favor, reduza o edital/PDF." },
+        { status: 413 }
+      );
     }
 
     const prompt = `Você é um tutor especialista. 

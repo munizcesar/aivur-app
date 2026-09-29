@@ -38,6 +38,9 @@ export default function CriarTrilhaView({
   const [file, setFile] = useState<File | null>(null);
   const [inputType, setInputType] = useState<"text" | "pdf">("text");
 
+  const [extractedTextBuffer, setExtractedTextBuffer] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
   useEffect(() => {
     if (initialTitle) setTitle(initialTitle);
     if (initialText) setText(initialText);
@@ -72,54 +75,83 @@ export default function CriarTrilhaView({
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isGenerating || step === "loading") return;
+
     if (!title.trim()) {
       setError("Preencha o título da trilha.");
       return;
     }
-    if (!text.trim() && !file) {
+    if (!text.trim() && !file && !extractedTextBuffer) {
       setError("Por favor, cole o texto do edital ou faça upload de um arquivo PDF.");
       return;
     }
 
     setError(null);
     setStep("loading");
+    setIsGenerating(true);
 
     try {
-      let finalContent = text.trim();
+      let finalContent = extractedTextBuffer;
 
-      if (file) {
-        if (file.type === "application/pdf") {
-          const pdfjsLib = await import('pdfjs-dist');
-          pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+      if (!finalContent) {
+        finalContent = text.trim();
+        if (file) {
+          if (file.type === "application/pdf") {
+            const pdfjsLib = await import('pdfjs-dist');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          
-          let extractedText = "";
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map((item: any) => item.str).join(" ");
-            extractedText += pageText + "\n";
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            
+            let extractedText = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items.map((item: any) => item.str).join(" ");
+              extractedText += pageText + "\n";
+            }
+
+            if (!extractedText.trim()) {
+              throw new Error("O PDF parece ser uma imagem ou escaneado. Use um PDF com texto.");
+            }
+
+            finalContent = (finalContent + "\n" + extractedText).trim();
+          } else {
+            throw new Error("Apenas arquivos PDF são suportados no momento.");
           }
-          finalContent = (finalContent + "\n" + extractedText).trim();
-        } else {
-          throw new Error("Apenas arquivos PDF são suportados no momento.");
         }
+        setExtractedTextBuffer(finalContent);
+      }
+
+      if (finalContent.length > 40000) {
+        throw new Error(`O conteúdo excede o limite máximo de 40.000 caracteres (atual: ${finalContent.length}). Por favor, reduza o edital/texto.`);
       }
 
       const formData = new FormData();
       formData.append("title", title);
       formData.append("text", finalContent);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
       const res = await fetch("/api/ai/gerar-trilha", {
         method: "POST",
         body: formData,
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!res.ok) {
-        const errorData = (await res.json()) as { error?: string };
-        throw new Error(errorData.error || "Erro ao gerar trilha com IA");
+        let errMsg = "Erro ao gerar trilha com IA";
+        if (res.status === 401 || res.status === 429) errMsg = "Serviço indisponível ou limite excedido. Tente novamente.";
+        else if (res.status === 422) errMsg = "Erro ao estruturar a trilha. O formato retornado pela IA foi inválido.";
+        else if (res.status === 413) errMsg = "O conteúdo excedeu o limite máximo de texto. Por favor, reduza o edital/PDF.";
+        else {
+          const errorData = await res.json().catch(() => ({})) as any;
+          errMsg = errorData.error || errMsg;
+        }
+        throw new Error(errMsg);
       }
 
       const generatedTrilha = (await res.json()) as TrilhaTemplateType;
@@ -127,8 +159,14 @@ export default function CriarTrilhaView({
       setStep("review");
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Ocorreu um erro ao processar o edital.");
+      if (err.name === 'AbortError') {
+        setError("O tempo limite foi excedido. Tente novamente.");
+      } else {
+        setError(err.message || "Ocorreu um erro ao processar o edital.");
+      }
       setStep("input");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -267,10 +305,11 @@ export default function CriarTrilhaView({
             <button
               ref={submitButtonRef}
               type="submit"
+              disabled={isGenerating}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-[var(--color-primary)] hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-base font-bold shadow-sm focus:ring-4 focus:ring-[var(--color-primary)]/50 active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer outline-none"
             >
               <Sparkles className="w-5 h-5 text-white/70" />
-              <span>Gerar Trilha com IA</span>
+              <span>{extractedTextBuffer && !file ? "Tentar Novamente" : "Gerar Trilha com IA"}</span>
               <ArrowRight size={16} className="ml-1 shrink-0" />
             </button>
           </div>

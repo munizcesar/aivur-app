@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
   XCircle,
@@ -374,7 +374,9 @@ function QuestoesPanel({
 export default function TrilhaSalaV2() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const id     = params.id as string;
+  const fromMaterial = searchParams.get("from") === "material";
 
   const { error, registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults, selectedVideoByTrilha, setSelectedVideo, progressData, completedTopicIds } = useStudyStore();
 
@@ -994,7 +996,7 @@ export default function TrilhaSalaV2() {
               id="v2-back-btn"
               className="v2-back-btn"
               onClick={() => {
-                if (customTrilhas.some(t => t.id === id)) {
+                if (fromMaterial) {
                   router.push("/material");
                 } else {
                   router.push("/trilhas");

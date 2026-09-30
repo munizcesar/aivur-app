@@ -162,6 +162,7 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
     let groqResponse;
     let lastErrorStatus = 500;
     let lastErrorText = "";
+    let lastRetryAfter = 0;
 
     for (const modelId of fallbackModels) {
       groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -186,6 +187,18 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
         lastErrorStatus = groqResponse.status;
         lastErrorText = await groqResponse.text();
         console.warn(`[Generate Route] Falha no modelo ${modelId}: ${lastErrorStatus} - ${lastErrorText}`);
+        
+        if (lastErrorStatus === 429) {
+          const retryHeader = groqResponse.headers.get("retry-after");
+          if (retryHeader) {
+            const retrySecs = parseInt(retryHeader, 10);
+            if (!isNaN(retrySecs) && retrySecs > 0 && retrySecs <= 5) {
+              console.log(`[Generate Route] Respeitando retry-after de ${retrySecs}s antes do fallback...`);
+              await new Promise(r => setTimeout(r, retrySecs * 1000));
+              lastRetryAfter = retrySecs;
+            }
+          }
+        }
       }
     }
 
@@ -196,12 +209,19 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
       } catch (e) {
         parsedErr = { message: lastErrorText };
       }
+      
+      const finalStatus = lastErrorStatus === 429 ? 429 : 503;
+      const headers: any = { "Content-Type": "application/json" };
+      if (finalStatus === 429 && lastRetryAfter > 0) {
+        headers["Retry-After"] = lastRetryAfter.toString();
+      }
+      
       return new Response(JSON.stringify({ 
         error: "Erro na API da IA (Groq). Todos os modelos falharam.", 
         details: parsedErr 
       }), {
-        status: lastErrorStatus,
-        headers: { "Content-Type": "application/json" }
+        status: finalStatus,
+        headers: headers
       });
     }
 

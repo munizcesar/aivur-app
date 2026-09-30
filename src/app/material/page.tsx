@@ -107,7 +107,7 @@ export default function MaterialPage() {
                 </div>
                 
                 <div className="border-t border-[var(--color-border)] p-4 bg-black/10">
-                  <Link href={`/trilhas/${trilha.id}`} className="flex items-center justify-center gap-2 w-full py-2.5 bg-[var(--color-bg)] hover:bg-[var(--color-primary)] hover:text-[var(--color-white)] border border-[var(--color-border)] hover:border-transparent text-[var(--color-text)] rounded-lg font-bold transition-all">
+                  <Link href={`/trilhas/${trilha.id}?from=material`} className="flex items-center justify-center gap-2 w-full py-2.5 bg-[var(--color-bg)] hover:bg-[var(--color-primary)] hover:text-[var(--color-white)] border border-[var(--color-border)] hover:border-transparent text-[var(--color-text)] rounded-lg font-bold transition-all">
                     Acessar Laboratório <ExternalLink size={16} className="shrink-0" />
                   </Link>
                 </div>

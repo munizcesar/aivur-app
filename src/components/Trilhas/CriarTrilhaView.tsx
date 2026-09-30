@@ -134,7 +134,8 @@ export default function CriarTrilhaView({
 
       if (!res.ok) {
         let errMsg = "Erro ao gerar trilha com IA";
-        if (res.status === 401 || res.status === 429) errMsg = "Serviço indisponível ou limite excedido. Tente novamente.";
+        if (res.status === 503 || res.status === 429) errMsg = "IA temporariamente indisponível, tente novamente em instantes";
+        else if (res.status === 401) errMsg = "Erro de autenticação da IA. Verifique as chaves de API.";
         else if (res.status === 422) errMsg = "Erro ao estruturar a trilha. O formato retornado pela IA foi inválido.";
         else if (res.status === 413) errMsg = "O conteúdo excedeu o limite máximo de texto. Por favor, reduza o edital/PDF.";
         else {

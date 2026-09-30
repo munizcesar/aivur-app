@@ -118,7 +118,12 @@ export default function MaterialPage() {
       </main>
 
       {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-bg)]/80 backdrop-blur-sm">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-overlay)] backdrop-blur-sm"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setDeleteId(null);
+          }}
+        >
           <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6 w-full max-w-sm shadow-xl flex flex-col items-center text-center">
             <Trash2 size={40} className="text-[var(--color-red)] mb-4 opacity-90" />
             <h3 className="text-xl font-bold text-[var(--color-heading)] mb-2">Excluir Material?</h3>
@@ -127,6 +132,7 @@ export default function MaterialPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
               <button 
+                autoFocus
                 onClick={() => setDeleteId(null)}
                 className="w-full py-2.5 px-4 rounded-lg font-bold border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-bg)] transition-colors"
               >

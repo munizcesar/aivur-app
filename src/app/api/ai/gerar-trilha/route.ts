@@ -186,7 +186,7 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
       } else {
         lastErrorStatus = groqResponse.status;
         lastErrorText = await groqResponse.text();
-        console.warn(`[Generate Route] Falha no modelo ${modelId}: ${lastErrorStatus} - ${lastErrorText}`);
+        console.error(`[Generate Route] Falha no modelo ${modelId}: Status ${lastErrorStatus} | Erro: ${lastErrorText.substring(0, 300)}`);
         
         if (lastErrorStatus === 429) {
           const retryHeader = groqResponse.headers.get("retry-after");

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useStudyStore } from "@/store/useStudyStore";
 import type { TrilhaTemplateType } from "@/lib/validations/trilha";
+import { MAX_CHARS } from "@/lib/constants";
 
 interface CriarTrilhaViewProps {
   
@@ -31,6 +32,13 @@ export default function CriarTrilhaView({
   const submitButtonRef = useRef<HTMLButtonElement>(null);
   const [step, setStep] = useState<"input" | "loading" | "review">("input");
   const [error, setError] = useState<string | null>(null);
+  const [retryCountdown, setRetryCountdown] = useState(0);
+
+  useEffect(() => {
+    if (retryCountdown <= 0) return;
+    const timer = setInterval(() => setRetryCountdown(prev => prev - 1), 1000);
+    return () => clearInterval(timer);
+  }, [retryCountdown]);
 
   // Form states
   const [title, setTitle] = useState(initialTitle);
@@ -79,7 +87,7 @@ export default function CriarTrilhaView({
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isGenerating || step === "loading") return;
+    if (isGenerating || step === "loading" || retryCountdown > 0) return;
 
     if (!title.trim()) {
       setError("Preencha o título da trilha.");
@@ -113,8 +121,8 @@ export default function CriarTrilhaView({
 
       setExtractedTextBuffer(finalContent);
 
-      if (finalContent.length > 40000) {
-        throw new Error(`O conteúdo excede o limite máximo de 40.000 caracteres (atual: ${finalContent.length}). Por favor, reduza o intervalo de páginas.`);
+      if (finalContent.length > MAX_CHARS) {
+        throw new Error(`O conteúdo excede o limite máximo de ${MAX_CHARS.toLocaleString()} caracteres (atual: ${finalContent.length}). Por favor, reduza o intervalo de páginas.`);
       }
 
       const formData = new FormData();
@@ -134,8 +142,12 @@ export default function CriarTrilhaView({
 
       if (!res.ok) {
         let errMsg = "Erro ao gerar trilha com IA";
-        if (res.status === 503 || res.status === 429) errMsg = "IA temporariamente indisponível, tente novamente em instantes";
-        else if (res.status === 401) errMsg = "Erro de autenticação da IA. Verifique as chaves de API.";
+        if (res.status === 429) {
+          errMsg = "Muitas requisições. Aguarde antes de tentar novamente.";
+          setRetryCountdown(60);
+        } else if (res.status === 503) {
+          errMsg = "IA temporariamente indisponível, tente novamente em instantes";
+        } else if (res.status === 401) errMsg = "Erro de autenticação da IA. Verifique as chaves de API.";
         else if (res.status === 422) errMsg = "Erro ao estruturar a trilha. O formato retornado pela IA foi inválido.";
         else if (res.status === 413) errMsg = "O conteúdo excedeu o limite máximo de texto. Por favor, reduza o edital/PDF.";
         else {
@@ -197,14 +209,14 @@ export default function CriarTrilhaView({
           let currentLen = 0;
           let suggestedEnd = 1;
           for (let i = 0; i < pages.length; i++) {
-            if (currentLen + pages[i].length <= 40000) {
+            if (currentLen + pages[i].length <= MAX_CHARS) {
               currentLen += pages[i].length;
               suggestedEnd = i + 1;
             } else {
               break;
             }
           }
-          if (pages.length > 0 && pages[0].length > 40000) {
+          if (pages.length > 0 && pages[0].length > MAX_CHARS) {
              suggestedEnd = 1;
           }
           setEndPage(suggestedEnd);
@@ -223,8 +235,8 @@ export default function CriarTrilhaView({
     if (pdfPages.length === 0 || inputType === "text") return text.length;
     return pdfPages.slice(startPage - 1, endPage).join("\n").length;
   };
-  const isSubsetValid = getSelectedLength() <= 40000 && getSelectedLength() > 0;
-  const isSinglePageOversized = pdfPages.length > 0 && startPage === endPage && pdfPages[startPage - 1].length > 40000;
+  const isSubsetValid = getSelectedLength() <= MAX_CHARS && getSelectedLength() > 0;
+  const isSinglePageOversized = pdfPages.length > 0 && startPage === endPage && pdfPages[startPage - 1].length > MAX_CHARS;
 
   return (
     <div className="w-full max-w-[1000px] mx-auto px-4 py-6 md:py-8">
@@ -359,12 +371,12 @@ export default function CriarTrilhaView({
                         </span>
                       </div>
 
-                      {pdfPages.length > 0 && pdfPages.join("\n").length > 40000 && (
+                      {pdfPages.length > 0 && pdfPages.join("\n").length > MAX_CHARS && (
                         <div className="mt-2 pt-3 border-t border-[rgba(107,153,179,0.2)]">
                           <div className="flex items-center gap-2 mb-2">
                             <AlertCircle className="w-4 h-4 text-[var(--color-red)]" />
                             <span className="text-sm font-bold text-[var(--color-red)]">
-                              O PDF excede 40.000 caracteres. Selecione um intervalo:
+                              O PDF excede {MAX_CHARS.toLocaleString()} caracteres. Selecione um intervalo:
                             </span>
                           </div>
                           
@@ -381,7 +393,7 @@ export default function CriarTrilhaView({
                           </div>
 
                           <div className={`mt-3 text-xs font-bold px-2 py-1.5 rounded inline-block ${!isSubsetValid ? 'bg-[var(--color-red)]/20 text-[var(--color-red)] border border-[var(--color-red)]/30' : 'bg-[var(--color-green)]/20 text-[var(--color-green)] border border-[var(--color-green)]/30'}`}>
-                            {getSelectedLength().toLocaleString()} / 40.000 caracteres selecionados
+                            {getSelectedLength().toLocaleString()} / {MAX_CHARS.toLocaleString()} caracteres selecionados
                           </div>
 
                           {isSinglePageOversized && (
@@ -405,11 +417,11 @@ export default function CriarTrilhaView({
             <button
               ref={submitButtonRef}
               type="submit"
-              disabled={isGenerating || isExtractingPdf || (inputType === "pdf" && !isSubsetValid)}
+              disabled={isGenerating || isExtractingPdf || (inputType === "pdf" && !isSubsetValid) || retryCountdown > 0}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-[var(--color-primary)] hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-base font-bold shadow-sm focus:ring-4 focus:ring-[var(--color-primary)]/50 active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer outline-none"
             >
               <Sparkles className="w-5 h-5 text-white/70" />
-              <span>{extractedTextBuffer && !file ? "Tentar Novamente" : "Gerar Trilha com IA"}</span>
+              <span>{retryCountdown > 0 ? `Aguarde ${retryCountdown}s...` : (extractedTextBuffer && !file ? "Tentar Novamente" : "Gerar Trilha com IA")}</span>
               <ArrowRight size={16} className="ml-1 shrink-0" />
             </button>
           </div>

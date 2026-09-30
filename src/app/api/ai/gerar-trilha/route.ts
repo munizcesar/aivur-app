@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractCleanJson, getDomainRules } from '@/lib/ai-protocols';
 import { TrilhaSchema } from '@/lib/validations/trilha';
+import { MAX_CHARS } from '@/lib/constants';
 
 import { getRequestContext } from '@cloudflare/next-on-pages';
 
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
 
   try {
 
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const ip = req.headers.get("cf-connecting-ip") || "unknown";
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
         { error: "Rate limit excedido. Tente novamente mais tarde." },
@@ -84,9 +85,9 @@ export async function POST(req: Request) {
       );
     }
 
-    if (text.length > 40000) {
+    if (text.length > MAX_CHARS) {
       return NextResponse.json(
-        { error: "O conteúdo excedeu o limite máximo de 40.000 caracteres. Por favor, reduza o edital/PDF." },
+        { error: `O conteúdo excedeu o limite máximo de ${MAX_CHARS.toLocaleString()} caracteres. Por favor, reduza o edital/PDF.` },
         { status: 413 }
       );
     }

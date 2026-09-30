@@ -14,7 +14,7 @@
   --color-surface-offset: #e5e8eb;
   --color-divider:        #E2E8F0;
   --color-border:         #E2E8F0;
-  --color-overlay:        rgba(0, 0, 0, 0.8);
+  --color-overlay:        rgba(2, 12, 20, 0.8); /* base navy */
   --color-text:           #2B4C5F; /* Azul Petróleo / Lagune */
   --color-text-muted:     #64748B;
   --color-text-faint:     #94A3B8;

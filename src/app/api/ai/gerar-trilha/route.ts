@@ -154,9 +154,7 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
     ];
 
     const fallbackModels = [
-      "llama-3.3-70b-versatile", // Primário
-      "openai/gpt-oss-120b",     // Plano B
-      "qwen/qwen3.6-27b"         // Plano C
+      "openai/gpt-oss-120b"
     ];
 
     let groqResponse;
@@ -227,6 +225,10 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
 
     const data = await groqResponse.json() as any;
     const messageContent = data.choices[0]?.message?.content;
+    const usage = data.usage;
+    if (usage) {
+      console.log(`[Generate Route] Success - Tokens: Prompt=${usage.prompt_tokens}, Completion=${usage.completion_tokens}, Total=${usage.total_tokens}`);
+    }
 
     const injectMissingFields = (json: any, titleStr: string) => {
       json.titulo = titleStr;

@@ -202,7 +202,7 @@ MediÃ§Ã£o com `groq-sdk` diretamente (Node.js), simulando o loop de `callGro
 |---|---|---|---|---|
 | Chave formato errado | 401 | ~37ms | 500ms | ~537ms |
 | Chave vazia | 401 | ~85ms | 500ms | ~585ms |
-| Chave projeto (`gsk_9mgS...`) | 401 | ~326ms | 500ms | ~826ms |
+| Chave projeto (`***_9mgS...`) | 401 | ~326ms | 500ms | ~826ms |
 
 **ProjeÃ§Ã£o worst-case (5 chaves todas 401):** `5 Ã— 826ms = ~4.1s` atÃ© ativar mock fallback.
 

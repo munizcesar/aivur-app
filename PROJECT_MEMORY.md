@@ -287,3 +287,10 @@ O TrilhaSala.tsx original apresentava bugs recorrentes de layout (coluna direita
 6. 🔧 **Débito Técnico CSS:** Refatorar `--elite-*` (variáveis com nomenclatura invertida entre temas).
 7. 🔧 **Fase 5:** Módulo de retenção (streak, progresso gamificado do edital).
 8. 🔧 **Integração D1 (Schema):** `QuestoesPanel/TrilhaSalaV2.tsx` ainda recebe ID no formato do mock (t-XXX); quando a trilha passar a usar o formato oficial do catálogo (p1/m3/etc.), a prop de ID muda de fonte, mas a lógica de fetch ao D1 já implementada hoje não precisa mudar.
+
+## 14. Refatoração `/material` e Cascade Layers (2026-10-01)
+
+### /material Restaurada (CSS Modules)
+- Componente `/material` foi completamente reescrito para CSS Modules (commit `594ea60`), abolindo as classes utilitárias conflitantes.
+- Telas afetadas pelo bug de Tailwind sem layer (Cascata): `/trilhas`, `/questoes`, `/redacao`, `/login`, `/trilhas/novo`. O reset global de botões fora da base layer aniquilava a precedência utilitária do Tailwind.
+- O ambiente de Preview na Cloudflare não tem os Segredos de Produção (auth, keys de API) e, além disso, utiliza Cloudflare Access (Zero Trust) nas branches. A ausência de acessos bloqueia visualização pura no Preview para rotas não autenticadas ou via script automatizado.

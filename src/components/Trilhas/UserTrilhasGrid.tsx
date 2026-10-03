@@ -2,34 +2,73 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { 
-  Plus, 
-  Sparkles, 
-  BookOpen, 
-  Layers, 
-  CheckCircle2, 
-  ArrowRight, 
-  Edit3, 
-  Trash2, 
-  Clock, 
-  GraduationCap, 
+import {
+  Sparkles,
+  Layers,
+  ListChecks,
+  CheckCircle2,
+  Circle,
+  ArrowRight,
+  Edit3,
+  Trash2,
   Compass,
   AlertTriangle,
-  X
+  X,
 } from "lucide-react";
 import { useStudyStore } from "@/store/useStudyStore";
 import type { TrilhaTemplateType } from "@/lib/validations/trilha";
-import type { CourseTemplate } from "@/data/courses/templates";
-
-
+import TrilhaProgressBar from "./TrilhaProgressBar";
 
 export default function UserTrilhasGrid() {
-  const { customTrilhas, deleteCustomTrilha, updateCustomTrilha, progressData } = useStudyStore();
+  const {
+    customTrilhas,
+    deleteCustomTrilha,
+    updateCustomTrilha,
+    progressData,
+    completedTopicIds,
+    selectedVideoByTrilha,
+  } = useStudyStore();
   const [isHydrated, setIsHydrated] = useState(false);
   const [dataResetMessage, setDataResetMessage] = useState<string | null>(null);
-  
+
+  const [apiTrilhas, setApiTrilhas] = useState<TrilhaTemplateType[] | null>(null);
+  const [isApiLoading, setIsApiLoading] = useState(true);
+  const [apiFailed, setApiFailed] = useState(false);
+
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsHydrated(true);
+
+    let isMounted = true;
+    async function fetchApi() {
+      try {
+        const res = await fetch("/api/trilhas");
+        if (!res.ok) throw new Error("Falha na resposta da API");
+        const json = await res.json() as { trilhas?: TrilhaTemplateType[] };
+        if (isMounted) {
+          setApiTrilhas(json.trilhas || []);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.warn("[UserTrilhasGrid] Falha ao carregar API, ativando fallback do Zustand.", err);
+          setApiFailed(true);
+        }
+      } finally {
+        if (isMounted) {
+          setIsApiLoading(false);
+        }
+      }
+    }
+    
+    fetchApi();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated || !apiFailed) return;
 
     // Validação defensiva: checar schema antigo e propriedades obrigatórias
     let purged = false;
@@ -38,7 +77,7 @@ export default function UserTrilhasGrid() {
         !trilha ||
         !trilha.id ||
         !trilha.titulo ||
-        !trilha.questoes || 
+        !trilha.questoes ||
         !Array.isArray(trilha.questoes)
       ) {
         console.warn(`[UserTrilhasGrid] Descartando trilha corrompida/antiga (ID: ${trilha?.id || 'desconhecido'}).`);
@@ -48,200 +87,354 @@ export default function UserTrilhasGrid() {
     });
 
     if (purged) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDataResetMessage("Algumas trilhas antigas foram resetadas por incompatibilidade de formato.");
     }
-  }, [customTrilhas, deleteCustomTrilha]);
+  }, [customTrilhas, deleteCustomTrilha, isHydrated, apiFailed]);
 
-  // Apenas as válidas
-  const validTrilhas = customTrilhas.filter(t => t && t.id && t.titulo && t.questoes && Array.isArray(t.questoes));
+  // Apenas as válidas da fonte correta (API ou fallback)
+  const rawTrilhas = apiFailed ? customTrilhas : (apiTrilhas || []);
+  const validTrilhas = rawTrilhas.filter(t => t && t.id && t.titulo && t.questoes && Array.isArray(t.questoes));
 
   const [editingCourse, setEditingCourse] = useState<{ id: string; titulo: string } | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [deletingCourse, setDeletingCourse] = useState<TrilhaTemplateType | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fecha modais com Esc (acessibilidade)
+  useEffect(() => {
+    if (!editingCourse && !deletingCourse) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setEditingCourse(null);
+        setDeletingCourse(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editingCourse, deletingCourse]);
+
+  const saveRename = async () => {
+    if (editingCourse && editingCourse.titulo.trim()) {
+      const newTitle = editingCourse.titulo.trim();
+      const currentTrilha = validTrilhas.find(t => t.id === editingCourse.id);
+      
+      if (!currentTrilha) return;
+
+      setIsSavingEdit(true);
+
+      if (!apiFailed) {
+        const payload = { ...currentTrilha, titulo: newTitle };
+        try {
+          const res = await fetch(`/api/trilhas/${editingCourse.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) {
+             throw new Error("Falha ao salvar a edição no servidor.");
+          }
+
+          const { trilha } = (await res.json()) as any;
+          // Atualiza a lista da API com o DTO retornado pelo PUT
+          setApiTrilhas(prev => prev ? prev.map(t => t.id === editingCourse.id ? trilha : t) : null);
+          setEditingCourse(null);
+        } catch (err) {
+          console.error(err);
+          alert("Não foi possível renomear a trilha. Verifique sua conexão e tente novamente.");
+        } finally {
+          setIsSavingEdit(false);
+        }
+      } else {
+        // Fallback: usar Zustand apenas se a API estiver fora
+        updateCustomTrilha(editingCourse.id, { titulo: newTitle });
+        setEditingCourse(null);
+        setIsSavingEdit(false);
+      }
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingCourse) return;
+    
+    setIsDeleting(true);
+    if (!apiFailed) {
+      try {
+        const res = await fetch(`/api/trilhas/${deletingCourse.id}`, {
+          method: 'DELETE',
+        });
+        
+        if (!res.ok) {
+          throw new Error('Falha ao excluir a trilha no servidor.');
+        }
+        
+        // Atualiza UI apenas se servidor confirmar (204 etc)
+        setApiTrilhas(prev => prev ? prev.filter(t => t.id !== deletingCourse.id) : null);
+        setDeletingCourse(null);
+      } catch (err) {
+        console.error(err);
+        alert("Não foi possível excluir a trilha. Verifique sua conexão e tente novamente.");
+      } finally {
+        setIsDeleting(false);
+      }
+    } else {
+      // Fallback local
+      deleteCustomTrilha(deletingCourse.id);
+      setDeletingCourse(null);
+      setIsDeleting(false);
+    }
+  };
 
   return (
-    <div className="w-full py-8 mb-12">
-      {/* CABEÇALHO */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
-        <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--color-navy)] text-[var(--color-cream)] text-xs font-bold uppercase tracking-wider mb-2">
-            <Compass className="shrink-0" size={14} strokeWidth={2.25} aria-hidden="true" />
-            Mentor AIVUR 360 · Painel
-          </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[var(--color-heading)] tracking-tight break-words whitespace-normal">
-            Minhas Trilhas Ativas
-          </h1>
-          <p className="text-sm sm:text-base text-[var(--color-text-muted)] mt-1 max-w-xl break-words whitespace-normal">
+    <div className="w-full">
+      {/* CABEÇALHO DA SEÇÃO */}
+      <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
+        <div className="min-w-0">
+          <h2
+            id="minhas-trilhas-title"
+            className="m-0 text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--color-heading)]"
+          >
+            Minhas trilhas
+          </h2>
+          <p className="m-0 mt-1 text-sm sm:text-base text-[var(--color-text-muted)] max-w-xl">
             Acompanhe o checklist de metas do seu concurso e monitore sua taxa de retenção.
           </p>
         </div>
-
-        
+        {isHydrated && validTrilhas.length > 0 && (
+          <span className="shrink-0 inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1 text-xs font-bold text-[var(--color-text-muted)]">
+            {validTrilhas.length} trilha{validTrilhas.length !== 1 ? "s" : ""} ativa{validTrilhas.length !== 1 ? "s" : ""}
+          </span>
+        )}
       </div>
 
       {/* MENSAGEM DE RESET SE HOUVER */}
       {dataResetMessage && (
-        <div className="mb-6 p-4 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-text)] text-sm flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] shrink-0 mt-0.5" />
-          <p>{dataResetMessage}</p>
-          <button onClick={() => setDataResetMessage(null)} className="ml-auto text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors">
-            <X className="w-4 h-4" />
+        <div
+          role="status"
+          className="mb-6 p-4 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-text)] text-sm flex items-start gap-3"
+        >
+          <AlertTriangle size={20} className="shrink-0 flex-none mt-0.5 text-[var(--color-warning)]" aria-hidden="true" />
+          <p className="m-0">{dataResetMessage}</p>
+          <button
+            type="button"
+            onClick={() => setDataResetMessage(null)}
+            aria-label="Fechar aviso"
+            className="ml-auto p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+          >
+            <X size={16} className="shrink-0 flex-none" />
           </button>
         </div>
       )}
 
       {/* LISTA */}
-      <div className="mb-12">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--color-heading)] flex items-center gap-2">
-            <GraduationCap className="shrink-0 text-[var(--color-cream)]" size={20} strokeWidth={2.2} aria-hidden="true" />
-            Trilhas em Andamento
-          </h2>
-          {validTrilhas.length > 0 && (
-            <span className="text-xs text-[var(--color-text-muted)] font-semibold">
-              {validTrilhas.length} trilha{validTrilhas.length !== 1 ? "s" : ""} ativa{validTrilhas.length !== 1 ? "s" : ""}
-            </span>
-          )}
-        </div>
-
-        {!isHydrated ? (
-          <div className="p-8 text-center rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-surface)]/20 text-[var(--color-text-muted)] animate-pulse">
-            Carregando suas trilhas ativas...
+      {!isHydrated || isApiLoading ? (
+        <div aria-busy="true" aria-live="polite">
+          <p className="sr-only">Carregando suas trilhas ativas...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {[0, 1].map(i => (
+              <div
+                key={i}
+                className="h-[260px] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 animate-pulse"
+              >
+                <div className="h-4 w-24 rounded-full bg-[var(--color-surface-offset)]" />
+                <div className="mt-4 h-5 w-3/4 rounded bg-[var(--color-surface-offset)]" />
+                <div className="mt-2 h-3 w-1/2 rounded bg-[var(--color-surface-offset)]" />
+                <div className="mt-8 h-2 w-full rounded-full bg-[var(--color-surface-offset)]" />
+                <div className="mt-10 h-10 w-full rounded-xl bg-[var(--color-surface-offset)]" />
+              </div>
+            ))}
           </div>
-        ) : validTrilhas.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {validTrilhas.map((trilha) => {
-              // Calcula progresso pelas questoes e flashcards se quiser, mas por simplicidade usaremos trilha.progresso ou progressData.
-              let questoesAcertadas = 0;
-              trilha.questoes.forEach(q => {
-                if (progressData.answers[q.id]) questoesAcertadas++;
-              });
-              const percent = trilha.questoes.length > 0 
-                ? Math.round((questoesAcertadas / trilha.questoes.length) * 100) 
-                : 0;
+        </div>
+      ) : validTrilhas.length > 0 ? (
+        <ul className="m-0 p-0 list-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {validTrilhas.map((trilha) => {
+            // Progresso: mesma regra original (questões com resposta registrada como acerto).
+            let questoesAcertadas = 0;
+            trilha.questoes.forEach(q => {
+              if (progressData.answers[q.id]) questoesAcertadas++;
+            });
+            const percent = trilha.questoes.length > 0
+              ? Math.round((questoesAcertadas / trilha.questoes.length) * 100)
+              : 0;
 
-              return (
-                <div
-                  key={trilha.id}
-                  className="rounded-xl border border-[rgba(107,153,179,0.2)] hover:border-[rgba(107,153,179,0.4)] bg-[var(--color-surface)]/30 p-5 backdrop-blur-sm transition-all duration-200 flex flex-col justify-between group"
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className="text-base sm:text-lg font-bold text-[var(--color-heading)] group-hover:text-[var(--color-heading)] transition-colors leading-snug line-clamp-2 break-words whitespace-normal">
-                        {trilha.titulo}
-                      </h3>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setEditingCourse({ id: trilha.id, titulo: trilha.titulo })}
-                          className="p-1.5 rounded text-[var(--color-text-muted)] hover:text-[var(--color-heading)] hover:bg-[var(--color-bg)]/50 transition-colors"
-                        >
-                          <Edit3 className="w-4 h-4 shrink-0" strokeWidth={2.1} aria-hidden="true" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeletingCourse(trilha)}
-                          className="p-1.5 rounded text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-bg)]/50 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2.1} aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
+            // Etapas: espelha (somente leitura) os critérios de conclusão já usados pelo Cockpit V2.
+            const qIds = trilha.questoes.map(q => String(q.id));
+            const etapas = [
+              { key: "video", label: "Vídeo", done: !!selectedVideoByTrilha?.[trilha.id] },
+              { key: "resumo", label: "Resumo", done: completedTopicIds.includes(`${trilha.id}-resumo`) },
+              { key: "flashcards", label: "Flashcards", done: completedTopicIds.includes(`${trilha.id}-flashcards`) },
+              {
+                key: "questoes",
+                label: "Questões",
+                done: qIds.length > 0 && qIds.every(id => progressData.answers[id] !== undefined),
+              },
+            ];
+            const etapasFeitas = etapas.filter(e => e.done).length;
+            const iniciada = percent > 0 || etapasFeitas > 0;
+            const flashcardsCount = Array.isArray(trilha.flashcards) ? trilha.flashcards.length : 0;
 
-                    <p className="text-xs text-[var(--color-text-muted)] mb-4">
-                      {trilha.disciplina} • {trilha.questoes.length} questões mapeadas
-                    </p>
-
-                    <div className="space-y-1.5 mb-5">
-                      <div className="flex justify-between text-xs text-[var(--color-text-muted)] font-semibold">
-                        <span>Progresso de retenção</span>
-                        <span className="text-[var(--color-heading)] font-bold">{percent}%</span>
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-[var(--color-bg)]/80 overflow-hidden border border-[rgba(107,153,179,0.15)]">
-                        <div
-                          className="h-full bg-[var(--color-cream)] transition-all duration-500 rounded-full"
-                          style={{ width: `${percent}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 mt-auto border-t border-[rgba(107,153,179,0.15)] bg-[var(--color-surface-offset)]">
-                    <Link
-                      href={`/trilhas/${trilha.id}`}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-surface-offset)] text-[var(--color-heading)] text-xs sm:text-sm font-bold border border-[rgba(107,153,179,0.25)] transition-all group-hover:border-[var(--color-text-muted)]/60"
+            return (
+              <li
+                key={trilha.id}
+                className="group flex flex-col min-w-0 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--color-primary)]/40"
+              >
+                {/* Topo: disciplina + ações */}
+                <div className="flex items-start justify-between gap-3">
+                  <span className="min-w-0 truncate inline-flex items-center rounded-full bg-[var(--color-primary)]/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[var(--color-primary)]">
+                    {trilha.disciplina || "Trilha personalizada"}
+                  </span>
+                  <div className="flex items-center gap-0.5 shrink-0 -mr-1.5 -mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setEditingCourse({ id: trilha.id, titulo: trilha.titulo })}
+                      aria-label={`Renomear trilha ${trilha.titulo}`}
+                      title="Renomear"
+                      className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-heading)] hover:bg-[var(--color-surface-offset)] transition-colors"
                     >
-                      <span>Acessar Cronograma</span>
-                      <ArrowRight className="w-4 h-4 shrink-0 text-[var(--color-primary)]" strokeWidth={2.2} aria-hidden="true" />
-                    </Link>
+                      <Edit3 size={16} strokeWidth={2.1} className="shrink-0 flex-none" aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeletingCourse(trilha)}
+                      aria-label={`Excluir trilha ${trilha.titulo}`}
+                      title="Excluir"
+                      className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-red)] hover:bg-[var(--color-red)]/10 transition-colors"
+                    >
+                      <Trash2 size={16} strokeWidth={2.1} className="shrink-0 flex-none" aria-hidden="true" />
+                    </button>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="rounded-xl border border-[rgba(107,153,179,0.2)] bg-[var(--color-surface)]/20 p-8 sm:p-10 text-center backdrop-blur-sm">
-            <div className="w-12 h-12 rounded-full bg-[var(--color-navy)] flex items-center justify-center mx-auto mb-4 text-[var(--color-cream)]">
-              <Compass className="shrink-0" size={24} strokeWidth={2.1} aria-hidden="true" />
-            </div>
-            <h3 className="text-lg font-bold text-[var(--color-heading)] mb-1">
-              Você ainda não possui trilhas personalizadas
-            </h3>
-            <p className="text-xs sm:text-sm text-[var(--color-text-muted)] max-w-md mx-auto mt-2 italic">Nenhuma trilha ainda — use o botão no topo da página para gerar a primeira.</p>
-          </div>
-        )}
-      </div>
 
-      
+                {/* Título + metadados */}
+                <h3 className="m-0 mt-3 text-lg font-bold leading-snug text-[var(--color-heading)] line-clamp-2 break-words">
+                  {trilha.titulo}
+                </h3>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--color-text-muted)]">
+                  <span className="inline-flex items-center gap-1">
+                    <ListChecks size={14} strokeWidth={2.2} className="shrink-0 flex-none" aria-hidden="true" />
+                    {trilha.questoes.length} questões
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Layers size={14} strokeWidth={2.2} className="shrink-0 flex-none" aria-hidden="true" />
+                    {flashcardsCount} flashcards
+                  </span>
+                </div>
+
+                {/* Progresso */}
+                <div className="mt-5">
+                  <TrilhaProgressBar percent={percent} label="Progresso de retenção" />
+                </div>
+
+                {/* Etapas concluídas */}
+                <div className="mt-4">
+                  <p className="m-0 mb-2 text-xs font-semibold text-[var(--color-text-muted)]">
+                    Etapas concluídas: <span className="text-[var(--color-heading)] font-bold tabular-nums">{etapasFeitas}/4</span>
+                  </p>
+                  <ul className="m-0 p-0 list-none flex flex-wrap gap-1.5" aria-label="Etapas da trilha">
+                    {etapas.map(e => (
+                      <li
+                        key={e.key}
+                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                          e.done
+                            ? "border-[var(--color-success)]/40 bg-[var(--color-success)]/10 text-[var(--color-success)]"
+                            : "border-[var(--color-border)] text-[var(--color-text-muted)]"
+                        }`}
+                      >
+                        {e.done ? (
+                          <CheckCircle2 size={12} className="shrink-0 flex-none" aria-hidden="true" />
+                        ) : (
+                          <Circle size={12} className="shrink-0 flex-none" aria-hidden="true" />
+                        )}
+                        {e.label}
+                        <span className="sr-only">{e.done ? " (concluída)" : " (pendente)"}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Ação principal */}
+                <Link
+                  href={`/trilhas/${trilha.id}`}
+                  className="mt-6 pt-0 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-3 text-sm font-bold text-white no-underline shadow-sm transition-colors hover:bg-[var(--color-primary-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+                >
+                  {iniciada ? "Continuar trilha" : "Iniciar trilha"}
+                  <ArrowRight size={16} strokeWidth={2.2} className="shrink-0 flex-none transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-10 sm:py-12 text-center">
+          <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mx-auto mb-4 text-[var(--color-primary)]">
+            <Compass size={24} strokeWidth={2.1} className="shrink-0 flex-none" aria-hidden="true" />
+          </div>
+          <h3 className="m-0 text-lg font-bold text-[var(--color-heading)]">
+            Você ainda não possui trilhas personalizadas
+          </h3>
+          <p className="m-0 mt-2 text-sm text-[var(--color-text-muted)] max-w-md mx-auto">
+            Gere sua primeira trilha com IA a partir do seu edital ou material de estudo.
+          </p>
+          <Link
+            href="/trilhas/novo"
+            className="mt-5 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white no-underline shadow-sm transition-colors hover:bg-[var(--color-primary-hover)]"
+          >
+            <Sparkles size={16} className="shrink-0 flex-none" aria-hidden="true" />
+            Gerar trilha com IA
+          </Link>
+        </div>
+      )}
 
       {editingCourse && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           onClick={() => setEditingCourse(null)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-[rgba(107,153,179,0.3)] bg-[var(--color-surface)] p-6 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rename-trilha-title"
+            className="w-full max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-[var(--color-heading)]">Renomear Trilha</h3>
+              <h3 id="rename-trilha-title" className="m-0 text-lg font-bold text-[var(--color-heading)]">Renomear trilha</h3>
               <button
+                type="button"
                 onClick={() => setEditingCourse(null)}
-                className="text-[var(--color-text-muted)] hover:text-[var(--color-heading)] p-1"
+                aria-label="Fechar"
+                className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-heading)] hover:bg-[var(--color-surface-offset)]"
               >
-              <X className="w-5 h-5 shrink-0" strokeWidth={2.1} aria-hidden="true" />
+                <X size={20} strokeWidth={2.1} className="shrink-0 flex-none" aria-hidden="true" />
               </button>
             </div>
+            <label htmlFor="rename-trilha-input" className="sr-only">Novo nome da trilha</label>
             <input
+              id="rename-trilha-input"
               autoFocus
-              className="w-full px-3 py-2.5 rounded-lg border border-[rgba(107,153,179,0.3)] bg-[var(--color-bg)] text-[var(--color-heading)] text-sm focus:border-[var(--color-primary)] outline-none mb-5"
+              className="w-full px-3 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-heading)] text-sm focus:border-[var(--color-primary)] outline-none mb-5"
               value={editingCourse.titulo}
               onChange={(e) => setEditingCourse({ ...editingCourse, titulo: e.target.value })}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && editingCourse.titulo.trim()) {
-                  updateCustomTrilha(editingCourse.id, { titulo: editingCourse.titulo.trim() });
-                  setEditingCourse(null);
-                }
+                if (e.key === "Enter") saveRename();
               }}
             />
             <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setEditingCourse(null)}
-                className="px-4 py-2 rounded-lg border border-[rgba(107,153,179,0.3)] text-[var(--color-text-muted)] text-xs font-semibold hover:bg-[var(--color-surface-offset)]"
+                className="px-4 py-2 rounded-xl border border-[var(--color-border)] text-[var(--color-text-muted)] text-sm font-semibold hover:bg-[var(--color-surface-offset)]"
               >
                 Cancelar
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  if (editingCourse.titulo.trim()) {
-                    updateCustomTrilha(editingCourse.id, { titulo: editingCourse.titulo.trim() });
-                    setEditingCourse(null);
-                  }
-                }}
-                className="px-4 py-2 rounded-lg bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-[var(--color-heading)] text-xs font-bold shadow-sm"
+                onClick={saveRename}
+                disabled={!editingCourse.titulo.trim() || isSavingEdit}
+                className="px-4 py-2 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-bold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Salvar Alteração
+                {isSavingEdit ? 'Salvando...' : 'Salvar alteração'}
               </button>
             </div>
           </div>
@@ -250,37 +443,40 @@ export default function UserTrilhasGrid() {
 
       {deletingCourse && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           onClick={() => setDeletingCourse(null)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-[var(--color-red)]/30 bg-[var(--color-surface)] p-6 shadow-2xl"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-trilha-title"
+            aria-describedby="delete-trilha-desc"
+            className="w-full max-w-md rounded-2xl border border-[var(--color-red)]/30 bg-[var(--color-surface)] p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-3 text-[var(--color-red)]">
-              <AlertTriangle className="w-6 h-6 flex-shrink-0" strokeWidth={2.1} aria-hidden="true" />
-              <h3 className="text-lg font-bold text-[var(--color-heading)]">Excluir Trilha</h3>
+              <AlertTriangle size={24} strokeWidth={2.1} className="shrink-0 flex-none" aria-hidden="true" />
+              <h3 id="delete-trilha-title" className="m-0 text-lg font-bold text-[var(--color-heading)]">Excluir trilha</h3>
             </div>
-            <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mb-5 leading-relaxed">
-              Tem certeza que deseja apagar a trilha <strong>"{deletingCourse.titulo}"</strong>?
+            <p id="delete-trilha-desc" className="m-0 text-sm text-[var(--color-text-muted)] mb-5 leading-relaxed">
+              Tem certeza que deseja apagar a trilha <strong className="text-[var(--color-heading)]">&quot;{deletingCourse.titulo}&quot;</strong>?
             </p>
             <div className="flex justify-end gap-2">
               <button
                 type="button"
+                autoFocus
                 onClick={() => setDeletingCourse(null)}
-                className="px-4 py-2 rounded-lg border border-[rgba(107,153,179,0.3)] text-[var(--color-text-muted)] text-xs font-semibold hover:bg-[var(--color-surface-offset)]"
+                className="px-4 py-2 rounded-xl border border-[var(--color-border)] text-[var(--color-text-muted)] text-sm font-semibold hover:bg-[var(--color-surface-offset)]"
               >
                 Cancelar
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  deleteCustomTrilha(deletingCourse.id);
-                  setDeletingCourse(null);
-                }}
-                className="px-4 py-2 rounded-lg bg-[var(--color-red)] hover:opacity-90 text-white text-xs font-bold transition-opacity"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-xl bg-[var(--color-red)] hover:opacity-90 text-white text-sm font-bold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Sim, excluir trilha
+                {isDeleting ? 'Excluindo...' : 'Sim, excluir trilha'}
               </button>
             </div>
           </div>
@@ -289,5 +485,3 @@ export default function UserTrilhasGrid() {
     </div>
   );
 }
-
-

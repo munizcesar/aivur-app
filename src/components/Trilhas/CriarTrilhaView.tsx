@@ -12,7 +12,6 @@ import {
   AlertCircle,
   Edit2
 } from "lucide-react";
-import { useStudyStore } from "@/store/useStudyStore";
 import type { TrilhaTemplateType } from "@/lib/validations/trilha";
 
 interface CriarTrilhaViewProps {
@@ -27,10 +26,10 @@ export default function CriarTrilhaView({
   initialText = "",
 }: CriarTrilhaViewProps) {
   const router = useRouter();
-  const { addCustomTrilha } = useStudyStore();
   const submitButtonRef = useRef<HTMLButtonElement>(null);
   const [step, setStep] = useState<"input" | "loading" | "review">("input");
   const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form states
   const [title, setTitle] = useState(initialTitle);
@@ -134,8 +133,29 @@ export default function CriarTrilhaView({
 
   const handleSave = async () => {
     if (!draftTrilha) return;
-    addCustomTrilha(draftTrilha);
-    router.push(`/trilhas/${draftTrilha.id}`);
+    setIsSaving(true);
+    setError(null);
+    
+    try {
+      const res = await fetch("/api/trilhas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draftTrilha),
+      });
+
+      if (!res.ok) {
+        const errorData = (await res.json().catch(() => ({}))) as any;
+        throw new Error(errorData.error || "Falha ao salvar trilha no servidor.");
+      }
+
+      const { trilha } = (await res.json()) as any;
+      router.push(`/trilhas/${trilha.id}`);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Ocorreu um erro ao salvar a trilha.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -318,10 +338,11 @@ export default function CriarTrilhaView({
             </div>
             <button
               onClick={handleSave}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[var(--color-primary)] hover:opacity-90 text-white font-bold text-sm shadow-sm transition-all"
+              disabled={isSaving}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[var(--color-primary)] hover:opacity-90 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-50"
             >
               <CheckCircle2 size={16} className="shrink-0" />
-              <span>Salvar e Iniciar Trilha</span>
+              <span>{isSaving ? 'Salvando...' : 'Salvar e Iniciar Trilha'}</span>
             </button>
           </div>
         </div>

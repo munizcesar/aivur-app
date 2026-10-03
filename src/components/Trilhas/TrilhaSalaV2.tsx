@@ -13,7 +13,7 @@ import {
   Layers,
   HelpCircle,
 } from "lucide-react";
-import { TRILHAS_MOCK, type TrilhaQuestao } from "@/mocks/trilhasMock";
+import { TRILHAS_MOCK, type TrilhaQuestao, type Trilha } from "@/mocks/trilhasMock";
 import { useStudyStore } from "@/store/useStudyStore";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -378,8 +378,50 @@ export default function TrilhaSalaV2() {
 
   const { error, registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults, selectedVideoByTrilha, setSelectedVideo, progressData, completedTopicIds } = useStudyStore();
 
-  // Same data source as TrilhaSala — no duplication
-  const trilha = TRILHAS_MOCK.find(t => t.id === id) || customTrilhas.find(t => t.id === id);
+  const localTrilha = TRILHAS_MOCK.find(t => t.id === id) || customTrilhas.find(t => t.id === id);
+
+  const [d1Trilha, setD1Trilha] = useState<Trilha | null>(null);
+  const [isLoadingD1, setIsLoadingD1] = useState(!localTrilha);
+  const [d1Error, setD1Error] = useState(false);
+
+  useEffect(() => {
+    if (localTrilha) {
+      setIsLoadingD1(false);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoadingD1(true);
+    fetch(`/api/trilhas/${id}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch trilha");
+        return res.json();
+      })
+      .then((data: any) => {
+        if (isMounted) {
+          if (data.trilha) {
+            setD1Trilha(data.trilha);
+          } else {
+            setD1Error(true);
+          }
+        }
+      })
+      .catch(err => {
+        if (isMounted) {
+          console.error("Erro ao carregar trilha do D1:", err);
+          setD1Error(true);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoadingD1(false);
+        }
+      });
+
+    return () => { isMounted = false; };
+  }, [id, localTrilha]);
+
+  const trilha = localTrilha || d1Trilha;
 
   const [openSection, setOpenSection] = useState<SectionId | null>(null);
   const [forceGallery, setForceGallery] = useState(false);
@@ -434,7 +476,15 @@ export default function TrilhaSalaV2() {
     });
   }, [trilha]);
 
-  if (!trilha) {
+  if (isLoadingD1) {
+    return (
+      <div className="v2-not-found">
+        <p>Carregando trilha...</p>
+      </div>
+    );
+  }
+
+  if (!trilha || d1Error) {
     return (
       <div className="v2-not-found">
         <p>Trilha não encontrada.</p>

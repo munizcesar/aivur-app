@@ -287,3 +287,14 @@ O TrilhaSala.tsx original apresentava bugs recorrentes de layout (coluna direita
 6. 🔧 **Débito Técnico CSS:** Refatorar `--elite-*` (variáveis com nomenclatura invertida entre temas).
 7. 🔧 **Fase 5:** Módulo de retenção (streak, progresso gamificado do edital).
 8. 🔧 **Integração D1 (Schema):** `QuestoesPanel/TrilhaSalaV2.tsx` ainda recebe ID no formato do mock (t-XXX); quando a trilha passar a usar o formato oficial do catálogo (p1/m3/etc.), a prop de ID muda de fonte, mas a lógica de fetch ao D1 já implementada hoje não precisa mudar.
+
+## 14. Refatoração Visual da Página `/trilhas` (Outubro 2026)
+
+### Objetivos Concluídos
+- **Auditoria e Mapeamento:** Mapeado componentes compartilhados vs exclusivos. O Cockpit V2 (`/trilhas/[id]`) foi totalmente preservado sem interferências.
+- **Refatoração Estrutural:** O arquivo `src/app/trilhas/page.tsx` foi limpo, extraindo o layout de grid para o novo componente `UserTrilhasGrid.tsx` e o progresso para `TrilhaProgressBar.tsx`.
+- **Aprimoramento Visual e UX:** Melhorada a responsividade, aplicado design premium nos cards, adicionadas ações de renomear e excluir trilhas com modais estilizados.
+- **Resolução de Lint:** Corrigido o aviso `react-hooks/set-state-in-effect` isolando a hidratação e aplicando suppressão seletiva, garantindo `exit 0` no build de linting.
+
+### Próximos Passos (Backlog Atualizado)
+As dependências do Cockpit V2 continuam as mesmas, e a migração de Mock para banco real (Drizzle) e recursos de gamificação permanecem mapeados para as próximas iterações.

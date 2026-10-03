@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { extractCleanJson, getDomainRules } from '@/lib/ai-protocols';
 import { TrilhaSchema } from '@/lib/validations/trilha';
-import { MAX_CHARS } from '@/lib/constants';
 
 import { getRequestContext } from '@cloudflare/next-on-pages';
 
@@ -59,7 +58,7 @@ export async function POST(req: Request) {
 
   try {
 
-    const ip = req.headers.get("cf-connecting-ip") || "unknown";
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
         { error: "Rate limit excedido. Tente novamente mais tarde." },
@@ -85,11 +84,8 @@ export async function POST(req: Request) {
       );
     }
 
-    if (text.length > MAX_CHARS) {
-      return NextResponse.json(
-        { error: `O conteúdo excedeu o limite máximo de ${MAX_CHARS.toLocaleString()} caracteres. Por favor, reduza o edital/PDF.` },
-        { status: 413 }
-      );
+    if (text.length > 50000) {
+      text = text.slice(0, 50000);
     }
 
     const prompt = `Você é um tutor especialista. 
@@ -155,13 +151,14 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
     ];
 
     const fallbackModels = [
-      "openai/gpt-oss-120b"
+      "llama-3.3-70b-versatile", // Primário
+      "openai/gpt-oss-120b",     // Plano B
+      "qwen/qwen3.6-27b"         // Plano C
     ];
 
     let groqResponse;
     let lastErrorStatus = 500;
     let lastErrorText = "";
-    let lastRetryAfter = 0;
 
     for (const modelId of fallbackModels) {
       groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -185,19 +182,7 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
       } else {
         lastErrorStatus = groqResponse.status;
         lastErrorText = await groqResponse.text();
-        console.error(`[Generate Route] Falha no modelo ${modelId}: Status ${lastErrorStatus} | Erro: ${lastErrorText.substring(0, 300)}`);
-        
-        if (lastErrorStatus === 429) {
-          const retryHeader = groqResponse.headers.get("retry-after");
-          if (retryHeader) {
-            const retrySecs = parseInt(retryHeader, 10);
-            if (!isNaN(retrySecs) && retrySecs > 0 && retrySecs <= 5) {
-              console.log(`[Generate Route] Respeitando retry-after de ${retrySecs}s antes do fallback...`);
-              await new Promise(r => setTimeout(r, retrySecs * 1000));
-              lastRetryAfter = retrySecs;
-            }
-          }
-        }
+        console.warn(`[Generate Route] Falha no modelo ${modelId}: ${lastErrorStatus} - ${lastErrorText}`);
       }
     }
 
@@ -208,28 +193,17 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
       } catch (e) {
         parsedErr = { message: lastErrorText };
       }
-      
-      const finalStatus = lastErrorStatus === 429 ? 429 : 503;
-      const headers: any = { "Content-Type": "application/json" };
-      if (finalStatus === 429 && lastRetryAfter > 0) {
-        headers["Retry-After"] = lastRetryAfter.toString();
-      }
-      
       return new Response(JSON.stringify({ 
         error: "Erro na API da IA (Groq). Todos os modelos falharam.", 
         details: parsedErr 
       }), {
-        status: finalStatus,
-        headers: headers
+        status: lastErrorStatus,
+        headers: { "Content-Type": "application/json" }
       });
     }
 
     const data = await groqResponse.json() as any;
     const messageContent = data.choices[0]?.message?.content;
-    const usage = data.usage;
-    if (usage) {
-      console.log(`[Generate Route] Success - Tokens: Prompt=${usage.prompt_tokens}, Completion=${usage.completion_tokens}, Total=${usage.total_tokens}`);
-    }
 
     const injectMissingFields = (json: any, titleStr: string) => {
       json.titulo = titleStr;

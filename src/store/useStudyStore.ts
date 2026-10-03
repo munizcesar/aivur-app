@@ -69,23 +69,9 @@ export const useStudyStore = create<StudyStore>()(
       updateCustomTrilha: (id, updates) => set((state) => ({
         customTrilhas: state.customTrilhas.map((t) => t.id === id ? { ...t, ...updates } : t)
       })),
-      deleteCustomTrilha: (id) => set((state) => {
-        const nextSelectedVideo = { ...state.selectedVideoByTrilha };
-        delete nextSelectedVideo[id];
-        
-        const nextVideoCache = { ...state.videoResultsCache };
-        delete nextVideoCache[id];
-        
-        const nextQuestoesCache = { ...state.questoesCache };
-        delete nextQuestoesCache[id];
-
-        return {
-          customTrilhas: state.customTrilhas.filter((t) => t.id !== id),
-          selectedVideoByTrilha: nextSelectedVideo,
-          videoResultsCache: nextVideoCache,
-          questoesCache: nextQuestoesCache
-        };
-      }),
+      deleteCustomTrilha: (id) => set((state) => ({
+        customTrilhas: state.customTrilhas.filter((t) => t.id !== id)
+      })),
 
       videoResultsCache: {},
       setVideoResults: (trilhaId, results) => set((state) => ({

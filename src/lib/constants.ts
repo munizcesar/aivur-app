@@ -99,5 +99,3 @@ export const niveis = [
   {v:'técnico', l:'Ensino Técnico'},
   {v:'superior', l:'Ensino Superior'},
 ];
-
-export const MAX_CHARS = 10000;

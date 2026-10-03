@@ -1,171 +1,152 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useStudyStore } from "@/store/useStudyStore";
-import Header from "@/components/Header/Header";
-import { FolderCheck, Edit2, Trash2, Layers, BookOpen, ExternalLink, Plus, UploadCloud } from "lucide-react";
+import { useState, useRef } from "react";
 import styles from "./Material.module.css";
+import Header from "@/components/Header/Header";
+import { UploadCloud, Layers, ArrowLeft } from "lucide-react";
+import QuizTool from "./QuizTool";
+import FlashcardsTool from "./FlashcardsTool";
+import { Aivur } from "@/components/Aivur/Aivur";
 
 export default function MaterialPage() {
-  const { customTrilhas, deleteCustomTrilha, updateCustomTrilha } = useStudyStore();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isProcessed, setIsProcessed] = useState(false);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
-  const startEditing = (id: string, currentTitle: string) => {
-    setEditingId(id);
-    setEditTitle(currentTitle);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [aivurState, setAivurState] = useState("calm");
+  const dropzoneRef = useRef<HTMLDivElement>(null);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!isDragActive) {
+      setIsDragActive(true);
+      setAivurState("curious");
+    }
   };
 
-  const saveEdit = () => {
-    if (editingId && editTitle.trim()) {
-      updateCustomTrilha(editingId, { titulo: editTitle.trim() });
-    }
-    setEditingId(null);
-    setEditTitle("");
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    setAivurState("calm");
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    simulateProcessing();
+  };
+
+  const simulateProcessing = () => {
+    setAivurState("loading");
+    setTimeout(() => {
+      setAivurState("success");
+      setTimeout(() => {
+        setIsProcessed(true);
+      }, 1000);
+    }, 1500);
+  };
+
+  const handleReset = () => {
+    setIsProcessed(false);
+    setActiveTab(null);
+    setAivurState("calm");
   };
 
   return (
     <div className={styles.page}>
       <Header />
       <main className={styles.main}>
-        <div className="container">
-          
-          <div className={styles.headerClean}>
-            <div>
-              <h1 className={styles.headerTitle}>Meus Materiais</h1>
-              <p className={styles.headerSubtitle}>
-                Gerencie e estude seus PDFs e editais processados.
-              </p>
-            </div>
-            <Link href="/trilhas/novo" className={styles.btnSecondary}>
-              <Plus size={18} /> Novo Material
-            </Link>
-          </div>
-
-          {customTrilhas.length === 0 ? (
-            <div className={styles.uploadContainer}>
-              <div className={styles.heroHeader}>
-                <div className={styles.heroTextCol}>
-                  <h1 className={styles.title}>Cofre Editorial</h1>
-                  <p className={styles.subtitle}>
-                    Envie aquele PDF denso ou resumo e deixe a IA extrair o suprassumo em segundos.
-                  </p>
-                </div>
-                <div className={styles.heroImageCol}>
-                  {/*eslint-disable-next-line @next/next/no-img-element*/}
-                  <img src="/images/aivur/material.png" alt="Aivur Cofre 3D" />
-                </div>
+        {!isProcessed ? (
+          // ESTADO 1: O UPLOAD
+          <div className={styles.uploadContainer} style={{ marginTop: "4rem" }}>
+            <div className={styles.heroHeader}>
+              <div className={styles.heroTextCol}>
+                <h1 className={styles.title}>Cofre Editorial</h1>
+                <p className={styles.subtitle}>
+                  Envie aquele PDF denso ou resumo e deixe a IA extrair o suprassumo em segundos.
+                </p>
               </div>
-
-              <Link href="/trilhas/novo" className={styles.dropzone}>
-                <div className={styles.dropzoneInner}>
-                  <UploadCloud width={48} height={48} className={styles.dropIcon} />
-                  <h3>Criar novo material</h3>
-                </div>
-              </Link>
+              <div className={styles.heroImageCol}>
+                {/*eslint-disable-next-line @next/next/no-img-element*/}
+                <img src="/images/aivur/material.png" alt="Aivur Cofre 3D" />
+              </div>
             </div>
-          ) : (
-            <div className={styles.grid}>
-              {customTrilhas.map((trilha) => (
-                <div key={trilha.id} className={styles.card}>
-                  <div className={styles.cardBody}>
-                    <div className={styles.cardHeader}>
-                      <span className={styles.tag}>
-                        <BookOpen size={14} /> {trilha.disciplina || "Geral"}
-                      </span>
-                      <div className={styles.actions}>
-                        <button 
-                          onClick={() => startEditing(trilha.id, trilha.titulo)}
-                          className={styles.iconBtn}
-                          title="Renomear"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button 
-                          onClick={() => setDeleteId(trilha.id)}
-                          className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                          title="Deletar"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {editingId === trilha.id ? (
-                      <div style={{ marginBottom: "0.5rem" }}>
-                        <input 
-                          autoFocus
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          onBlur={saveEdit}
-                          onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
-                          className={styles.inputRename}
-                        />
-                      </div>
-                    ) : (
-                      <h3 className={styles.cardTitle}>
-                        {trilha.titulo}
-                      </h3>
-                    )}
-                    
-                    <div className={styles.cardStats}>
-                      <span className={styles.stat}>
-                        <FolderCheck size={14} /> {trilha.questoes?.length || 0} questões
-                      </span>
-                      <span className={styles.stat}>
-                        <Layers size={14} /> {trilha.flashcards?.length || 0} flashcards
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className={styles.cardFooter}>
-                    <Link href={`/trilhas/${trilha.id}?from=material`} className={styles.btnFooter}>
-                      Acessar Laboratório <ExternalLink size={16} />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
 
-      {deleteId && (
-        <div 
-          className={styles.modalOverlay}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setDeleteId(null);
-          }}
-        >
-          <div className={styles.modalContent}>
-            <Trash2 size={40} className={styles.modalIcon} />
-            <h3 className={styles.modalTitle}>Excluir Material?</h3>
-            <p className={styles.modalText}>
-              Esta ação removerá todo o progresso, questões e flashcards desta trilha. Não pode ser desfeita.
-            </p>
-            <div className={styles.modalActions}>
-              <button 
-                autoFocus
-                onClick={() => setDeleteId(null)}
-                className={styles.btnKeep}
-              >
-                Manter
-              </button>
-              <button 
-                onClick={() => {
-                  deleteCustomTrilha(deleteId);
-                  setDeleteId(null);
-                }}
-                className={styles.btnDanger}
-              >
-                Deletar
+            <div 
+              ref={dropzoneRef}
+              className={`${styles.dropzone} ${isDragActive ? styles.dropzoneActive : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+
+              <div className={styles.dropzoneInner} style={{ paddingTop: "2rem" }}>
+                <UploadCloud width={48} height={48} className={styles.dropIcon} />
+                <h3>Arraste seu PDF ou cole o texto aqui</h3>
+                <p>Tamanho máximo: 10MB</p>
+                <button className={styles.browseBtn} onClick={(e) => { e.stopPropagation(); document.getElementById('file-upload')?.click(); }}>Procurar Arquivo</button>
+                <input type="file" id="file-upload" style={{ display: 'none' }} onChange={(e) => { if(e.target.files?.length) simulateProcessing(); }} />
+              </div>
+            </div>
+
+            <div className={styles.actionBlock}>
+              <button className={styles.primaryBtn} onClick={simulateProcessing}>
+                Destrinchar Material
               </button>
             </div>
           </div>
-        </div>
-      )}
+        ) : (
+          // ESTADO 2: O LABORATÓRIO
+          <div className={styles.labContainer}>
+            <div className={styles.labHeader}>
+              <button className={styles.backBtn} onClick={handleReset}>
+                <ArrowLeft width={18} height={18} /> Novo Material
+              </button>
+              <h2>Laboratório de Estudo</h2>
+              <p className={styles.fileLabel}>📄 arquivo_estudo_constitucional.pdf</p>
+            </div>
+
+            <div className={styles.labLayout}>
+              <aside className={styles.labSidebar}>
+                <button 
+                  className={`${styles.tabBtn} ${activeTab === 'simulado' ? styles.tabActive : ''}`}
+                  onClick={() => setActiveTab('simulado')}
+                >
+                  <span className={styles.tabIcon}>📝</span> Simulado Rápido
+                </button>
+                <button 
+                  className={`${styles.tabBtn} ${activeTab === 'flashcards' ? styles.tabActive : ''}`}
+                  onClick={() => setActiveTab('flashcards')}
+                >
+                  <span className={styles.tabIcon}>🃏</span> Flashcards
+                </button>
+                <button 
+                  className={`${styles.tabBtn} ${activeTab === 'chat' ? styles.tabActive : ''}`}
+                  onClick={() => setActiveTab('chat')}
+                >
+                  <span className={styles.tabIcon}>💬</span> Modo Interrogatório (Chat)
+                </button>
+              </aside>
+
+              <section className={styles.labContentArea}>
+                {!activeTab ? (
+                  <div className={styles.placeholderState}>
+                    <Layers width={48} height={48} className={styles.placeholderIcon} />
+                    <h3>Seu material foi processado!</h3>
+                    <p>Selecione uma ferramenta no menu lateral para começar a estudar este material de forma ativa.</p>
+                  </div>
+                ) : (
+                  <div className={styles.activeToolState}>
+                    {activeTab === 'simulado' && <QuizTool />}
+                    {activeTab === 'flashcards' && <FlashcardsTool />}
+                    {activeTab === 'chat' && <h3>Módulo de Interrogatório em construção...</h3>}
+                  </div>
+                )}
+              </section>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

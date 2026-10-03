@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { useStudyStore } from "@/store/useStudyStore";
 import type { TrilhaTemplateType } from "@/lib/validations/trilha";
-import { MAX_CHARS } from "@/lib/constants";
 
 interface CriarTrilhaViewProps {
   
@@ -32,26 +31,12 @@ export default function CriarTrilhaView({
   const submitButtonRef = useRef<HTMLButtonElement>(null);
   const [step, setStep] = useState<"input" | "loading" | "review">("input");
   const [error, setError] = useState<string | null>(null);
-  const [retryCountdown, setRetryCountdown] = useState(0);
-
-  useEffect(() => {
-    if (retryCountdown <= 0) return;
-    const timer = setInterval(() => setRetryCountdown(prev => prev - 1), 1000);
-    return () => clearInterval(timer);
-  }, [retryCountdown]);
 
   // Form states
   const [title, setTitle] = useState(initialTitle);
   const [text, setText] = useState(initialText);
   const [file, setFile] = useState<File | null>(null);
   const [inputType, setInputType] = useState<"text" | "pdf">("text");
-
-  const [extractedTextBuffer, setExtractedTextBuffer] = useState<string | null>(null);
-  const [pdfPages, setPdfPages] = useState<string[]>([]);
-  const [startPage, setStartPage] = useState<number>(1);
-  const [endPage, setEndPage] = useState<number>(1);
-  const [isExtractingPdf, setIsExtractingPdf] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     if (initialTitle) setTitle(initialTitle);
@@ -87,74 +72,54 @@ export default function CriarTrilhaView({
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isGenerating || step === "loading" || retryCountdown > 0) return;
-
     if (!title.trim()) {
       setError("Preencha o título da trilha.");
       return;
     }
-    if (!text.trim() && !file && !extractedTextBuffer) {
+    if (!text.trim() && !file) {
       setError("Por favor, cole o texto do edital ou faça upload de um arquivo PDF.");
       return;
     }
 
     setError(null);
     setStep("loading");
-    setIsGenerating(true);
 
     try {
-      let finalContent = extractedTextBuffer;
+      let finalContent = text.trim();
 
-      if (!finalContent && inputType === "text") {
-        finalContent = text.trim();
-      } else if (!finalContent && inputType === "pdf") {
-        if (pdfPages.length > 0) {
-          finalContent = pdfPages.slice(startPage - 1, endPage).join("\n").trim();
+      if (file) {
+        if (file.type === "application/pdf") {
+          const pdfjsLib = await import('pdfjs-dist');
+          pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          
+          let extractedText = "";
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((item: any) => item.str).join(" ");
+            extractedText += pageText + "\n";
+          }
+          finalContent = (finalContent + "\n" + extractedText).trim();
         } else {
-          throw new Error("O PDF ainda não foi processado ou está vazio.");
+          throw new Error("Apenas arquivos PDF são suportados no momento.");
         }
-      }
-
-      if (!finalContent || !finalContent.trim()) {
-        throw new Error("O PDF parece ser uma imagem ou escaneado. Use um PDF com texto.");
-      }
-
-      setExtractedTextBuffer(finalContent);
-
-      if (finalContent.length > MAX_CHARS) {
-        throw new Error(`O conteúdo excede o limite máximo de ${MAX_CHARS.toLocaleString()} caracteres (atual: ${finalContent.length}). Por favor, reduza o intervalo de páginas.`);
       }
 
       const formData = new FormData();
       formData.append("title", title);
       formData.append("text", finalContent);
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
-
       const res = await fetch("/api/ai/gerar-trilha", {
         method: "POST",
         body: formData,
-        signal: controller.signal
       });
 
-      clearTimeout(timeoutId);
-
       if (!res.ok) {
-        let errMsg = "Erro ao gerar trilha com IA";
-        if (res.status === 429) {
-          errMsg = "Muitas requisições. Aguarde antes de tentar novamente.";
-          setRetryCountdown(60);
-        } else if (res.status === 503) {
-          errMsg = "IA temporariamente indisponível, tente novamente em instantes";
-        } else if (res.status === 401) errMsg = "Erro de autenticação da IA. Verifique as chaves de API.";
-        else if (res.status === 422) errMsg = "Erro ao estruturar a trilha. O formato retornado pela IA foi inválido.";
-        else if (res.status === 413) errMsg = "O conteúdo excedeu o limite máximo de texto. Por favor, reduza o edital/PDF.";
-        else {
-          const errorData = await res.json().catch(() => ({})) as any;
-          errMsg = errorData.error || errMsg;
-        }
-        throw new Error(errMsg);
+        const errorData = (await res.json()) as { error?: string };
+        throw new Error(errorData.error || "Erro ao gerar trilha com IA");
       }
 
       const generatedTrilha = (await res.json()) as TrilhaTemplateType;
@@ -162,14 +127,8 @@ export default function CriarTrilhaView({
       setStep("review");
     } catch (err: any) {
       console.error(err);
-      if (err.name === 'AbortError') {
-        setError("O tempo limite foi excedido. Tente novamente.");
-      } else {
-        setError(err.message || "Ocorreu um erro ao processar o edital.");
-      }
+      setError(err.message || "Ocorreu um erro ao processar o edital.");
       setStep("input");
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -178,65 +137,6 @@ export default function CriarTrilhaView({
     addCustomTrilha(draftTrilha);
     router.push(`/trilhas/${draftTrilha.id}`);
   };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setExtractedTextBuffer(null);
-      setError(null);
-      
-      if (selectedFile.type === "application/pdf") {
-        setIsExtractingPdf(true);
-        try {
-          const pdfjsLib = await import('pdfjs-dist');
-          pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-
-          const arrayBuffer = await selectedFile.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          
-          let pages = [];
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map((item: any) => item.str).join(" ");
-            pages.push(pageText);
-          }
-          
-          setPdfPages(pages);
-          setStartPage(1);
-          
-          let currentLen = 0;
-          let suggestedEnd = 1;
-          for (let i = 0; i < pages.length; i++) {
-            if (currentLen + pages[i].length <= MAX_CHARS) {
-              currentLen += pages[i].length;
-              suggestedEnd = i + 1;
-            } else {
-              break;
-            }
-          }
-          if (pages.length > 0 && pages[0].length > MAX_CHARS) {
-             suggestedEnd = 1;
-          }
-          setEndPage(suggestedEnd);
-
-        } catch (err) {
-          console.error(err);
-          setError("Erro ao ler o arquivo PDF.");
-        } finally {
-          setIsExtractingPdf(false);
-        }
-      }
-    }
-  };
-
-  const getSelectedLength = () => {
-    if (pdfPages.length === 0 || inputType === "text") return text.length;
-    return pdfPages.slice(startPage - 1, endPage).join("\n").length;
-  };
-  const isSubsetValid = getSelectedLength() <= MAX_CHARS && getSelectedLength() > 0;
-  const isSinglePageOversized = pdfPages.length > 0 && startPage === endPage && pdfPages[startPage - 1].length > MAX_CHARS;
 
   return (
     <div className="w-full max-w-[1000px] mx-auto px-4 py-6 md:py-8">
@@ -333,77 +233,27 @@ export default function CriarTrilhaView({
                   className="w-full px-4 py-3 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[var(--color-bg)]/70 text-[var(--color-text)] placeholder:text-slate-500 text-sm leading-relaxed focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-colors resize-y"
                 />
               ) : (
-                <div className="space-y-4">
-                  <div className="relative flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[rgba(107,153,179,0.3)] hover:border-[var(--color-primary)] rounded-xl p-8 text-center transition-colors bg-[var(--color-bg)]/30 cursor-pointer min-h-[220px]">
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={handleFileChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    {isExtractingPdf ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-sm font-bold text-[var(--color-primary)]">Lendo PDF...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <UploadCloud size={40} className="text-[var(--color-slate-blue)] shrink-0" />
-                        <p className="text-sm font-semibold text-[var(--color-cream)]">
-                          Clique para selecionar ou arraste o PDF do edital aqui
-                        </p>
-                        <p className="text-xs text-[var(--color-slate-blue)]">
-                          Suporta arquivos de até 15MB
-                        </p>
-                      </>
-                    )}
-                  </div>
-
-                  {file && !isExtractingPdf && (
-                    <div className="p-4 rounded-lg border border-[rgba(107,153,179,0.25)] bg-[var(--color-bg)]/70 flex flex-col gap-3">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-[var(--color-primary)] shrink-0" />
-                        <span className="text-sm font-medium text-[var(--color-cream)] truncate flex-1">
-                          {file.name}
-                        </span>
-                        <span className="text-xs text-[var(--color-slate-blue)] shrink-0">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
-                        </span>
-                      </div>
-
-                      {pdfPages.length > 0 && pdfPages.join("\n").length > MAX_CHARS && (
-                        <div className="mt-2 pt-3 border-t border-[rgba(107,153,179,0.2)]">
-                          <div className="flex items-center gap-2 mb-2">
-                            <AlertCircle className="w-4 h-4 text-[var(--color-red)]" />
-                            <span className="text-sm font-bold text-[var(--color-red)]">
-                              O PDF excede {MAX_CHARS.toLocaleString()} caracteres. Selecione um intervalo:
-                            </span>
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col">
-                              <label className="text-xs text-[var(--color-slate-blue)] font-bold mb-1">Início</label>
-                              <input type="number" min="1" max={pdfPages.length} value={startPage} onChange={e => {setStartPage(Number(e.target.value)); setExtractedTextBuffer(null);}} className="w-20 px-2 py-1 border border-[rgba(107,153,179,0.25)] rounded bg-[var(--color-navy)]/30 text-[var(--color-cream)] text-sm outline-none focus:border-[var(--color-primary)]" />
-                            </div>
-                            <span className="text-[var(--color-slate-blue)] mt-4">até</span>
-                            <div className="flex flex-col">
-                              <label className="text-xs text-[var(--color-slate-blue)] font-bold mb-1">Fim (Máx {pdfPages.length})</label>
-                              <input type="number" min={startPage} max={pdfPages.length} value={endPage} onChange={e => {setEndPage(Number(e.target.value)); setExtractedTextBuffer(null);}} className="w-20 px-2 py-1 border border-[rgba(107,153,179,0.25)] rounded bg-[var(--color-navy)]/30 text-[var(--color-cream)] text-sm outline-none focus:border-[var(--color-primary)]" />
-                            </div>
-                          </div>
-
-                          <div className={`mt-3 text-xs font-bold px-2 py-1.5 rounded inline-block ${!isSubsetValid ? 'bg-[var(--color-red)]/20 text-[var(--color-red)] border border-[var(--color-red)]/30' : 'bg-[var(--color-green)]/20 text-[var(--color-green)] border border-[var(--color-green)]/30'}`}>
-                            {getSelectedLength().toLocaleString()} / {MAX_CHARS.toLocaleString()} caracteres selecionados
-                          </div>
-
-                          {isSinglePageOversized && (
-                            <p className="mt-2 text-xs text-[var(--color-red)] font-semibold">
-                              A página selecionada excede o limite sozinha. Extraia o texto manualmente.
-                            </p>
-                          )}
-                        </div>
-                      )}
+                <div className="relative flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[rgba(107,153,179,0.3)] hover:border-[var(--color-primary)] rounded-xl p-8 text-center transition-colors bg-[var(--color-bg)]/30 cursor-pointer min-h-[220px]">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <UploadCloud size={40} className="text-[var(--color-slate-blue)] shrink-0" />
+                  {file ? (
+                    <div className="text-sm font-semibold text-[var(--color-primary)]">
+                      Arquivo selecionado: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
                     </div>
+                  ) : (
+                    <>
+                      <p className="text-sm font-semibold text-[var(--color-cream)]">
+                        Clique para selecionar ou arraste o PDF do edital aqui
+                      </p>
+                      <p className="text-xs text-[var(--color-slate-blue)]">
+                        Suporta arquivos de até 15MB
+                      </p>
+                    </>
                   )}
                 </div>
               )}
@@ -417,11 +267,10 @@ export default function CriarTrilhaView({
             <button
               ref={submitButtonRef}
               type="submit"
-              disabled={isGenerating || isExtractingPdf || (inputType === "pdf" && !isSubsetValid) || retryCountdown > 0}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-[var(--color-primary)] hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-base font-bold shadow-sm focus:ring-4 focus:ring-[var(--color-primary)]/50 active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer outline-none"
             >
               <Sparkles className="w-5 h-5 text-white/70" />
-              <span>{retryCountdown > 0 ? `Aguarde ${retryCountdown}s...` : (extractedTextBuffer && !file ? "Tentar Novamente" : "Gerar Trilha com IA")}</span>
+              <span>Gerar Trilha com IA</span>
               <ArrowRight size={16} className="ml-1 shrink-0" />
             </button>
           </div>

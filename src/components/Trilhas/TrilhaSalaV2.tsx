@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   CheckCircle2,
   XCircle,
@@ -374,9 +374,7 @@ function QuestoesPanel({
 export default function TrilhaSalaV2() {
   const router = useRouter();
   const params = useParams();
-  const searchParams = useSearchParams();
   const id     = params.id as string;
-  const fromMaterial = searchParams.get("from") === "material";
 
   const { error, registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults, selectedVideoByTrilha, setSelectedVideo, progressData, completedTopicIds } = useStudyStore();
 
@@ -995,13 +993,7 @@ export default function TrilhaSalaV2() {
             <button
               id="v2-back-btn"
               className="v2-back-btn"
-              onClick={() => {
-                if (fromMaterial) {
-                  router.push("/material");
-                } else {
-                  router.push("/trilhas");
-                }
-              }}
+              onClick={() => router.back()}
               aria-label="Voltar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

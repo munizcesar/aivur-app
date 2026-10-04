@@ -298,3 +298,27 @@ O TrilhaSala.tsx original apresentava bugs recorrentes de layout (coluna direita
 
 ### Próximos Passos (Backlog Atualizado)
 As dependências do Cockpit V2 continuam as mesmas, e a migração de Mock para banco real (Drizzle) e recursos de gamificação permanecem mapeados para as próximas iterações.
+
+## 15. Etapa 5D.8 — Ajustes Visuais e Sistema Resiliente de Geração (Concluído)
+
+**Status:** CONCLUÍDA E VALIDADA EM PRODUÇÃO.
+
+### Evidências e Entregas
+- **Commits publicados:**
+  - `2f1c59c` — fix(ai): atualiza modelos Groq de geração de trilhas
+  - `35199d7` — fix(trilhas): ajusta composição da criação de trilha
+- **Deploy:** Concluído com sucesso na Cloudflare Pages.
+- **Rota Validada:** `https://aivur.com.br/trilhas/novo`
+- **Validação Visual (Interface):** A badge ("Mentor AIVUR 360 · Criação") foi removida, o espaçamento superior foi reduzido de forma harmoniosa, e o formulário permaneceu íntegro.
+- **Validação E2E (Geração Real da IA):**
+  - Criação de trilha efetuada com `Direito Constitucional` como tema.
+  - O endpoint `/api/ai/gerar-trilha` processou a requisição e devolveu **HTTP 200**.
+  - Resumo, Flashcards e Questões gerados corretamente no formato JSON esperado e validados com o `StrictTrilhaSchema`.
+  - A trilha foi persistida corretamente no D1, provado pela **sobrevivência da rotação do Reload**.
+  - O registro de teste no banco de produção foi limpado via interface após o sucesso, sem afetar dados reais.
+  - Nenhum erro visual ou de runtime (frontend/backend) foi detectado no fluxo inteiro.
+
+### Ressalvas de Validação Rigorosa (Failover/Fixer)
+- O **Fallback de Matriz** (`A → B → C`) **NÃO** foi forçado artificialmente no ambiente de Produção.
+- O **Fixer Prompt** (Self-healing JSON Engine) **NÃO** foi forçado artificialmente em produção.
+- **Ambos os mecanismos de resiliência foram validados ativamente por análise estática, revisão sintática do arquivo modificado e auditoria ponta-a-ponta no código**. A geração real em produção foi válida na primeira tentativa, portanto não houve necessidade de acionar esses caminhos. Não introduzimos falhas artificiais, alteramos secrets ou modificamos código apenas para fabricar esses cenários.

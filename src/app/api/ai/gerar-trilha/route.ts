@@ -151,9 +151,9 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
     ];
 
     const fallbackModels = [
-      "llama-3.3-70b-versatile", // Primário
-      "openai/gpt-oss-120b",     // Plano B
-      "qwen/qwen3.6-27b"         // Plano C
+      "openai/gpt-oss-120b",     // Primário
+      "openai/gpt-oss-20b",      // Plano B
+      "qwen/qwen3.8-27b"         // Plano C
     ];
 
     let groqResponse;

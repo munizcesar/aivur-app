@@ -292,7 +292,7 @@ export default function UserTrilhasGrid() {
                       title="Renomear"
                       className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-heading)] hover:bg-[var(--color-surface-offset)] transition-colors"
                     >
-                      <Edit3 size={16} strokeWidth={2.1} className="shrink-0 flex-none" aria-hidden="true" />
+                      <Edit3 size={16} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
                     </button>
                     <button
                       type="button"
@@ -301,7 +301,7 @@ export default function UserTrilhasGrid() {
                       title="Excluir"
                       className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-red)] hover:bg-[var(--color-red)]/10 transition-colors"
                     >
-                      <Trash2 size={16} strokeWidth={2.1} className="shrink-0 flex-none" aria-hidden="true" />
+                      <Trash2 size={16} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -312,11 +312,11 @@ export default function UserTrilhasGrid() {
                 </h3>
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--color-text-muted)]">
                   <span className="inline-flex items-center gap-1">
-                    <ListChecks size={14} strokeWidth={2.2} className="shrink-0 flex-none" aria-hidden="true" />
+                    <ListChecks size={14} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
                     {trilha.questoes.length} questões
                   </span>
                   <span className="inline-flex items-center gap-1">
-                    <Layers size={14} strokeWidth={2.2} className="shrink-0 flex-none" aria-hidden="true" />
+                    <Layers size={14} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
                     {flashcardsCount} flashcards
                   </span>
                 </div>
@@ -356,10 +356,10 @@ export default function UserTrilhasGrid() {
                 {/* Ação principal */}
                 <Link
                   href={`/trilhas/${trilha.id}`}
-                  className="mt-6 pt-0 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-3 text-sm font-bold text-white no-underline shadow-sm transition-colors hover:bg-[var(--color-primary-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+                  className="mt-6 pt-0 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#C41230] hover:bg-[#6B0000] px-4 py-3 text-sm font-bold text-[#FFFFFF] no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C41230]"
                 >
                   {iniciada ? "Continuar trilha" : "Iniciar trilha"}
-                  <ArrowRight size={16} strokeWidth={2.2} className="shrink-0 flex-none transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  <ArrowRight size={16} strokeWidth={1.5} className="shrink-0 flex-none transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                 </Link>
               </li>
             );
@@ -368,7 +368,7 @@ export default function UserTrilhasGrid() {
       ) : (
         <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-10 sm:py-12 text-center">
           <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mx-auto mb-4 text-[var(--color-primary)]">
-            <Compass size={24} strokeWidth={2.1} className="shrink-0 flex-none" aria-hidden="true" />
+            <Compass size={24} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
           </div>
           <h3 className="m-0 text-lg font-bold text-[var(--color-heading)]">
             Você ainda não possui trilhas personalizadas
@@ -378,9 +378,9 @@ export default function UserTrilhasGrid() {
           </p>
           <Link
             href="/trilhas/novo"
-            className="mt-5 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white no-underline shadow-sm transition-colors hover:bg-[var(--color-primary-hover)]"
+            className="mt-5 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#C41230] px-5 py-3 text-sm font-bold text-[#FFFFFF] no-underline transition-colors hover:bg-[#6B0000]"
           >
-            <Sparkles size={16} className="shrink-0 flex-none" aria-hidden="true" />
+            <Sparkles size={16} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
             Gerar trilha com IA
           </Link>
         </div>
@@ -406,7 +406,7 @@ export default function UserTrilhasGrid() {
                 aria-label="Fechar"
                 className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-heading)] hover:bg-[var(--color-surface-offset)]"
               >
-                <X size={20} strokeWidth={2.1} className="shrink-0 flex-none" aria-hidden="true" />
+                <X size={20} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
               </button>
             </div>
             <label htmlFor="rename-trilha-input" className="sr-only">Novo nome da trilha</label>
@@ -432,7 +432,7 @@ export default function UserTrilhasGrid() {
                 type="button"
                 onClick={saveRename}
                 disabled={!editingCourse.titulo.trim() || isSavingEdit}
-                className="px-4 py-2 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-bold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-xl bg-[#C41230] hover:bg-[#6B0000] text-[#FFFFFF] text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSavingEdit ? 'Salvando...' : 'Salvar alteração'}
               </button>
@@ -455,7 +455,7 @@ export default function UserTrilhasGrid() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-3 text-[var(--color-red)]">
-              <AlertTriangle size={24} strokeWidth={2.1} className="shrink-0 flex-none" aria-hidden="true" />
+              <AlertTriangle size={24} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
               <h3 id="delete-trilha-title" className="m-0 text-lg font-bold text-[var(--color-heading)]">Excluir trilha</h3>
             </div>
             <p id="delete-trilha-desc" className="m-0 text-sm text-[var(--color-text-muted)] mb-5 leading-relaxed">
@@ -474,7 +474,7 @@ export default function UserTrilhasGrid() {
                 type="button"
                 onClick={confirmDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded-xl bg-[var(--color-red)] hover:opacity-90 text-white text-sm font-bold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-xl bg-[#C41230] hover:opacity-90 text-[#FFFFFF] text-sm font-bold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isDeleting ? 'Excluindo...' : 'Sim, excluir trilha'}
               </button>

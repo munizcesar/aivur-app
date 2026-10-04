@@ -19,7 +19,7 @@ export default function TrilhasPage() {
     <div className="flex flex-col min-h-screen w-full bg-[var(--color-bg)]">
       <Header />
       <main className="flex-1 block w-full py-8 md:py-12">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex flex-col gap-12 md:gap-16">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex flex-col gap-8 md:gap-10">
 
           {/* ── HERO — CENTRAL DE TRILHAS ── */}
           <section
@@ -41,9 +41,9 @@ export default function TrilhasPage() {
                 <div className="mt-6 flex w-full flex-col sm:flex-row sm:w-auto gap-3">
                   <Link
                     href="/trilhas/novo"
-                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm md:text-base font-bold no-underline shadow-sm transition-colors active:scale-[0.98]"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#C41230] hover:bg-[#6B0000] text-[#FFFFFF] text-sm md:text-base font-bold no-underline transition-colors"
                   >
-                    <Sparkles size={18} className="shrink-0 flex-none" aria-hidden="true" />
+                    <Sparkles size={18} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
                     Gerar trilha com IA
                   </Link>
                   <a
@@ -110,21 +110,21 @@ export default function TrilhasPage() {
 
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[var(--color-text-muted)]">
                     <span className="inline-flex items-center gap-1">
-                      <Layers size={14} strokeWidth={2.2} className="shrink-0 flex-none" aria-hidden="true" />
+                      <Layers size={14} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
                       {trilha.flashcards.length} cards
                     </span>
                     <span className="inline-flex items-center gap-1">
-                      <ListChecks size={14} strokeWidth={2.2} className="shrink-0 flex-none" aria-hidden="true" />
+                      <ListChecks size={14} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
                       {trilha.questoes.length} questões
                     </span>
                   </div>
 
                   <Link
                     href={`/trilhas/${trilha.id}`}
-                    className="mt-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-[13px] font-bold no-underline rounded-xl border border-[var(--color-border)] text-[var(--color-heading)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                    className="mt-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-[13px] font-bold no-underline rounded-xl border border-[var(--color-border)] text-[var(--color-heading)] transition-colors hover:bg-[var(--color-surface-offset)]"
                   >
                     Abrir aula
-                    <ArrowRight size={14} strokeWidth={2.2} className="shrink-0 flex-none transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                    <ArrowRight size={14} strokeWidth={1.5} className="shrink-0 flex-none transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                   </Link>
                 </li>
               ))}

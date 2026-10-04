@@ -57,7 +57,7 @@
   
   /* ── Layout & Aesthetics ── */
   --max-width: 1200px;
-  --spacing: 1rem;
+  --layout-spacing: 1rem;
 
   /* ── Shadows ── */
   --shadow-sm: 0 1px 2px oklch(0.2 0.03 260 / 0.06);
@@ -185,26 +185,27 @@
 }
 
 /* ── Base Styles ── */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { max-width: 100%; overflow-x: hidden; }
-body { font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); line-height: 1.5; }
-a { color: var(--color-primary); text-decoration: none; }
-button { background: none; border: none; outline: none; cursor: pointer; font-family: inherit; }
+@layer base {
+  * { box-sizing: border-box; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+  body { font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); line-height: 1.5; }
+  a { color: var(--color-primary); text-decoration: none; }
+  button { background: none; border: none; outline: none; cursor: pointer; font-family: inherit; }
 
+  *:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: inherit;
+  }
+
+  h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); }
+}
+
+/* ── Utilities ── */
 .container { width: 100%; max-width: 1000px; margin: 0 auto; padding: 0 var(--space-4); }
-
 .skip-link { position: absolute; top: -40px; left: 0; background: var(--color-primary); color: white; padding: 8px; z-index: 100; transition: top 0.2s; }
 .skip-link:focus { top: 0; }
 
-*:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 3px;
-  border-radius: inherit;
-}
-
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); }
-
-/* ── Utilities ── */
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

@@ -12,7 +12,7 @@ import SideDrawer from "@/components/SideDrawer/SideDrawer";
 export default function NovaTrilhaPage() {
   return (
     <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] text-[var(--color-text-muted)] text-sm">Carregando...</div>}>
-      <div className="min-h-screen bg-[var(--color-bg)] flex flex-col"><Header /><main className="flex-1 overflow-x-hidden pt-[116px]"><CriarTrilhaView /></main><Footer /><SideDrawer /></div>
+      <div className="min-h-screen bg-[var(--color-bg)] flex flex-col"><Header /><main className="flex-1 overflow-x-hidden pt-[80px]"><CriarTrilhaView /></main><Footer /><SideDrawer /></div>
     </Suspense>
   );
 }

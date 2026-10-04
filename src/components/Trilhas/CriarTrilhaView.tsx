@@ -162,10 +162,6 @@ export default function CriarTrilhaView({
     <div className="w-full max-w-[1000px] mx-auto px-4 py-6 md:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-[rgba(107,153,179,0.2)]">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--color-navy)] text-[var(--color-cream)] text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles size={14} className="shrink-0" />
-            Mentor AIVUR 360 · Criação
-          </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             Criar Trilha Personalizada
           </h1>

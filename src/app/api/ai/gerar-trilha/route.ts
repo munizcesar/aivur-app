@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { extractCleanJson, getDomainRules } from '@/lib/ai-protocols';
 import { TrilhaSchema } from '@/lib/validations/trilha';
 
@@ -46,6 +47,24 @@ function checkRateLimit(ip: string): boolean {
 }
 
 export async function POST(req: Request) {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('aivur_session');
+
+  if (!sessionCookie || !sessionCookie.value) {
+    return NextResponse.json(
+      { error: 'Sessão ausente ou inválida' },
+      { status: 401 }
+    );
+  }
+
+  const userId = sessionCookie.value.trim();
+  if (!userId) {
+    return NextResponse.json(
+      { error: 'Sessão ausente ou inválida' },
+      { status: 401 }
+    );
+  }
+
   const env = resolveEnv();
   const apiKey = env.GROQ_API_KEY || env.GROQ_API_KEY_2 || env.GROQ_API_KEY_3 || env.GROQ_API_KEY_FALLBACK;
   

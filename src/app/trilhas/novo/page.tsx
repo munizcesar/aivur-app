@@ -6,6 +6,8 @@ import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import SideDrawer from "@/components/SideDrawer/SideDrawer";
 
+export const runtime = "edge";
+
 /**
  * Sub-rota /trilhas/novo — Gerador IA de Trilhas.
  * <Suspense> é obrigatório no App Router quando qualquer componente filho

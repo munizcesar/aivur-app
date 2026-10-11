@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   CheckCircle2,
@@ -62,6 +62,7 @@ const markdownComponents: Components = {
 
 // ─── Accordion Section IDs ────────────────────────────────────────────────────
 type SectionId = "video" | "resumo" | "flashcards" | "questoes";
+export type ModuleStatus = "nao_preparado" | "preparando" | "preparado" | "erro";
 
 interface SectionMeta {
   id: SectionId;
@@ -77,23 +78,42 @@ const SECTIONS: SectionMeta[] = [
 ];
 
 // ─── Flashcard sub-component ──────────────────────────────────────────────────
-function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completedTopicIds }: { flashcards: { id: string; frente: string; verso: string }[]; trilhaId: string; toggleTopicCompletion: (id: string) => void; completedTopicIds: string[]; }) {
+function FlashcardPanel({
+  flashcards,
+  trilhaId,
+  status,
+  errorMsg,
+  onRetry,
+  onGenerateMore,
+  isGeneratingMore,
+  moreError,
+  toggleTopicCompletion,
+  completedTopicIds,
+}: {
+  flashcards: { id: string; frente: string; verso: string }[];
+  trilhaId: string;
+  status: ModuleStatus;
+  errorMsg: string;
+  onRetry: () => void;
+  onGenerateMore: () => Promise<void>;
+  isGeneratingMore: boolean;
+  moreError: string;
+  toggleTopicCompletion: (id: string) => void;
+  completedTopicIds: string[];
+}) {
   const { currentFlashcard, setCurrentFlashcard } = useStudyStore();
   const current = currentFlashcard[trilhaId] || 0;
+  const safeCurrent = Math.min(Math.max(0, current), Math.max(0, flashcards.length - 1));
+
   const setCurrent = useCallback((val: number | ((prev: number) => number)) => {
-    const nextVal = typeof val === 'function' ? val(current) : val;
+    const nextVal = typeof val === 'function' ? val(safeCurrent) : val;
     setCurrentFlashcard(trilhaId, nextVal);
-  }, [current, setCurrentFlashcard, trilhaId]);
+  }, [safeCurrent, setCurrentFlashcard, trilhaId]);
 
-  const [activeCards, setActiveCards] = useState(flashcards);
-  useEffect(() => { setActiveCards(flashcards); }, [flashcards]);
+  const [flipped, setFlipped] = useState(false);
 
-  const [flipped, setFlipped]  = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [genError, setGenError] = useState("");
-
-  const total = activeCards.length;
-  const card  = activeCards[current];
+  const total = flashcards.length;
+  const card  = flashcards[safeCurrent];
 
   const prev = useCallback(() => { setFlipped(false); setCurrent(c => Math.max(0, c - 1)); }, [setCurrent]);
   const next = useCallback(() => {
@@ -107,36 +127,48 @@ function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completed
     });
   }, [total, trilhaId, toggleTopicCompletion, completedTopicIds, setCurrent]);
 
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    setGenError("");
-    try {
-      const res = await fetch(`/api/trilhas/${trilhaId}/gerar-mais`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo: "flashcards" })
-      });
-      const data = await res.json() as any;
-      if (data.success && data.items) {
-        setActiveCards(prev => [...prev, ...data.items]);
-        setTimeout(() => {
-          setFlipped(false);
-          setCurrent(c => c + 1);
-        }, 100);
-      } else {
-        setGenError(data.error || "Erro ao gerar.");
-      }
-    } catch (e: any) {
-      setGenError("Erro de conexão.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  if (status === "preparando") {
+    return (
+      <div className="v2-fc-wrapper" style={{ padding: '2rem 1rem' }}>
+        <div className="v2-skeleton-card" style={{ width: '100%', maxWidth: '520px', minHeight: '200px', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', gap: '1rem', boxSizing: 'border-box' }}>
+          <div className="v2-skeleton-line" style={{ width: '40%', height: '1rem' }} />
+          <div className="v2-skeleton-line" style={{ width: '80%', height: '2rem' }} />
+          <div className="v2-skeleton-line" style={{ width: '60%', height: '1rem' }} />
+        </div>
+        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+          Preparando flashcards com inteligência artificial...
+        </p>
+      </div>
+    );
+  }
 
-  if (!card) return <p>Nenhum flashcard disponível.</p>;
+  if (status === "erro") {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '2rem 1rem', textAlign: 'center' }}>
+        <span style={{ color: 'var(--color-error)', fontSize: '0.9rem', maxWidth: '480px', lineHeight: 1.5 }}>
+          {errorMsg || "Não foi possível carregar os flashcards neste momento."}
+        </span>
+        <button className="v2-btn-outline" onClick={onRetry}>
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
+  if (!card) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '2rem 1rem' }}>
+        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Nenhum flashcard disponível.</p>
+        <button className="v2-btn-outline" onClick={onRetry}>
+          Gerar Flashcards com IA ✨
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="v2-fc-wrapper">
-      <p className="v2-fc-counter">{current + 1} / {total}</p>
+      <p className="v2-fc-counter">{safeCurrent + 1} / {total}</p>
 
       {/* Flip card */}
       <div
@@ -162,7 +194,7 @@ function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completed
       <div className="v2-fc-nav" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
         <button
           id="v2-fc-prev"
-          disabled={current === 0}
+          disabled={safeCurrent === 0}
           onClick={prev}
           className="v2-btn-ghost"
           aria-label="Flashcard anterior"
@@ -179,7 +211,7 @@ function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completed
         </button>
         <button
           id="v2-fc-next"
-          disabled={current === total - 1}
+          disabled={safeCurrent === total - 1}
           onClick={next}
           className="v2-btn-ghost"
           aria-label="Próximo flashcard"
@@ -190,17 +222,17 @@ function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completed
 
       {/* Gerar mais */}
       <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-        {current === total - 1 && (
+        {safeCurrent === total - 1 && (
           <button
             className="v2-btn-outline"
-            onClick={handleGenerate}
-            disabled={isGenerating}
+            onClick={onGenerateMore}
+            disabled={isGeneratingMore}
             style={{ width: '100%', maxWidth: '300px' }}
           >
-            {isGenerating ? "Gerando..." : "Gerar mais flashcards ✨"}
+            {isGeneratingMore ? "Gerando..." : "Gerar mais flashcards ✨"}
           </button>
         )}
-        {genError && <span style={{ color: 'var(--color-error)', fontSize: '0.85rem' }}>{genError}</span>}
+        {moreError && <span style={{ color: 'var(--color-error)', fontSize: '0.85rem' }}>{moreError}</span>}
       </div>
     </div>
   );
@@ -210,115 +242,41 @@ function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completed
 function QuestoesPanel({
   questoes,
   topicoId,
+  status,
+  errorMsg,
+  onRetry,
+  onGenerateMore,
+  isGeneratingMore,
+  moreError,
   registerAnswer,
   toggleTopicCompletion,
 }: {
   questoes: TrilhaQuestao[];
   topicoId: string;
+  status: ModuleStatus;
+  errorMsg: string;
+  onRetry: () => void;
+  onGenerateMore: () => Promise<void>;
+  isGeneratingMore: boolean;
+  moreError: string;
   registerAnswer: (id: string, correct: boolean) => void;
   toggleTopicCompletion: (id: string) => void;
 }) {
-  const { questoesCache, setQuestoesCache, currentQuestao, setCurrentQuestao } = useStudyStore();
-  const cacheEntry = questoesCache[topicoId];
-  const isCacheValid = cacheEntry && (Date.now() - cacheEntry.timestamp < 5 * 60 * 1000);
-
-  const [d1Questoes, setD1Questoes] = useState<TrilhaQuestao[] | null>(isCacheValid ? cacheEntry.data : (questoes.length > 0 ? questoes : null));
-  const [isLoadingD1, setIsLoadingD1] = useState(!isCacheValid && questoes.length === 0);
+  const { currentQuestao, setCurrentQuestao } = useStudyStore();
 
   const currentQ = currentQuestao[topicoId] || 0;
+  const safeCurrentQ = Math.min(Math.max(0, currentQ), Math.max(0, questoes.length - 1));
+
   const setCurrentQ = useCallback((val: number | ((prev: number) => number)) => {
-    const nextVal = typeof val === 'function' ? val(currentQ) : val;
+    const nextVal = typeof val === 'function' ? val(safeCurrentQ) : val;
     setCurrentQuestao(topicoId, nextVal);
-  }, [currentQ, setCurrentQuestao, topicoId]);
+  }, [safeCurrentQ, setCurrentQuestao, topicoId]);
 
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showEnd, setShowEnd]         = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [genError, setGenError] = useState("");
 
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    setGenError("");
-    try {
-      const res = await fetch(`/api/trilhas/${topicoId}/gerar-mais`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo: "questoes" })
-      });
-      const data = await res.json() as any;
-      if (data.success && data.items) {
-        setD1Questoes(prev => {
-          const updated = [...(prev || questoes), ...data.items];
-          setQuestoesCache(topicoId, updated);
-          return updated;
-        });
-        setTimeout(() => {
-           setIsSubmitted(false);
-           setSelectedOpt(null);
-           setCurrentQ(q => q + 1);
-           setShowEnd(false);
-        }, 100);
-      } else {
-        setGenError(data.error || "Erro ao gerar.");
-      }
-    } catch (e: any) {
-      setGenError("Erro de conexão.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isCacheValid || questoes.length > 0) return;
-
-    let isMounted = true;
-    setIsLoadingD1(true);
-    fetch(`/api/questoes?topicoId=${topicoId}`)
-      .then(res => res.json())
-      .then((data: any) => {
-        if (!isMounted) return;
-        if (data.questoes && data.questoes.length > 0) {
-          const mapped = data.questoes.map((q: any) => {
-            const isCE = q.tipo_questao === "CERTO_ERRADO";
-            let opcoes: string[] = [];
-            let corretaIdx = 0;
-
-            if (isCE) {
-              opcoes = ["Certo", "Errado"];
-              corretaIdx = q.correta === "CERTO" ? 0 : 1;
-            } else {
-              opcoes = [q.alternativa_a, q.alternativa_b, q.alternativa_c, q.alternativa_d, q.alternativa_e].filter(Boolean);
-              const mapping: Record<string, number> = { "A": 0, "B": 1, "C": 2, "D": 3, "E": 4 };
-              corretaIdx = mapping[q.correta] ?? 0;
-            }
-
-            return {
-              id: String(q.id),
-              enunciado: q.enunciado,
-              opcoes,
-              corretaIdx,
-              tipo_questao: q.tipo_questao,
-              justificativa: q.justificativa || "Sem justificativa."
-            };
-          });
-          setD1Questoes(mapped);
-          setQuestoesCache(topicoId, mapped);
-        } else {
-          setD1Questoes(null);
-        }
-      })
-      .catch((err) => {
-        console.error("Erro ao buscar questões do D1:", err);
-        if (isMounted) setD1Questoes(null);
-      })
-      .finally(() => {
-        if (isMounted) setIsLoadingD1(false);
-      });
-
-    return () => { isMounted = false; };
-  }, [topicoId, isCacheValid, setQuestoesCache]);
-
-  if (isLoadingD1) {
+  if (status === "preparando") {
     return (
       <div className="v2-q-wrapper">
          <div className="v2-skeleton-card" style={{ flexDirection: 'column', padding: '1.5rem', gap: '1rem', width: '100%', boxSizing: 'border-box' }}>
@@ -328,13 +286,38 @@ function QuestoesPanel({
              {[1,2,3,4].map(i => <div key={i} className="v2-skeleton-line" style={{ width: '100%', height: '3rem', borderRadius: '0.5rem' }} />)}
            </div>
          </div>
+         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', textAlign: 'center' }}>
+           Preparando questões com inteligência artificial...
+         </p>
       </div>
     );
   }
 
-  const activeQuestoes = d1Questoes ?? questoes;
+  if (status === "erro") {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '2rem 1rem', textAlign: 'center' }}>
+        <span style={{ color: 'var(--color-error)', fontSize: '0.9rem', maxWidth: '480px', lineHeight: 1.5 }}>
+          {errorMsg || "Não foi possível carregar as questões neste momento."}
+        </span>
+        <button className="v2-btn-outline" onClick={onRetry}>
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
 
-  const q      = activeQuestoes[currentQ];
+  if (questoes.length === 0) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '2rem 1rem' }}>
+        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Nenhuma questão disponível.</p>
+        <button className="v2-btn-outline" onClick={onRetry}>
+          Gerar Questões com IA ✨
+        </button>
+      </div>
+    );
+  }
+
+  const q = questoes[safeCurrentQ];
   const acerto = isSubmitted && selectedOpt === q?.corretaIdx;
 
   if (showEnd) {
@@ -359,23 +342,30 @@ function QuestoesPanel({
           </button>
           <button
             className="v2-btn-outline"
-            onClick={handleGenerate}
-            disabled={isGenerating}
+            onClick={async () => {
+              await onGenerateMore();
+              setIsSubmitted(false);
+              setSelectedOpt(null);
+              setShowEnd(false);
+            }}
+            disabled={isGeneratingMore}
             style={{ width: '100%', maxWidth: '300px' }}
           >
-            {isGenerating ? "Gerando..." : "Gerar mais questões ✨"}
+            {isGeneratingMore ? "Gerando..." : "Gerar mais questões ✨"}
           </button>
-          {genError && <span style={{ color: 'var(--color-error)', fontSize: '0.85rem' }}>{genError}</span>}
+          {moreError && <span style={{ color: 'var(--color-error)', fontSize: '0.85rem' }}>{moreError}</span>}
         </div>
       </div>
     );
   }
 
+  if (!q) return null;
+
   return (
     <div className="v2-q-wrapper">
       <div className="v2-q-header">
         <span className="v2-q-label">Questão de Fixação</span>
-        <span className="v2-q-counter">{currentQ + 1} de {activeQuestoes.length}</span>
+        <span className="v2-q-counter">{safeCurrentQ + 1} de {questoes.length}</span>
       </div>
 
       <div className="v2-q-card">
@@ -403,7 +393,7 @@ function QuestoesPanel({
             return (
               <button
                 key={i}
-                id={`v2-q-opt-${currentQ}-${i}`}
+                id={`v2-q-opt-${safeCurrentQ}-${i}`}
                 disabled={isSubmitted}
                 onClick={() => setSelectedOpt(i)}
                 className={cls}
@@ -452,7 +442,7 @@ function QuestoesPanel({
             <button
               id="v2-next-q-btn"
               onClick={() => {
-                if (currentQ < questoes.length - 1) {
+                if (safeCurrentQ < questoes.length - 1) {
                   setIsSubmitted(false);
                   setSelectedOpt(null);
                   setCurrentQ(q => q + 1);
@@ -464,7 +454,7 @@ function QuestoesPanel({
               }}
               className="v2-btn-secondary"
             >
-              {currentQ < questoes.length - 1 ? "Próxima Questão" : "Finalizar Trilha"}
+              {safeCurrentQ < questoes.length - 1 ? "Próxima Questão" : "Finalizar Trilha"}
               <ArrowRight size={16} />
             </button>
           )}
@@ -488,44 +478,90 @@ export default function TrilhaSalaV2() {
   const [isLoadingD1, setIsLoadingD1] = useState(!localTrilha);
   const [d1Error, setD1Error] = useState(false);
 
-  useEffect(() => {
-    if (localTrilha) {
-      setIsLoadingD1(false);
-      return;
-    }
+  const generatingRef = useRef<Record<string, boolean>>({});
 
+  const [activeFlashcards, setActiveFlashcards] = useState<{ id: string; frente: string; verso: string }[]>([]);
+  const [activeQuestoes, setActiveQuestoes] = useState<TrilhaQuestao[]>([]);
+  const [activeResumoMarkdown, setActiveResumoMarkdown] = useState<string>("");
+  const [activeResumoText, setActiveResumoText] = useState<string>("");
+
+  const [flashcardsStatus, setFlashcardsStatus] = useState<ModuleStatus>("nao_preparado");
+  const [questoesStatus, setQuestoesStatus] = useState<ModuleStatus>("nao_preparado");
+  const [resumoStatus, setResumoStatus] = useState<ModuleStatus>("nao_preparado");
+
+  const [flashcardsError, setFlashcardsError] = useState("");
+  const [questoesError, setQuestoesError] = useState("");
+  const [resumoError, setResumoError] = useState("");
+
+  const [isGeneratingMoreFc, setIsGeneratingMoreFc] = useState(false);
+  const [fcMoreError, setFcMoreError] = useState("");
+  const [isGeneratingMoreQ, setIsGeneratingMoreQ] = useState(false);
+  const [qMoreError, setQMoreError] = useState("");
+
+  useEffect(() => {
     let isMounted = true;
-    setIsLoadingD1(true);
+    if (!localTrilha) setIsLoadingD1(true);
     fetch(`/api/trilhas/${id}`)
       .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch trilha");
+        if (!res.ok) throw new Error("HTTP " + res.status);
         return res.json();
       })
       .then((data: any) => {
         if (isMounted) {
           if (data.trilha) {
             setD1Trilha(data.trilha);
-          } else {
+          } else if (!localTrilha) {
             setD1Error(true);
           }
         }
       })
       .catch(err => {
         if (isMounted) {
-          console.error("Erro ao carregar trilha do D1:", err);
-          setD1Error(true);
+          console.warn("D1 fetch fallback to local:", err);
+          if (!localTrilha) setD1Error(true);
         }
       })
       .finally(() => {
-        if (isMounted) {
-          setIsLoadingD1(false);
-        }
+        if (isMounted) setIsLoadingD1(false);
       });
 
     return () => { isMounted = false; };
   }, [id, localTrilha]);
 
-  const trilha = localTrilha || d1Trilha;
+  const trilha = d1Trilha || localTrilha;
+
+  useEffect(() => {
+    if (!trilha) return;
+
+    // Resumo
+    const md = trilha.video?.resumo_markdown || "";
+    const txt = trilha.video?.resumo || "";
+    setActiveResumoMarkdown(md);
+    setActiveResumoText(txt);
+    if ((md && md.trim() !== "") || (txt && txt.trim() !== "")) {
+      setResumoStatus("preparado");
+    } else {
+      setResumoStatus("nao_preparado");
+    }
+
+    // Flashcards
+    const fc = (trilha.flashcards || []) as { id: string; frente: string; verso: string }[];
+    setActiveFlashcards(fc);
+    if (fc.length > 0) {
+      setFlashcardsStatus("preparado");
+    } else {
+      setFlashcardsStatus("nao_preparado");
+    }
+
+    // Questoes
+    const q = (trilha.questoes || []) as TrilhaQuestao[];
+    setActiveQuestoes(q);
+    if (q.length > 0) {
+      setQuestoesStatus("preparado");
+    } else {
+      setQuestoesStatus("nao_preparado");
+    }
+  }, [trilha]);
 
   const [openSection, setOpenSection] = useState<SectionId | null>(null);
   const [forceGallery, setForceGallery] = useState(false);
@@ -572,13 +608,173 @@ export default function TrilhaSalaV2() {
     }
   }, [openSection, trilha, completedTopicIds, toggleTopicCompletion]);
 
+  const generateModule = useCallback(async (tipo: "resumo" | "flashcards" | "questoes") => {
+    if (generatingRef.current[tipo]) {
+      return;
+    }
+    generatingRef.current[tipo] = true;
+
+    if (tipo === "resumo") {
+      setResumoStatus("preparando");
+      setResumoError("");
+    } else if (tipo === "flashcards") {
+      setFlashcardsStatus("preparando");
+      setFlashcardsError("");
+    } else if (tipo === "questoes") {
+      setQuestoesStatus("preparando");
+      setQuestoesError("");
+    }
+
+    try {
+      const res = await fetch(`/api/trilhas/${id}/gerar-mais`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo }),
+      });
+
+      const data = (await res.json().catch(() => ({}))) as any;
+
+      if (!res.ok || !data.success) {
+        const msg = data.error || (res.status === 429
+          ? "Limite temporário de requisições da IA atingido. Por favor, aguarde alguns segundos antes de tentar novamente."
+          : "Erro ao gerar conteúdo.");
+        if (tipo === "resumo") {
+          setResumoStatus("erro");
+          setResumoError(msg);
+        } else if (tipo === "flashcards") {
+          setFlashcardsStatus("erro");
+          setFlashcardsError(msg);
+        } else if (tipo === "questoes") {
+          setQuestoesStatus("erro");
+          setQuestoesError(msg);
+        }
+        return;
+      }
+
+      if (tipo === "resumo") {
+        setActiveResumoMarkdown(data.resumo_markdown || "");
+        setActiveResumoText(data.resumo || "");
+        setResumoStatus("preparado");
+        setD1Trilha(prev => prev ? {
+          ...prev,
+          video: { ...prev.video, resumo: data.resumo, resumo_markdown: data.resumo_markdown }
+        } : prev);
+      } else if (tipo === "flashcards") {
+        const items = data.items || [];
+        setActiveFlashcards(items);
+        setFlashcardsStatus("preparado");
+        setD1Trilha(prev => prev ? { ...prev, flashcards: items } : prev);
+      } else if (tipo === "questoes") {
+        const items = data.items || [];
+        setActiveQuestoes(items);
+        setQuestoesStatus("preparado");
+        setD1Trilha(prev => prev ? { ...prev, questoes: items } : prev);
+      }
+    } catch {
+      const msg = "Erro de conexão ao gerar conteúdo.";
+      if (tipo === "resumo") {
+        setResumoStatus("erro");
+        setResumoError(msg);
+      } else if (tipo === "flashcards") {
+        setFlashcardsStatus("erro");
+        setFlashcardsError(msg);
+      } else if (tipo === "questoes") {
+        setQuestoesStatus("erro");
+        setQuestoesError(msg);
+      }
+    } finally {
+      generatingRef.current[tipo] = false;
+    }
+  }, [id]);
+
+  const handleGenerateMoreFlashcards = useCallback(async () => {
+    if (generatingRef.current["flashcards_more"]) return;
+    generatingRef.current["flashcards_more"] = true;
+    setIsGeneratingMoreFc(true);
+    setFcMoreError("");
+
+    try {
+      const res = await fetch(`/api/trilhas/${id}/gerar-mais`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo: "flashcards" }),
+      });
+      const data = (await res.json().catch(() => ({}))) as any;
+      if (!res.ok || !data.success) {
+        setFcMoreError(data.error || (res.status === 429
+          ? "Limite temporário de requisições da IA atingido. Por favor, aguarde alguns segundos antes de tentar novamente."
+          : "Erro ao gerar mais flashcards."));
+        return;
+      }
+      if (data.items && data.items.length > 0) {
+        const updated = [...activeFlashcards, ...data.items];
+        setActiveFlashcards(updated);
+        setD1Trilha(prev => prev ? { ...prev, flashcards: updated } : prev);
+        const current = useStudyStore.getState().currentFlashcard[id] || 0;
+        useStudyStore.getState().setCurrentFlashcard(id, current + 1);
+      }
+    } catch {
+      setFcMoreError("Erro de conexão ao gerar mais flashcards.");
+    } finally {
+      setIsGeneratingMoreFc(false);
+      generatingRef.current["flashcards_more"] = false;
+    }
+  }, [id, activeFlashcards]);
+
+  const handleGenerateMoreQuestoes = useCallback(async () => {
+    if (generatingRef.current["questoes_more"]) return;
+    generatingRef.current["questoes_more"] = true;
+    setIsGeneratingMoreQ(true);
+    setQMoreError("");
+
+    try {
+      const res = await fetch(`/api/trilhas/${id}/gerar-mais`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo: "questoes" }),
+      });
+      const data = (await res.json().catch(() => ({}))) as any;
+      if (!res.ok || !data.success) {
+        setQMoreError(data.error || (res.status === 429
+          ? "Limite temporário de requisições da IA atingido. Por favor, aguarde alguns segundos antes de tentar novamente."
+          : "Erro ao gerar mais questões."));
+        return;
+      }
+      if (data.items && data.items.length > 0) {
+        const updated = [...activeQuestoes, ...data.items];
+        setActiveQuestoes(updated);
+        setD1Trilha(prev => prev ? { ...prev, questoes: updated } : prev);
+        useStudyStore.getState().setQuestoesCache(id, updated);
+        const current = useStudyStore.getState().currentQuestao[id] || 0;
+        useStudyStore.getState().setCurrentQuestao(id, current + 1);
+      }
+    } catch {
+      setQMoreError("Erro de conexão ao gerar mais questões.");
+    } finally {
+      setIsGeneratingMoreQ(false);
+      generatingRef.current["questoes_more"] = false;
+    }
+  }, [id, activeQuestoes]);
+
   const toggle = useCallback((section: SectionId) => {
     setOpenSection(prev => {
-      const next = prev === section ? null : section;
+      const isOpening = prev !== section;
+      const next = isOpening ? section : null;
       if (next && trilha) trackEvent("v2_section_opened", { section, trilha_id: trilha.id });
+
+      if (isOpening) {
+        if (section === "resumo" && resumoStatus === "nao_preparado") {
+          generateModule("resumo");
+        } else if (section === "flashcards" && flashcardsStatus === "nao_preparado") {
+          generateModule("flashcards");
+        } else if (section === "questoes" && questoesStatus === "nao_preparado") {
+          generateModule("questoes");
+        }
+      }
+
       return next;
     });
-  }, [trilha]);
+  }, [trilha, resumoStatus, flashcardsStatus, questoesStatus, generateModule]);
 
   if (isLoadingD1) {
     return (
@@ -1171,7 +1367,7 @@ export default function TrilhaSalaV2() {
             } else if (sId === "flashcards") {
               isCompleted = completedTopicIds.includes(`${trilha.id}-flashcards`);
             } else if (sId === "questoes") {
-              const qIds = trilha.questoes.map((q: any) => String(q.id));
+              const qIds = activeQuestoes.map((q: any) => String(q.id));
               isCompleted = qIds.length > 0 && qIds.every((id: string) => progressData.answers[id] !== undefined);
             }
 
@@ -1274,15 +1470,49 @@ export default function TrilhaSalaV2() {
                     {/* ── RESUMO ─────────────────────────────── */}
                     {sId === "resumo" && (
                       <div className="v2-resumo-wrapper">
-                        {trilha.video.resumo_markdown ? (
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={markdownComponents}
-                          >
-                            {trilha.video.resumo_markdown}
-                          </ReactMarkdown>
-                        ) : (
-                          <p className="v2-md-p">{trilha.video.resumo}</p>
+                        {resumoStatus === "preparando" && (
+                          <div>
+                            <div className="v2-skeleton-card" style={{ flexDirection: 'column', padding: '1.5rem', gap: '1rem', width: '100%', boxSizing: 'border-box' }}>
+                              <div className="v2-skeleton-line" style={{ width: '40%', height: '1.5rem' }} />
+                              <div className="v2-skeleton-line" style={{ width: '100%', height: '1rem' }} />
+                              <div className="v2-skeleton-line" style={{ width: '95%', height: '1rem' }} />
+                              <div className="v2-skeleton-line" style={{ width: '90%', height: '1rem' }} />
+                            </div>
+                            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', textAlign: 'center', marginTop: '0.75rem' }}>
+                              Preparando resumo teórico com inteligência artificial...
+                            </p>
+                          </div>
+                        )}
+
+                        {resumoStatus === "erro" && (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '2rem 1rem', textAlign: 'center' }}>
+                            <span style={{ color: 'var(--color-error)', fontSize: '0.9rem', maxWidth: '480px', lineHeight: 1.5 }}>
+                              {resumoError || "Não foi possível gerar o resumo neste momento."}
+                            </span>
+                            <button className="v2-btn-outline" onClick={() => generateModule("resumo")}>
+                              Tentar novamente
+                            </button>
+                          </div>
+                        )}
+
+                        {resumoStatus === "preparado" && (
+                          activeResumoMarkdown ? (
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              components={markdownComponents}
+                            >
+                              {activeResumoMarkdown}
+                            </ReactMarkdown>
+                          ) : activeResumoText ? (
+                            <p className="v2-md-p">{activeResumoText}</p>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '2rem 1rem' }}>
+                              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Nenhum resumo teórico disponível.</p>
+                              <button className="v2-btn-outline" onClick={() => generateModule("resumo")}>
+                                Gerar Resumo com IA ✨
+                              </button>
+                            </div>
+                          )
                         )}
                       </div>
                     )}
@@ -1290,9 +1520,14 @@ export default function TrilhaSalaV2() {
                     {/* ── FLASHCARDS ─────────────────────────── */}
                     {sId === "flashcards" && (
                       <FlashcardPanel
-                        // Cast needed since TrilhaFlashcard uses string id
-                        flashcards={trilha.flashcards as { id: string; frente: string; verso: string }[]}
+                        flashcards={activeFlashcards}
                         trilhaId={trilha.id}
+                        status={flashcardsStatus}
+                        errorMsg={flashcardsError}
+                        onRetry={() => generateModule("flashcards")}
+                        onGenerateMore={handleGenerateMoreFlashcards}
+                        isGeneratingMore={isGeneratingMoreFc}
+                        moreError={fcMoreError}
                         toggleTopicCompletion={toggleTopicCompletion}
                         completedTopicIds={completedTopicIds}
                       />
@@ -1301,8 +1536,14 @@ export default function TrilhaSalaV2() {
                     {/* ── QUESTÕES ───────────────────────────── */}
                     {sId === "questoes" && (
                       <QuestoesPanel
-                        questoes={trilha.questoes as TrilhaQuestao[]}
+                        questoes={activeQuestoes}
                         topicoId={trilha.id}
+                        status={questoesStatus}
+                        errorMsg={questoesError}
+                        onRetry={() => generateModule("questoes")}
+                        onGenerateMore={handleGenerateMoreQuestoes}
+                        isGeneratingMore={isGeneratingMoreQ}
+                        moreError={qMoreError}
                         registerAnswer={registerAnswer}
                         toggleTopicCompletion={toggleTopicCompletion}
                       />

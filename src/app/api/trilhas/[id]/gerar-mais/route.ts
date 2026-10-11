@@ -56,33 +56,38 @@ export async function POST(
     }
 
     const body = await request.json() as any;
-    const { tipo } = body; // 'flashcards' | 'questoes'
-    if (tipo !== 'flashcards' && tipo !== 'questoes') {
+    const { tipo } = body; // 'flashcards' | 'questoes' | 'resumo'
+    if (tipo !== 'flashcards' && tipo !== 'questoes' && tipo !== 'resumo') {
       return NextResponse.json({ error: 'Tipo inválido' }, { status: 400 });
     }
 
-    // Obter as questões ou flashcards atuais para usar como contexto negativo (evitar repetição)
-    let contextoExistente = '';
-    if (tipo === 'flashcards') {
-      const fcStmt = db.prepare('SELECT frente FROM trilha_flashcards WHERE trilha_id = ?').bind(id);
-      const fcRes = await fcStmt.all();
-      if (fcRes.success && fcRes.results.length > 0) {
-        contextoExistente = '\\nFlashcards já existentes (NÃO REPITA ESTES):\\n' + fcRes.results.map((r: any) => '- ' + r.frente).join('\\n');
-      }
+    let prompt = '';
+    if (tipo === 'resumo') {
+      prompt = `Você é um tutor especialista.\nO aluno quer gerar o resumo teórico estruturado em markdown para a trilha: "${trilha.titulo}".\nDisciplina: ${trilha.disciplina}\n\nVocê deve gerar um JSON contendo:\n- 'resumo': um resumo curto de 1 frase.\n- 'resumo_markdown': um resumo farto, didático e estruturado em markdown com subtópicos, listas e conceitos-chave da matéria.\n\nSchema esperado:\n{\n  "resumo": "string",\n  "resumo_markdown": "string"\n}\n`;
     } else {
-      const qStmt = db.prepare('SELECT enunciado FROM trilha_questoes WHERE trilha_id = ?').bind(id);
-      const qRes = await qStmt.all();
-      if (qRes.success && qRes.results.length > 0) {
-        contextoExistente = '\\nQuestões já existentes (NÃO REPITA ESTAS):\\n' + qRes.results.map((r: any) => '- ' + r.enunciado).join('\\n');
+      // Obter as questões ou flashcards atuais para usar como contexto negativo (evitar repetição)
+      let contextoExistente = '';
+      if (tipo === 'flashcards') {
+        const fcStmt = db.prepare('SELECT frente FROM trilha_flashcards WHERE trilha_id = ?').bind(id);
+        const fcRes = await fcStmt.all();
+        if (fcRes.success && fcRes.results.length > 0) {
+          contextoExistente = '\nFlashcards já existentes (NÃO REPITA ESTES):\n' + fcRes.results.map((r: any) => '- ' + r.frente).join('\n');
+        }
+      } else {
+        const qStmt = db.prepare('SELECT enunciado FROM trilha_questoes WHERE trilha_id = ?').bind(id);
+        const qRes = await qStmt.all();
+        if (qRes.success && qRes.results.length > 0) {
+          contextoExistente = '\nQuestões já existentes (NÃO REPITA ESTAS):\n' + qRes.results.map((r: any) => '- ' + r.enunciado).join('\n');
+        }
       }
-    }
 
-    let prompt = `Você é um tutor especialista.\\nO aluno quer gerar MAIS ${tipo} sobre a trilha: "${trilha.titulo}".\\nDisciplina: ${trilha.disciplina}\\nContexto Base (resumo):\\n${trilha.video_resumo_markdown || ""}\\n${contextoExistente}\\n\\n`;
-    
-    if (tipo === 'flashcards') {
-      prompt += `Você deve gerar um JSON contendo MAIS 3 novos flashcards.\\nSchema esperado:\\n{ "flashcards": [ { "frente": "string", "verso": "string" } ] }\\n`;
-    } else {
-      prompt += `Você deve gerar um JSON contendo MAIS 3 novas questões de múltipla escolha.\\nSchema esperado:\\n{ "questoes": [ { "enunciado": "string", "opcoes": ["string", "string", "string", "string"], "corretaIdx": 0, "justificativa": "string" } ] }\\n`;
+      prompt = `Você é um tutor especialista.\nO aluno quer gerar ${tipo} sobre a trilha: "${trilha.titulo}".\nDisciplina: ${trilha.disciplina}\nContexto Base (resumo):\n${trilha.video_resumo_markdown || ""}\n${contextoExistente}\n\n`;
+
+      if (tipo === 'flashcards') {
+        prompt += `Você deve gerar um JSON contendo MAIS 3 novos flashcards.\nSchema esperado:\n{ "flashcards": [ { "frente": "string", "verso": "string" } ] }\n`;
+      } else {
+        prompt += `Você deve gerar um JSON contendo MAIS 3 novas questões de múltipla escolha.\nSchema esperado:\n{ "questoes": [ { "enunciado": "string", "opcoes": ["string", "string", "string", "string"], "corretaIdx": 0, "justificativa": "string" } ] }\n`;
+      }
     }
 
     const messages = [
@@ -112,9 +117,19 @@ export async function POST(
       if (groqResponse.ok) {
         break;
       }
+
+      // Se for rate limit (429), interrompe para não consumir mais cotas da organização em cascata
+      if (groqResponse.status === 429) {
+        break;
+      }
     }
 
     if (!groqResponse || !groqResponse.ok) {
+      if (groqResponse?.status === 429) {
+        return NextResponse.json({
+          error: "Limite temporário de requisições da IA atingido. Por favor, aguarde alguns segundos antes de tentar novamente."
+        }, { status: 429 });
+      }
       return NextResponse.json({ error: "Erro na API da IA (Groq)." }, { status: 500 });
     }
 
@@ -122,6 +137,15 @@ export async function POST(
     const messageContent = data.choices[0]?.message?.content;
     const cleanJson = extractCleanJson(messageContent || "");
     const parsedJson = JSON.parse(cleanJson);
+
+    if (tipo === 'resumo') {
+      const resumo = parsedJson.resumo || trilha.titulo;
+      const resumoMarkdown = parsedJson.resumo_markdown || "";
+      await db.prepare('UPDATE trilhas SET video_resumo = ?, video_resumo_markdown = ? WHERE id = ? AND user_id = ?')
+        .bind(resumo, resumoMarkdown, id, userId)
+        .run();
+      return NextResponse.json({ success: true, resumo, resumo_markdown: resumoMarkdown }, { status: 200 });
+    }
 
     const statements = [];
     let itemsToReturn = [];

@@ -322,3 +322,77 @@ As dependências do Cockpit V2 continuam as mesmas, e a migração de Mock para 
 - O **Fallback de Matriz** (`A → B → C`) **NÃO** foi forçado artificialmente no ambiente de Produção.
 - O **Fixer Prompt** (Self-healing JSON Engine) **NÃO** foi forçado artificialmente em produção.
 - **Ambos os mecanismos de resiliência foram validados ativamente por análise estática, revisão sintática do arquivo modificado e auditoria ponta-a-ponta no código**. A geração real em produção foi válida na primeira tentativa, portanto não houve necessidade de acionar esses caminhos. Não introduzimos falhas artificiais, alteramos secrets ou modificamos código apenas para fabricar esses cenários.
+
+## 16. Geração Lazy e Persistência dos Gaveteiros de Estudo (Trilhas Cockpit V2)
+
+**Status:** CONCLUÍDO E VALIDADO (8/8 TESTES PASS).
+
+### Arquivos Modificados:
+- `src/app/api/trilhas/[id]/gerar-mais/route.ts`: Adicionado suporte a `tipo: 'resumo'` (persistência em `trilhas.video_resumo` e `trilhas.video_resumo_markdown`), parada imediata em erro HTTP 429 para evitar cascata destrutiva entre modelos, e proteção contra duplicação de flashcards/questões.
+- `src/components/Trilhas/TrilhaSalaV2.tsx`: Ciclo de 4 estados (`nao_preparado`, `preparando`, `preparado`, `erro`) independente por módulo, carregamento unificado com o banco D1, persistência de posições via `useStudyStore`, geração lazy ativada no momento da abertura do gaveteiro sem chamadas desnecessárias aos demais módulos, e mutex de bloqueio de duplo clique (`generatingRef`).
+
+### Decisões Arquiteturais:
+1. **Geração Lazy Sob Demanda:** A abertura de qualquer gaveteiro gera unicamente o conteúdo daquele módulo caso não existam dados no D1. Reabrir gaveteiros preparados consome 0 chamadas Groq.
+2. **Persistência Total no D1:** Flashcards em `trilha_flashcards`, questões em `trilha_questoes`, e resumo em `trilhas` (colunas `video_resumo` e `video_resumo_markdown`). Dados continuam disponíveis após fechar, recarregar (F5), navegar ou abrir em nova sessão.
+3. **Resiliência a Rate Limit (429):** Bloqueio de cascatas no loop de fallback e interface com estado de erro amigável e botão de retentativa controlada.
+
+## REGRAS PERMANENTES DE DESENVOLVIMENTO — AIVUR
+
+### 1. Regras gerais do site
+
+- Preservar funcionalidades existentes que já foram validadas.
+- Fazer somente as alterações necessárias para atender ao objetivo solicitado.
+- Não realizar refatorações ou mudanças de arquitetura sem necessidade direta.
+- Não alterar autenticação, banco de dados, APIs ou modelos de IA sem necessidade explícita.
+- Evitar alterações visuais ou estruturais em massa.
+- Evitar regressões em páginas e módulos que não fazem parte do escopo.
+- Priorizar segurança, persistência, desempenho, estabilidade e experiência consistente.
+- Antes de concluir uma alteração, validar build e os fluxos afetados.
+- Executar `git diff --check` antes do commit.
+- Não fazer commit ou push enquanto houver falha, comportamento não validado ou dúvida sobre regressão.
+- Não introduzir código temporário de teste, mocks ou bypasses na implementação definitiva.
+- Manter alterações pequenas, rastreáveis e relacionadas ao objetivo solicitado.
+
+### 2. Regras permanentes — Trilhas
+
+A Sala da Trilha possui quatro gaveteiros independentes:
+
+- Vídeo
+- Resumo
+- Flashcards
+- Questões
+
+Regras:
+
+- Cada gaveteiro possui ciclo de vida e geração independentes.
+- Abrir um gaveteiro representa a intenção explícita do usuário de acessar/preparar aquele conteúdo.
+- Abrir um gaveteiro deve gerar SOMENTE o conteúdo daquele gaveteiro quando ele ainda não estiver preparado.
+- Nunca gerar Resumo + Flashcards + Questões como consequência da abertura de apenas um gaveteiro.
+- Vídeo NÃO utiliza IA para geração.
+- Se o conteúdo já existir no D1, reutilizar o conteúdo existente e NÃO chamar Groq novamente.
+- Todo conteúdo gerado deve ser persistido para consultas posteriores.
+- Fechar e reabrir um gaveteiro não deve gerar novamente conteúdo já persistido.
+- F5/reload não deve apagar conteúdo nem posição de estudo.
+- A posição atual de Flashcards e Questões deve ser preservada.
+- `Gerar mais` deve SEMPRE acrescentar novos itens, nunca substituir os itens existentes.
+- Novos itens devem evitar duplicações semânticas com os itens já existentes.
+- Cliques rápidos, duplo clique ou múltiplas interações simultâneas não podem disparar gerações concorrentes.
+- A geração deve possuir proteção/mutex contra requisições duplicadas.
+- Os estados de preparação, preparado e erro devem ser independentes entre os gaveteiros.
+- HTTP 429 / rate limit deve interromper imediatamente a cascata de fallback.
+- Não executar fallback agressivo quando o problema for rate limit/TPM.
+- Erros de um gaveteiro não devem provocar geração ou alteração dos demais.
+- Não criar uma etapa/botão global de "Gerar estudo" se a abertura do próprio gaveteiro já representa a intenção explícita do usuário.
+- Não remover essas garantias em futuras refatorações apenas para simplificar o código.
+
+### 3. Regra de preservação
+
+Antes de qualquer alteração futura em Trilhas:
+
+1. Ler estas regras.
+2. Identificar quais comportamentos existentes são afetados.
+3. Preservar os comportamentos já validados.
+4. Alterar somente o que estiver dentro do escopo solicitado.
+5. Validar novamente os fluxos afetados antes de concluir.
+
+> PRINCÍPIO: uma melhoria nova não pode destruir uma garantia anteriormente validada.

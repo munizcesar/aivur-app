@@ -356,10 +356,10 @@ export default function UserTrilhasGrid() {
                 {/* Ação principal */}
                 <Link
                   href={`/trilhas/${trilha.id}`}
-                  className="mt-6 pt-0 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#C41230] hover:bg-[#6B0000] px-4 py-3 text-sm font-bold text-[#FFFFFF] no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C41230]"
+                  className="mt-auto pt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#C41230] hover:bg-[#6B0000] px-4 py-2.5 text-sm font-bold text-[#FFFFFF] no-underline shadow-xs hover:shadow-sm border border-[#C41230]/20 hover:border-[#6B0000]/30 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41230] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)] active:scale-[0.99]"
                 >
                   {iniciada ? "Continuar trilha" : "Iniciar trilha"}
-                  <ArrowRight size={16} strokeWidth={1.5} className="shrink-0 flex-none transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  <ArrowRight size={15} strokeWidth={2} className="shrink-0 flex-none transition-transform duration-200 ease-out group-hover:translate-x-1" aria-hidden="true" />
                 </Link>
               </li>
             );

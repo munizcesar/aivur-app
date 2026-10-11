@@ -41,6 +41,10 @@ interface StudyStore {
   setSelectedVideo: (trilhaId: string, videoId: string | null) => void;
   questoesCache: Record<string, { data: import("@/mocks/trilhasMock").TrilhaQuestao[]; timestamp: number }>;
   setQuestoesCache: (topicoId: string, questoes: import("@/mocks/trilhasMock").TrilhaQuestao[]) => void;
+  currentFlashcard: Record<string, number>;
+  setCurrentFlashcard: (trilhaId: string, index: number) => void;
+  currentQuestao: Record<string, number>;
+  setCurrentQuestao: (topicoId: string, index: number) => void;
 }
 
 const initialProgress: StudyProgressData = {
@@ -104,8 +108,18 @@ export const useStudyStore = create<StudyStore>()(
         }
       },
       questoesCache: {},
-      setQuestoesCache: (topicoId, questoes) => set((state) => ({ 
-        questoesCache: { ...state.questoesCache, [topicoId]: { data: questoes, timestamp: Date.now() } } 
+      setQuestoesCache: (topicoId, questoes) => set((state) => ({
+        questoesCache: { ...state.questoesCache, [topicoId]: { data: questoes, timestamp: Date.now() } }
+      })),
+
+      currentFlashcard: {},
+      setCurrentFlashcard: (trilhaId, index) => set((state) => ({
+        currentFlashcard: { ...state.currentFlashcard, [trilhaId]: index }
+      })),
+
+      currentQuestao: {},
+      setCurrentQuestao: (topicoId, index) => set((state) => ({
+        currentQuestao: { ...state.currentQuestao, [topicoId]: index }
       })),
 
       registerAnswer: async (questionId, isCorrect) => {
@@ -157,7 +171,7 @@ export const useStudyStore = create<StudyStore>()(
             let newCorrect = state.progressData.correct;
             let newIncorrect = state.progressData.incorrect;
             let newAnswered = state.progressData.answered;
-            
+
             if (previousAnswer === undefined) {
               delete newAnswers[questionId];
               newAnswered -= 1;
@@ -168,10 +182,10 @@ export const useStudyStore = create<StudyStore>()(
               newCorrect += (previousAnswer ? 1 : -1);
               newIncorrect += (previousAnswer ? -1 : 1);
             }
-            
-            return { 
-              progressData: { answered: newAnswered, correct: newCorrect, incorrect: newIncorrect, answers: newAnswers }, 
-              error: "Falha ao sincronizar resposta. Ação revertida localmente." 
+
+            return {
+              progressData: { answered: newAnswered, correct: newCorrect, incorrect: newIncorrect, answers: newAnswers },
+              error: "Falha ao sincronizar resposta. Ação revertida localmente."
             };
           });
           setTimeout(() => set({ error: null }), 4000);
@@ -201,11 +215,11 @@ export const useStudyStore = create<StudyStore>()(
           if (!res.ok) throw new Error("Sync failed");
         } catch (err) {
           console.error("[StudyStore] Rollback on toggleTopicCompletion:", err);
-          set((state) => ({ 
+          set((state) => ({
             completedTopicIds: wasCompleted
               ? [...state.completedTopicIds, topicId]
-              : state.completedTopicIds.filter((id) => id !== topicId), 
-            error: "Falha ao salvar conclusão do tópico. Tente novamente." 
+              : state.completedTopicIds.filter((id) => id !== topicId),
+            error: "Falha ao salvar conclusão do tópico. Tente novamente."
           }));
           setTimeout(() => set({ error: null }), 4000);
         }
@@ -223,6 +237,8 @@ export const useStudyStore = create<StudyStore>()(
         completedTopicIds: state.completedTopicIds,
         customTrilhas: state.customTrilhas,
         selectedVideoByTrilha: state.selectedVideoByTrilha,
+        currentFlashcard: state.currentFlashcard,
+        currentQuestao: state.currentQuestao,
       }),
     }
   )

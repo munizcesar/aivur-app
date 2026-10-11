@@ -78,12 +78,24 @@ const SECTIONS: SectionMeta[] = [
 
 // ─── Flashcard sub-component ──────────────────────────────────────────────────
 function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completedTopicIds }: { flashcards: { id: string; frente: string; verso: string }[]; trilhaId: string; toggleTopicCompletion: (id: string) => void; completedTopicIds: string[]; }) {
-  const [current, setCurrent] = useState(0);
-  const [flipped, setFlipped]  = useState(false);
-  const total = flashcards.length;
-  const card  = flashcards[current];
+  const { currentFlashcard, setCurrentFlashcard } = useStudyStore();
+  const current = currentFlashcard[trilhaId] || 0;
+  const setCurrent = useCallback((val: number | ((prev: number) => number)) => {
+    const nextVal = typeof val === 'function' ? val(current) : val;
+    setCurrentFlashcard(trilhaId, nextVal);
+  }, [current, setCurrentFlashcard, trilhaId]);
 
-  const prev = useCallback(() => { setFlipped(false); setCurrent(c => Math.max(0, c - 1)); }, []);
+  const [activeCards, setActiveCards] = useState(flashcards);
+  useEffect(() => { setActiveCards(flashcards); }, [flashcards]);
+
+  const [flipped, setFlipped]  = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [genError, setGenError] = useState("");
+
+  const total = activeCards.length;
+  const card  = activeCards[current];
+
+  const prev = useCallback(() => { setFlipped(false); setCurrent(c => Math.max(0, c - 1)); }, [setCurrent]);
   const next = useCallback(() => {
     setFlipped(false);
     setCurrent(c => {
@@ -93,7 +105,34 @@ function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completed
       }
       return nextIdx;
     });
-  }, [total, trilhaId, toggleTopicCompletion, completedTopicIds]);
+  }, [total, trilhaId, toggleTopicCompletion, completedTopicIds, setCurrent]);
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    setGenError("");
+    try {
+      const res = await fetch(`/api/trilhas/${trilhaId}/gerar-mais`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo: "flashcards" })
+      });
+      const data = await res.json() as any;
+      if (data.success && data.items) {
+        setActiveCards(prev => [...prev, ...data.items]);
+        setTimeout(() => {
+          setFlipped(false);
+          setCurrent(c => c + 1);
+        }, 100);
+      } else {
+        setGenError(data.error || "Erro ao gerar.");
+      }
+    } catch (e: any) {
+      setGenError("Erro de conexão.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  if (!card) return <p>Nenhum flashcard disponível.</p>;
 
   return (
     <div className="v2-fc-wrapper">
@@ -120,7 +159,7 @@ function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completed
       </div>
 
       {/* Navigation */}
-      <div className="v2-fc-nav">
+      <div className="v2-fc-nav" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
         <button
           id="v2-fc-prev"
           disabled={current === 0}
@@ -148,6 +187,21 @@ function FlashcardPanel({ flashcards, trilhaId, toggleTopicCompletion, completed
           Próximo →
         </button>
       </div>
+
+      {/* Gerar mais */}
+      <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+        {current === total - 1 && (
+          <button
+            className="v2-btn-outline"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            style={{ width: '100%', maxWidth: '300px' }}
+          >
+            {isGenerating ? "Gerando..." : "Gerar mais flashcards ✨"}
+          </button>
+        )}
+        {genError && <span style={{ color: 'var(--color-error)', fontSize: '0.85rem' }}>{genError}</span>}
+      </div>
     </div>
   );
 }
@@ -164,20 +218,58 @@ function QuestoesPanel({
   registerAnswer: (id: string, correct: boolean) => void;
   toggleTopicCompletion: (id: string) => void;
 }) {
-  const { questoesCache, setQuestoesCache } = useStudyStore();
+  const { questoesCache, setQuestoesCache, currentQuestao, setCurrentQuestao } = useStudyStore();
   const cacheEntry = questoesCache[topicoId];
   const isCacheValid = cacheEntry && (Date.now() - cacheEntry.timestamp < 5 * 60 * 1000);
 
-  const [d1Questoes, setD1Questoes] = useState<TrilhaQuestao[] | null>(isCacheValid ? cacheEntry.data : null);
-  const [isLoadingD1, setIsLoadingD1] = useState(!isCacheValid);
+  const [d1Questoes, setD1Questoes] = useState<TrilhaQuestao[] | null>(isCacheValid ? cacheEntry.data : (questoes.length > 0 ? questoes : null));
+  const [isLoadingD1, setIsLoadingD1] = useState(!isCacheValid && questoes.length === 0);
 
-  const [currentQ, setCurrentQ]     = useState(0);
+  const currentQ = currentQuestao[topicoId] || 0;
+  const setCurrentQ = useCallback((val: number | ((prev: number) => number)) => {
+    const nextVal = typeof val === 'function' ? val(currentQ) : val;
+    setCurrentQuestao(topicoId, nextVal);
+  }, [currentQ, setCurrentQuestao, topicoId]);
+
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showEnd, setShowEnd]         = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [genError, setGenError] = useState("");
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    setGenError("");
+    try {
+      const res = await fetch(`/api/trilhas/${topicoId}/gerar-mais`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo: "questoes" })
+      });
+      const data = await res.json() as any;
+      if (data.success && data.items) {
+        setD1Questoes(prev => {
+          const updated = [...(prev || questoes), ...data.items];
+          setQuestoesCache(topicoId, updated);
+          return updated;
+        });
+        setTimeout(() => {
+           setIsSubmitted(false);
+           setSelectedOpt(null);
+           setCurrentQ(q => q + 1);
+           setShowEnd(false);
+        }, 100);
+      } else {
+        setGenError(data.error || "Erro ao gerar.");
+      }
+    } catch (e: any) {
+      setGenError("Erro de conexão.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   useEffect(() => {
-    if (isCacheValid) return;
+    if (isCacheValid || questoes.length > 0) return;
 
     let isMounted = true;
     setIsLoadingD1(true);
@@ -241,7 +333,7 @@ function QuestoesPanel({
   }
 
   const activeQuestoes = d1Questoes ?? questoes;
-  
+
   const q      = activeQuestoes[currentQ];
   const acerto = isSubmitted && selectedOpt === q?.corretaIdx;
 
@@ -251,18 +343,30 @@ function QuestoesPanel({
         <CheckCircle2 size={56} className="v2-end-icon" />
         <h3 className="v2-end-title">Trilha concluída! 🎉</h3>
         <p className="v2-end-sub">Você respondeu todas as questões desta trilha.</p>
-        <button
-          id="v2-restart-btn"
-          className="v2-btn-primary"
-          onClick={() => {
-            setCurrentQ(0);
-            setSelectedOpt(null);
-            setIsSubmitted(false);
-            setShowEnd(false);
-          }}
-        >
-          Recomeçar
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1.5rem', width: '100%', alignItems: 'center' }}>
+          <button
+            id="v2-restart-btn"
+            className="v2-btn-primary"
+            style={{ width: '100%', maxWidth: '300px' }}
+            onClick={() => {
+              setCurrentQ(0);
+              setSelectedOpt(null);
+              setIsSubmitted(false);
+              setShowEnd(false);
+            }}
+          >
+            Recomeçar
+          </button>
+          <button
+            className="v2-btn-outline"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            style={{ width: '100%', maxWidth: '300px' }}
+          >
+            {isGenerating ? "Gerando..." : "Gerar mais questões ✨"}
+          </button>
+          {genError && <span style={{ color: 'var(--color-error)', fontSize: '0.85rem' }}>{genError}</span>}
+        </div>
       </div>
     );
   }

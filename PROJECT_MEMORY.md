@@ -396,3 +396,32 @@ Antes de qualquer alteração futura em Trilhas:
 5. Validar novamente os fluxos afetados antes de concluir.
 
 > PRINCÍPIO: uma melhoria nova não pode destruir uma garantia anteriormente validada.
+
+## 17. Correção de Alinhamento do CTA e Diagnóstico de Geração de Trilhas (Outubro 2026)
+
+### 1. Correção Visual dos Cards em `/trilhas` (UserTrilhasGrid.tsx)
+- **Causa do Desalinhamento:**
+  - O commit `9ef3395` introduziu `pt-4` diretamente no `<Link>` juntamente com `py-2.5`, gerando assimetria vertical interna (`padding-top: 16px` vs `padding-bottom: 10px`), projetando o texto "Iniciar trilha" 6px para baixo.
+  - A classe `mt-auto` no `<Link>` sem margem mínima colapsava para `0px` de margem superior quando o conteúdo preenchia o card, colando o botão diretamente às etapas concluídas.
+  - As 4 etapas em `flex flex-wrap gap-1.5` quebravam em 3 badges na linha 1 e 1 badge isolada na linha 2, comprimindo o espaço e gerando desequilíbrio visual.
+  - A badge de disciplina usava `text-[var(--color-primary)]` (`#C41230`) sobre fundo navy, resultando em contraste deficitário no tema escuro.
+- **Ajustes Implementados:**
+  - Isolado o CTA em container `<div className="mt-auto pt-5 w-full">` com garantia de 20px de respiro sobre as etapas concluídas e absorção vertical de altura nos cards da grade.
+  - Removido `pt-4` do botão; aplicado padding simétrico `px-4 py-3` (alinhamento vertical e horizontal exatos, 0px de offset do centro).
+  - Etapas concluídas organizadas em grid simétrico 2x2 (`grid grid-cols-2 gap-1.5`) com respiro aprimorado nas badges (`px-2.5 py-1`).
+  - Indicadores ajustados para `mt-2.5 gap-x-4` e badge de disciplina estilizada com `bg-[var(--color-surface-offset)] border border-[var(--color-border)] text-[var(--color-text-muted)]` para contraste e legibilidade premium em dark e light mode.
+
+### 2. Resolução da Falha ao Gerar Trilha (/api/ai/gerar-trilha & CriarTrilhaView.tsx)
+- **Causas Raízes Confirmadas:**
+  1. *Autenticação/Sessão (HTTP 401):* Quando a sessão expirava ou caía enquanto o usuário preenchia o formulário, a requisição falhava silenciosamente sem orientar o login nem salvar o conteúdo digitado.
+  2. *Groq TPM Rate Limit (HTTP 429):* O limite de texto estava em 50.000 caracteres (~13.500 tokens), o prompt inicial usava `max_tokens: 8000`, e o loop de fallbacks disparava requisições em cascata imediata para 3 modelos em milissegundos sem circuit breaker. 12.000 caracteres também era insuficiente porque resultava em ~3.711 tokens de prompt que, somados a consumos prévios (`Used = 4886`), estouravam 8.000 TPM.
+  3. *Fixer Prompt Token Limit (HTTP 422):* O Fixer Prompt usava `max_tokens: 1000`. O payload completo de uma trilha possui entre 1.200 e 1.600 tokens. A resposta era cortada com `finish_reason: "length"`, gerando `SyntaxError` de JSON truncado e falha no Zod com HTTP 422.
+- **Implementações Concluídas:**
+  - `CriarTrilhaView.tsx`: Interceptação de `401`, preservação automática do rascunho (`title` e `text`) no `sessionStorage`, restauração transparente no carregamento inicial, alerta com CTA "Fazer Login" e redirecionamento controlado para `/login?redirect=/trilhas/novo`.
+  - `route.ts`:
+    - Texto calibrado para teto seguro de 8.000 caracteres (~2.150 tokens de texto + ~470 de template = ~2.620 tokens totais), garantindo margem mesmo com uso prévio alto na janela de 1 minuto.
+    - `max_tokens` da chamada principal ajustado de 8000 para 2200.
+    - Circuit breaker na detecção de 429: aborta cascata imediata para não esgotar cotas organizacionais da Groq.
+    - Sanitização defensiva de `corretaIdx` (suporte a strings "0", "A", etc.) antes do Zod para evitar invocações desnecessárias do Fixer.
+    - `max_tokens` do Fixer Prompt elevado de 1000 para 2200 (mínimo seguro para o payload completo sem truncamento).
+- **Status:** Validado via matriz de testes automatizada (11/11 cenários aprovados) e testes de navegador via Puppeteer. Zero regressões.

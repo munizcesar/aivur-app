@@ -103,8 +103,11 @@ export async function POST(req: Request) {
       );
     }
 
-    if (text.length > 50000) {
-      text = text.slice(0, 50000);
+    // Orçamento de tokens calibrado para o limite Groq de 8000 TPM:
+    // ~8000 caracteres ~= 2150 tokens de texto + ~470 tokens de template = ~2620 tokens no prompt.
+    // Garante que mesmo com histórico prévio (Used > 4000), a chamada cabe com folga dentro de 8000 TPM.
+    if (text.length > 8000) {
+      text = text.slice(0, 8000);
     }
 
     const prompt = `Você é um tutor especialista. 
@@ -190,7 +193,7 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
           model: modelId,
           messages: messages,
           temperature: 0.2,
-          max_tokens: 8000,
+          max_tokens: 2200,
           response_format: { type: "json_object" }
         })
       });
@@ -202,6 +205,11 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
         lastErrorStatus = groqResponse.status;
         lastErrorText = await groqResponse.text();
         console.warn(`[Generate Route] Falha no modelo ${modelId}: ${lastErrorStatus} - ${lastErrorText}`);
+
+        // Se for rate limit (429), interrompe para não queimar outras cotas em cascata rápida
+        if (groqResponse.status === 429) {
+          break;
+        }
       }
     }
 
@@ -212,6 +220,14 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
       } catch (e) {
         parsedErr = { message: lastErrorText };
       }
+
+      if (lastErrorStatus === 429) {
+        return NextResponse.json({
+          error: "Limite temporário de requisições da IA atingido. Por favor, aguarde alguns segundos antes de tentar novamente.",
+          details: parsedErr
+        }, { status: 429 });
+      }
+
       return new Response(JSON.stringify({ 
         error: "Erro na API da IA (Groq). Todos os modelos falharam.", 
         details: parsedErr 
@@ -230,7 +246,20 @@ ${ragContext ? `=== CONTEXTO RAG INDEXADO ===\n${ragContext}` : ""}`;
         json.flashcards.forEach((f: any, i: number) => { f.id = `fc_${Date.now()}_${i}`; });
       }
       if (json.questoes && Array.isArray(json.questoes)) {
-        json.questoes.forEach((q: any, i: number) => { q.id = `q_${Date.now()}_${i}`; });
+        json.questoes.forEach((q: any, i: number) => {
+          q.id = `q_${Date.now()}_${i}`;
+          // Sanitização defensiva para corretaIdx vindo em formato texto ("0", "A", etc.)
+          if (typeof q.corretaIdx === "string") {
+            const letterMap: Record<string, number> = { a: 0, b: 1, c: 2, d: 3, e: 4 };
+            const lower = q.corretaIdx.trim().toLowerCase();
+            if (letterMap[lower] !== undefined) {
+              q.corretaIdx = letterMap[lower];
+            } else {
+              const parsed = parseInt(q.corretaIdx, 10);
+              if (!isNaN(parsed)) q.corretaIdx = parsed;
+            }
+          }
+        });
       }
     };
 
@@ -283,7 +312,7 @@ Devolva o mesmo JSON perfeitamente válido, e NADA MAIS. Sem markdown fora do JS
             model: modelId,
             messages: [{ role: "user", content: fixerPrompt }],
             temperature: 0.1,
-            max_tokens: 1000, // Token limit baixo para o fixer
+            max_tokens: 2200, // Ajustado de 1000 para 2200: compatível com payload real (~1200-1600 tokens) sem truncar JSON
             response_format: { type: "json_object" }
           })
         });
@@ -291,6 +320,11 @@ Devolva o mesmo JSON perfeitamente válido, e NADA MAIS. Sem markdown fora do JS
         if (fixerResponse.ok) {
           console.log(`[AIVUR IA Fixer] Sucesso na correcao utilizando o modelo: ${modelId}`);
           fixerSuccess = true;
+          break;
+        }
+
+        // Se for rate limit (429), interrompe para evitar cascata destrutiva
+        if (fixerResponse.status === 429) {
           break;
         }
       }

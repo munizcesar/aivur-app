@@ -37,6 +37,21 @@ export default function CriarTrilhaView({
   const [file, setFile] = useState<File | null>(null);
   const [inputType, setInputType] = useState<"text" | "pdf">("text");
 
+  // Restaura rascunho salvo do sessionStorage no carregamento inicial (ex: retorno do login)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedDraft = sessionStorage.getItem("aivur_draft_trilha");
+        if (savedDraft) {
+          const parsed = JSON.parse(savedDraft);
+          if (parsed.title) setTitle(parsed.title);
+          if (parsed.text) setText(parsed.text);
+          sessionStorage.removeItem("aivur_draft_trilha");
+        }
+      } catch (_) {}
+    }
+  }, []);
+
   useEffect(() => {
     if (initialTitle) setTitle(initialTitle);
     if (initialText) setText(initialText);
@@ -117,7 +132,21 @@ export default function CriarTrilhaView({
       });
 
       if (!res.ok) {
-        const errorData = (await res.json()) as { error?: string };
+        if (res.status === 401) {
+          if (typeof window !== "undefined") {
+            try {
+              sessionStorage.setItem("aivur_draft_trilha", JSON.stringify({ title, text: finalContent }));
+            } catch (_) {}
+          }
+          setError("Sua sessão expirou ou é necessário fazer login para continuar. Redirecionando para o login...");
+          setTimeout(() => {
+            router.push("/login?redirect=/trilhas/novo");
+          }, 2000);
+          setStep("input");
+          return;
+        }
+
+        const errorData = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(errorData.error || "Erro ao gerar trilha com IA");
       }
 
@@ -144,6 +173,13 @@ export default function CriarTrilhaView({
       });
 
       if (!res.ok) {
+        if (res.status === 401) {
+          setError("Sessão expirada. Faça login novamente para salvar a trilha.");
+          setTimeout(() => {
+            router.push("/login?redirect=/trilhas/novo");
+          }, 2000);
+          return;
+        }
         const errorData = (await res.json().catch(() => ({}))) as any;
         throw new Error(errorData.error || "Falha ao salvar trilha no servidor.");
       }
@@ -183,9 +219,20 @@ export default function CriarTrilhaView({
       </div>
 
       {error && (
-        <div className="mb-6 p-4 rounded-lg bg-red-950/40 border border-red-800/60 text-red-200 flex items-start gap-3">
-          <AlertCircle size={20} className="text-[var(--color-red)] shrink-0 mt-0.5" />
-          <div className="text-sm leading-relaxed">{error}</div>
+        <div className="mb-6 p-4 rounded-lg bg-red-950/40 border border-red-800/60 text-red-200 flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={20} className="text-[var(--color-red)] shrink-0 mt-0.5" />
+            <div className="text-sm leading-relaxed">{error}</div>
+          </div>
+          {error.includes("login") && (
+            <button
+              type="button"
+              onClick={() => router.push("/login?redirect=/trilhas/novo")}
+              className="shrink-0 px-3 py-1 bg-red-700 hover:bg-red-600 text-white text-xs font-bold rounded transition-colors"
+            >
+              Fazer Login
+            </button>
+          )}
         </div>
       )}
 

@@ -425,3 +425,20 @@ Antes de qualquer alteração futura em Trilhas:
     - Sanitização defensiva de `corretaIdx` (suporte a strings "0", "A", etc.) antes do Zod para evitar invocações desnecessárias do Fixer.
     - `max_tokens` do Fixer Prompt elevado de 1000 para 2200 (mínimo seguro para o payload completo sem truncamento).
 - **Status:** Validado via matriz de testes automatizada (11/11 cenários aprovados) e testes de navegador via Puppeteer. Zero regressões.
+
+## 18. REGRESSION GATE — PROTEÇÃO EVOLUTIVA
+
+> **LEIA ISTO ANTES DE ALTERAR QUALQUER COISA EM TRILHAS (e em qualquer domínio que ganhe casos).**
+> O AIVUR pode evoluir livremente. Nenhuma alteração pode quebrar silenciosamente um comportamento já validado.
+
+- **O que é:** suíte em `tests/regression/` (sem dependências novas: Node + Puppeteer já existentes). Documentação completa: `tests/regression/README.md`. Registro de mudanças da baseline: `tests/regression/CHANGELOG.md`.
+- **Como executar:** `npm run regression` (completa: API + navegador; resultado oficial). `npm run regression:fast` roda só a API e termina `INCOMPLETE` — **nunca equivale a PASS**. Saída final: `REGRESSION GATE: PASS — X/X` ou `FAIL — X/Y`.
+- **O que os testes representam:** comportamentos e contratos **já validados e aprovados** (baseline `tests/regression/baseline.json`, IDs `REG-<DOMINIO>-<NNN>`). Hoje: `REG-TRILHAS-001…015` (geração, contrato, Zod, 401 + rascunho, 429 sem cascata, fallback 5xx, JSON truncado, Fixer sem loop, 422, retries finitos, salvar trilha, CTA Iniciar/Continuar, orçamento de tokens).
+- **Obrigação:** toda alteração futura deve passar por `npm run regression` antes de commit. `tsc`/build passando **não** substitui a Gate.
+- **Novas funcionalidades aprovadas devem ganhar caso novo** (próximo ID livre) em `tests/regression/<dominio>/*.case.mjs` **e** registro em `baseline.json` + `CHANGELOG.md`. Passo a passo no README.
+- **Proibido esconder falhas:** não remover teste, não enfraquecer verificações, não trocar teste real por mock para passar, não alterar expectativa sem explicar. A Gate **falha** se um caso da baseline sumir/for renomeado ou se um caso existir sem registro na baseline.
+- **A implementação pode mudar livremente** (modelo de IA, prompts, arquivos, bibliotecas, nº de chamadas fora dos tetos funcionais) **desde que o comportamento esperado continue válido.** Os testes protegem contratos, não código.
+- **Mudança INTENCIONAL de comportamento:** (1) não apagar nem enfraquecer o teste; (2) identificar o comportamento que mudou; (3) explicar o motivo; (4) validar o novo comportamento; (5) obter aprovação explícita do responsável; (6) só então atualizar a baseline; (7) registrar no `CHANGELOG.md`.
+- **Camadas:** API = rota `route.ts` **real** + Zod **real**, com rede (Groq/RAG) e fronteiras do framework simuladas só em `tests/regression/_support/`. Navegador = UI real com respostas interceptadas. **Nenhuma chamada real à Groq/D1.** Nada de mock foi introduzido em código de produção.
+- **Lacunas conhecidas (não automatizadas de propósito; ver README):** (a) `/login` e `/auth/callback` ignoram `?redirect=` — não há retorno automático pós-login a `/trilhas/novo`; (b) persistência real no D1 de `POST /api/trilhas` é verificação manual; (c) truncamento real do provedor só é confirmável com teste real controlado; (d) JSON truncado na 1ª resposta retorna 400 controlado (não aciona o Fixer).
+- **CI:** o projeto não tem GitHub Actions. Sugestão futura: job `npm ci && npm run regression` (Node 24). Não implementado.

@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint",
     "rag:auto": "npx tsx scripts/autonomous_ingest.ts",
-    "processar-provas": "npx tsx scripts/dev-tools/processar-provas.ts"
+    "processar-provas": "npx tsx scripts/dev-tools/processar-provas.ts",
+    "regression": "node --no-warnings tests/regression/run.mjs",
+    "regression:fast": "node --no-warnings tests/regression/run.mjs --no-browser"
   },
   "dependencies": {
     "clsx": "^2.1.1",

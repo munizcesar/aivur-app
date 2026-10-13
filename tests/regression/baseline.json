@@ -1,0 +1,20 @@
+{
+  "_readme": "Registro APPEND-ONLY dos comportamentos protegidos. Todo caso em *.case.mjs precisa estar aqui e vice-versa. Remover/renomear uma entrada = mudança intencional de baseline (ver tests/regression/README.md e CHANGELOG.md).",
+  "cases": {
+    "REG-TRILHAS-001": { "domain": "trilhas", "kind": "api", "title": "Geração normal com sessão válida", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-002": { "domain": "trilhas", "kind": "api", "title": "Contrato estrutural da resposta de geração", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-003": { "domain": "trilhas", "kind": "api", "title": "Zod aceita resposta válida", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-004": { "domain": "trilhas", "kind": "api", "title": "Sessão ausente/inválida → 401 controlado", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-005": { "domain": "trilhas", "kind": "browser", "title": "401 orienta o login e preserva rascunho", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-006": { "domain": "trilhas", "kind": "browser", "title": "Login após 401 leva a /login?redirect=/trilhas/novo e permite retornar à criação", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-007": { "domain": "trilhas", "kind": "api", "title": "429 sem cascata", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-008": { "domain": "trilhas", "kind": "api", "title": "5xx permite fallback", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-009": { "domain": "trilhas", "kind": "api", "title": "JSON truncado rejeitado; fora do contrato aciona Fixer", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-010": { "domain": "trilhas", "kind": "api", "title": "Fixer sem loop", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-011": { "domain": "trilhas", "kind": "api", "title": "Falha definitiva do Fixer → 422 controlado", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-012": { "domain": "trilhas", "kind": "api", "title": "Retries limitados", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-013": { "domain": "trilhas", "kind": "browser", "title": "Salvar trilha gerada envia contrato correto e abre a trilha", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-014": { "domain": "trilhas", "kind": "browser", "title": "CTA Iniciar/Continuar aponta para /trilhas/{id}", "validatedOn": "2026-10-12" },
+    "REG-TRILHAS-015": { "domain": "trilhas", "kind": "api", "title": "Orçamento de tokens (entrada limitada, cabe no TPM, saída não trunca)", "validatedOn": "2026-10-12" }
+  }
+}

@@ -1,69 +1,212 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useTransition } from "react";
 import styles from "./Material.module.css";
 import Header from "@/components/Header/Header";
-import { UploadCloud, Layers, ArrowLeft } from "lucide-react";
-import QuizTool from "./QuizTool";
-import FlashcardsTool from "./FlashcardsTool";
-import { Aivur } from "@/components/Aivur/Aivur";
+import {
+  UploadCloud,
+  FileText,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
+  ArrowLeft,
+  Copy,
+  Check,
+  Loader2,
+  RotateCcw,
+  Sparkles,
+  Info,
+} from "lucide-react";
+import {
+  MATERIAL_LIMITS,
+  evaluateContentLimits,
+} from "@/lib/validations/material";
+import {
+  validatePDFFile,
+  extractPDFContent,
+} from "@/utils/materialExtractor";
+
+type InputMode = "pdf" | "texto";
+
+interface ValidatedMaterial {
+  origem: InputMode;
+  titulo: string;
+  conteudo: string;
+  nomeArquivo?: string;
+  tamanhoBytes?: number;
+  paginas?: number;
+  caracteres: number;
+}
 
 export default function MaterialPage() {
-  const [isProcessed, setIsProcessed] = useState(false);
-  const [activeTab, setActiveTab] = useState<string | null>(null);
-
+  const [inputMode, setInputMode] = useState<InputMode>("pdf");
   const [isDragActive, setIsDragActive] = useState(false);
-  const [aivurState, setAivurState] = useState("calm");
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+
+  // Estado para texto colado
+  const [pastedTitle, setPastedTitle] = useState("");
+  const [pastedText, setPastedText] = useState("");
+
+  // Estado para material verificado e pronto para conferência
+  const [verifiedMaterial, setVerifiedMaterial] = useState<ValidatedMaterial | null>(null);
+  const [hasCopied, setHasCopied] = useState(false);
+
   const dropzoneRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [, startTransition] = useTransition();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     if (!isDragActive) {
       setIsDragActive(true);
-      setAivurState("curious");
     }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragActive(false);
-    setAivurState("calm");
+  };
+
+  const processUploadedFile = async (file: File) => {
+    setErrorMessage(null);
+    setWarningMessage(null);
+    setInfoMessage(null);
+
+    // 1. Validação prévia de metadados (formato e tamanho)
+    const validationError = validatePDFFile(file);
+    if (validationError) {
+      setErrorMessage(validationError.message);
+      return;
+    }
+
+    setIsExtracting(true);
+    setInfoMessage("Lendo e extraindo o texto das páginas do PDF...");
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const outcome = await extractPDFContent(buffer);
+
+      if (!outcome.success) {
+        setErrorMessage(outcome.error.message);
+        setInfoMessage(null);
+        return;
+      }
+
+      const { text, pageCount, charCount, isTooLong } = outcome.data;
+      const docTitle = file.name.replace(/\.pdf$/i, "").trim() || "Material de Estudo";
+
+      // 2. Verificação de limites de conteúdo
+      if (charCount < MATERIAL_LIMITS.MIN_CHARS) {
+        setErrorMessage(
+          `Conteúdo insuficiente: apenas ${charCount} caracteres extraídos das ${pageCount} página(s). O mínimo exigido nesta etapa é de ${MATERIAL_LIMITS.MIN_CHARS} caracteres.`
+        );
+        setInfoMessage(null);
+        return;
+      }
+
+      if (isTooLong) {
+        setWarningMessage(
+          `Documento extenso: o PDF possui ${charCount.toLocaleString("pt-BR")} caracteres em ${pageCount} página(s), excedendo o teto de ${MATERIAL_LIMITS.MAX_CHARS.toLocaleString("pt-BR")} caracteres desta etapa. O conteúdo NÃO foi truncado silenciosamente. Para processar trechos específicos, utilize a aba "Colar Texto".`
+        );
+      }
+
+      setVerifiedMaterial({
+        origem: "pdf",
+        titulo: docTitle,
+        conteudo: text,
+        nomeArquivo: file.name,
+        tamanhoBytes: file.size,
+        paginas: pageCount,
+        caracteres: charCount,
+      });
+
+      setInfoMessage(null);
+    } catch (err: any) {
+      setErrorMessage(`Erro inesperado ao processar o arquivo: ${err?.message || "Falha na leitura."}`);
+      setInfoMessage(null);
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragActive(false);
-    simulateProcessing();
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      processUploadedFile(files[0]);
+    }
   };
 
-  const simulateProcessing = () => {
-    setAivurState("loading");
-    setTimeout(() => {
-      setAivurState("success");
-      setTimeout(() => {
-        setIsProcessed(true);
-      }, 1000);
-    }, 1500);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      processUploadedFile(files[0]);
+    }
+  };
+
+  const handleValidatePastedText = () => {
+    setErrorMessage(null);
+    setWarningMessage(null);
+
+    const feedback = evaluateContentLimits(pastedText);
+    if (!feedback.isValid) {
+      setErrorMessage(feedback.message);
+      return;
+    }
+
+    const docTitle = pastedTitle.trim() || "Texto de Estudo";
+
+    startTransition(() => {
+      setVerifiedMaterial({
+        origem: "texto",
+        titulo: docTitle,
+        conteudo: pastedText.trim(),
+        caracteres: feedback.charCount,
+      });
+    });
   };
 
   const handleReset = () => {
-    setIsProcessed(false);
-    setActiveTab(null);
-    setAivurState("calm");
+    setVerifiedMaterial(null);
+    setErrorMessage(null);
+    setWarningMessage(null);
+    setInfoMessage(null);
+    setPastedText("");
+    setPastedTitle("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
+
+  const handleCopyText = async () => {
+    if (!verifiedMaterial) return;
+    try {
+      await navigator.clipboard.writeText(verifiedMaterial.conteudo);
+      setHasCopied(true);
+      setTimeout(() => setHasCopied(false), 2000);
+    } catch {
+      // Fallback
+    }
+  };
+
+  // Avaliação do contador para o texto colado
+  const pastedFeedback = evaluateContentLimits(pastedText);
 
   return (
     <div className={styles.page}>
       <Header />
       <main className={styles.main}>
-        {!isProcessed ? (
-          // ESTADO 1: O UPLOAD
-          <div className={styles.uploadContainer} style={{ marginTop: "4rem" }}>
+        {!verifiedMaterial ? (
+          <div className={styles.uploadContainer} style={{ marginTop: "2rem" }}>
             <div className={styles.heroHeader}>
               <div className={styles.heroTextCol}>
                 <h1 className={styles.title}>Cofre Editorial</h1>
                 <p className={styles.subtitle}>
-                  Envie aquele PDF denso ou resumo e deixe a IA extrair o suprassumo em segundos.
+                  Importe seu PDF ou cole seu material de estudo para conferência e validação antes do processamento.
                 </p>
               </div>
               <div className={styles.heroImageCol}>
@@ -72,77 +215,303 @@ export default function MaterialPage() {
               </div>
             </div>
 
-            <div 
-              ref={dropzoneRef}
-              className={`${styles.dropzone} ${isDragActive ? styles.dropzoneActive : ''}`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-
-              <div className={styles.dropzoneInner} style={{ paddingTop: "2rem" }}>
-                <UploadCloud width={48} height={48} className={styles.dropIcon} />
-                <h3>Arraste seu PDF ou cole o texto aqui</h3>
-                <p>Tamanho máximo: 10MB</p>
-                <button className={styles.browseBtn} onClick={(e) => { e.stopPropagation(); document.getElementById('file-upload')?.click(); }}>Procurar Arquivo</button>
-                <input type="file" id="file-upload" style={{ display: 'none' }} onChange={(e) => { if(e.target.files?.length) simulateProcessing(); }} />
-              </div>
-            </div>
-
-            <div className={styles.actionBlock}>
-              <button className={styles.primaryBtn} onClick={simulateProcessing}>
-                Destrinchar Material
+            {/* Alternância de Modo: Upload de PDF vs Colar Texto */}
+            <div className={styles.inputModeNav} role="tablist" aria-label="Modo de Importação">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={inputMode === "pdf"}
+                className={`${styles.modeNavBtn} ${inputMode === "pdf" ? styles.modeNavBtnActive : ""}`}
+                onClick={() => {
+                  setInputMode("pdf");
+                  setErrorMessage(null);
+                  setWarningMessage(null);
+                }}
+              >
+                <UploadCloud size={18} className="shrink-0 flex-none" /> Upload de PDF
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={inputMode === "texto"}
+                className={`${styles.modeNavBtn} ${inputMode === "texto" ? styles.modeNavBtnActive : ""}`}
+                onClick={() => {
+                  setInputMode("texto");
+                  setErrorMessage(null);
+                  setWarningMessage(null);
+                }}
+              >
+                <FileText size={18} className="shrink-0 flex-none" /> Colar Texto
               </button>
             </div>
+
+            {/* Alertas de Erro / Informação */}
+            {errorMessage && (
+              <div className={`${styles.alertBox} ${styles.alertError}`} role="alert">
+                <AlertCircle size={20} className="shrink-0 flex-none" />
+                <div>
+                  <strong>Não foi possível importar o material:</strong>
+                  <div>{errorMessage}</div>
+                </div>
+              </div>
+            )}
+
+            {warningMessage && (
+              <div className={`${styles.alertBox} ${styles.alertWarning}`} role="alert">
+                <AlertTriangle size={20} className="shrink-0 flex-none" />
+                <div>{warningMessage}</div>
+              </div>
+            )}
+
+            {infoMessage && (
+              <div className={`${styles.alertBox} ${styles.alertInfo}`} role="status">
+                <Loader2 size={20} className={`shrink-0 flex-none ${styles.spinner}`} />
+                <div>{infoMessage}</div>
+              </div>
+            )}
+
+            {/* MODO 1: UPLOAD DE PDF */}
+            {inputMode === "pdf" && (
+              <div
+                ref={dropzoneRef}
+                className={`${styles.dropzone} ${isDragActive ? styles.dropzoneActive : ""}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    fileInputRef.current?.click();
+                  }
+                }}
+                aria-label="Área para soltar arquivo PDF ou clicar para selecionar"
+              >
+                <div className={styles.dropzoneInner} style={{ paddingTop: "1rem", paddingBottom: "1rem" }}>
+                  {isExtracting ? (
+                    <>
+                      <Loader2 size={48} className={`shrink-0 flex-none ${styles.spinner} ${styles.dropIcon}`} />
+                      <h3>Extraindo texto do documento...</h3>
+                      <p>Lendo páginas e verificando camada de texto selecionável.</p>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud size={48} className={`shrink-0 flex-none ${styles.dropIcon}`} />
+                      <h3>Arraste seu arquivo PDF aqui</h3>
+                      <p>Formatos suportados: apenas arquivos .pdf com texto selecionável (máximo 10MB)</p>
+                      <button
+                        type="button"
+                        className={styles.browseBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                      >
+                        Procurar Arquivo PDF
+                      </button>
+                    </>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
+                    disabled={isExtracting}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* MODO 2: COLAR TEXTO */}
+            {inputMode === "texto" && (
+              <div className={styles.pasteArea}>
+                <div>
+                  <label htmlFor="material-title" style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--color-cream)", marginBottom: "0.4rem" }}>
+                    Título do Material (opcional)
+                  </label>
+                  <input
+                    id="material-title"
+                    type="text"
+                    className={styles.titleInput}
+                    placeholder="Ex: Direito Constitucional - Direitos Fundamentais (Art. 5º)"
+                    value={pastedTitle}
+                    onChange={(e) => setPastedTitle(e.target.value)}
+                    maxLength={120}
+                  />
+                </div>
+
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+                    <label htmlFor="material-text" style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-cream)" }}>
+                      Texto do Material *
+                    </label>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-slate-blue)" }}>
+                      Mínimo de 100 e máximo de 8.000 caracteres
+                    </span>
+                  </div>
+                  <textarea
+                    id="material-text"
+                    className={styles.textAreaInput}
+                    placeholder="Cole aqui o texto do seu resumo, apostila, anotações de aula ou artigo..."
+                    value={pastedText}
+                    onChange={(e) => {
+                      setPastedText(e.target.value);
+                      if (errorMessage) setErrorMessage(null);
+                    }}
+                  />
+                </div>
+
+                <div className={styles.charCounterRow}>
+                  <div>
+                    {pastedText.length === 0 && (
+                      <span className={`${styles.counterBadge} ${styles.counterNormal}`}>
+                        Aguardando texto...
+                      </span>
+                    )}
+                    {pastedFeedback.status === "too_short" && (
+                      <span className={`${styles.counterBadge} ${styles.counterWarn}`}>
+                        <AlertTriangle size={14} className="shrink-0 flex-none" />
+                        Faltam {MATERIAL_LIMITS.MIN_CHARS - pastedFeedback.charCount} caracteres para o mínimo
+                      </span>
+                    )}
+                    {pastedFeedback.status === "valid" && (
+                      <span className={`${styles.counterBadge} ${styles.counterValid}`}>
+                        <CheckCircle2 size={14} className="shrink-0 flex-none" />
+                        Tamanho ideal para conferência
+                      </span>
+                    )}
+                    {pastedFeedback.status === "too_long" && (
+                      <span className={`${styles.counterBadge} ${styles.counterError}`}>
+                        <AlertCircle size={14} className="shrink-0 flex-none" />
+                        Excede em {pastedFeedback.charCount - MATERIAL_LIMITS.MAX_CHARS} caracteres
+                      </span>
+                    )}
+                  </div>
+
+                  <span
+                    className={`${styles.counterBadge} ${
+                      pastedFeedback.status === "valid"
+                        ? styles.counterValid
+                        : pastedFeedback.status === "too_long"
+                        ? styles.counterError
+                        : styles.counterNormal
+                    }`}
+                  >
+                    {pastedFeedback.charCount.toLocaleString("pt-BR")} / {MATERIAL_LIMITS.MAX_CHARS.toLocaleString("pt-BR")} caracteres
+                  </span>
+                </div>
+
+                <div className={styles.actionBlock} style={{ marginTop: "0.5rem" }}>
+                  <button
+                    type="button"
+                    className={styles.primaryBtn}
+                    onClick={handleValidatePastedText}
+                    disabled={!pastedFeedback.isValid}
+                    style={{ opacity: pastedFeedback.isValid ? 1 : 0.6, cursor: pastedFeedback.isValid ? "pointer" : "not-allowed" }}
+                  >
+                    Validar e Visualizar Texto
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
-          // ESTADO 2: O LABORATÓRIO
-          <div className={styles.labContainer}>
-            <div className={styles.labHeader}>
-              <button className={styles.backBtn} onClick={handleReset}>
-                <ArrowLeft width={18} height={18} /> Novo Material
-              </button>
-              <h2>Laboratório de Estudo</h2>
-              <p className={styles.fileLabel}>📄 arquivo_estudo_constitucional.pdf</p>
-            </div>
+          /* ESTADO 2: CONFERÊNCIA E PRÉVIA DO MATERIAL IMPORTADO */
+          <div className={styles.uploadContainer} style={{ marginTop: "2rem" }}>
+            <div className={styles.previewCard}>
+              <div className={styles.previewHeader}>
+                <div>
+                  <span style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-slate-blue)", fontWeight: 700 }}>
+                    Conferência de Importação
+                  </span>
+                  <h2 className={styles.previewTitle}>{verifiedMaterial.titulo}</h2>
+                </div>
 
-            <div className={styles.labLayout}>
-              <aside className={styles.labSidebar}>
-                <button 
-                  className={`${styles.tabBtn} ${activeTab === 'simulado' ? styles.tabActive : ''}`}
-                  onClick={() => setActiveTab('simulado')}
-                >
-                  <span className={styles.tabIcon}>📝</span> Simulado Rápido
-                </button>
-                <button 
-                  className={`${styles.tabBtn} ${activeTab === 'flashcards' ? styles.tabActive : ''}`}
-                  onClick={() => setActiveTab('flashcards')}
-                >
-                  <span className={styles.tabIcon}>🃏</span> Flashcards
-                </button>
-                <button 
-                  className={`${styles.tabBtn} ${activeTab === 'chat' ? styles.tabActive : ''}`}
-                  onClick={() => setActiveTab('chat')}
-                >
-                  <span className={styles.tabIcon}>💬</span> Modo Interrogatório (Chat)
-                </button>
-              </aside>
+                <div className={styles.badgeList}>
+                  {verifiedMaterial.origem === "pdf" ? (
+                    <>
+                      <span className={styles.statBadge}>
+                        <FileText size={14} className="shrink-0 flex-none" />
+                        {verifiedMaterial.nomeArquivo}
+                      </span>
+                      {verifiedMaterial.paginas && (
+                        <span className={styles.statBadge}>
+                          📖 {verifiedMaterial.paginas} página(s) lidas
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className={styles.statBadge}>
+                      ✍️ Texto Colado
+                    </span>
+                  )}
+                  <span className={styles.statBadge}>
+                    🔤 {verifiedMaterial.caracteres.toLocaleString("pt-BR")} caracteres
+                  </span>
+                  <span className={`${styles.statBadge}`} style={{ color: "#34D399", borderColor: "rgba(52, 211, 153, 0.4)" }}>
+                    <CheckCircle2 size={14} className="shrink-0 flex-none" />
+                    Validado
+                  </span>
+                </div>
+              </div>
 
-              <section className={styles.labContentArea}>
-                {!activeTab ? (
-                  <div className={styles.placeholderState}>
-                    <Layers width={48} height={48} className={styles.placeholderIcon} />
-                    <h3>Seu material foi processado!</h3>
-                    <p>Selecione uma ferramenta no menu lateral para começar a estudar este material de forma ativa.</p>
-                  </div>
-                ) : (
-                  <div className={styles.activeToolState}>
-                    {activeTab === 'simulado' && <QuizTool />}
-                    {activeTab === 'flashcards' && <FlashcardsTool />}
-                    {activeTab === 'chat' && <h3>Módulo de Interrogatório em construção...</h3>}
-                  </div>
-                )}
-              </section>
+              {warningMessage && (
+                <div className={`${styles.alertBox} ${styles.alertWarning}`} role="alert">
+                  <AlertTriangle size={20} className="shrink-0 flex-none" />
+                  <div>{warningMessage}</div>
+                </div>
+              )}
+
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-cream)" }}>
+                    Texto Extraído / Fornecido:
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.secondaryBtn}
+                    onClick={handleCopyText}
+                    style={{ padding: "0.3rem 0.75rem", fontSize: "0.8rem" }}
+                  >
+                    {hasCopied ? (
+                      <>
+                        <Check size={14} className="shrink-0 flex-none" /> Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} className="shrink-0 flex-none" /> Copiar Texto
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className={styles.previewTextContent}>
+                  {verifiedMaterial.conteudo}
+                </div>
+              </div>
+
+              <div className={styles.phaseBanner}>
+                <Info size={18} className="shrink-0 flex-none" />
+                <span>
+                  <strong>Fase 1 Concluída:</strong> O material foi lido, extraído e validado no navegador. Nenhuma chamada de IA ou persistência em banco foi disparada nesta etapa.
+                </span>
+              </div>
+
+              <div className={styles.previewActions}>
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={handleReset}
+                >
+                  <RotateCcw size={16} className="shrink-0 flex-none" /> Importar Outro Material
+                </button>
+
+                <div style={{ fontSize: "0.85rem", color: "var(--color-slate-blue)" }}>
+                  ✓ Pronto para a próxima etapa (Fase 2)
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -15,6 +15,12 @@
     "REG-TRILHAS-012": { "domain": "trilhas", "kind": "api", "title": "Retries limitados", "validatedOn": "2026-10-12" },
     "REG-TRILHAS-013": { "domain": "trilhas", "kind": "browser", "title": "Salvar trilha gerada envia contrato correto e abre a trilha", "validatedOn": "2026-10-12" },
     "REG-TRILHAS-014": { "domain": "trilhas", "kind": "browser", "title": "CTA Iniciar/Continuar aponta para /trilhas/{id}", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-015": { "domain": "trilhas", "kind": "api", "title": "Orçamento de tokens (entrada limitada, cabe no TPM, saída não trunca)", "validatedOn": "2026-10-12" }
+    "REG-TRILHAS-015": { "domain": "trilhas", "kind": "api", "title": "Orçamento de tokens (entrada limitada, cabe no TPM, saída não trunca)", "validatedOn": "2026-10-12" },
+    "REG-MAT-001": { "domain": "material", "kind": "api", "title": "Validação de limites de texto: vazio, insuficiente (<100) e válido (100-8000)", "validatedOn": "2026-10-13" },
+    "REG-MAT-002": { "domain": "material", "kind": "api", "title": "Prevenção de truncamento silencioso: rejeição clara acima de 8.000 caracteres", "validatedOn": "2026-10-13" },
+    "REG-MAT-003": { "domain": "material", "kind": "api", "title": "Validação de arquivo: rejeição de formato que não seja PDF ou tamanho > 10MB", "validatedOn": "2026-10-13" },
+    "REG-MAT-004": { "domain": "material", "kind": "api", "title": "Extração de PDF válido com contagem real de páginas e caracteres", "validatedOn": "2026-10-13" },
+    "REG-MAT-005": { "domain": "material", "kind": "api", "title": "Tratamento defensivo: PDF inválido, vazio ou sem camada de texto (scan)", "validatedOn": "2026-10-13" },
+    "REG-MAT-006": { "domain": "material", "kind": "browser", "title": "Interface de Meu Material (/material): alternância, contador e conferência sem chamadas de IA", "validatedOn": "2026-10-13" }
   }
 }

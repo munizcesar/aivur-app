@@ -442,3 +442,24 @@ Antes de qualquer alteração futura em Trilhas:
 - **Camadas:** API = rota `route.ts` **real** + Zod **real**, com rede (Groq/RAG) e fronteiras do framework simuladas só em `tests/regression/_support/`. Navegador = UI real com respostas interceptadas. **Nenhuma chamada real à Groq/D1.** Nada de mock foi introduzido em código de produção.
 - **Lacunas conhecidas (não automatizadas de propósito; ver README):** (a) `/login` e `/auth/callback` ignoram `?redirect=` — não há retorno automático pós-login a `/trilhas/novo`; (b) persistência real no D1 de `POST /api/trilhas` é verificação manual; (c) truncamento real do provedor só é confirmável com teste real controlado; (d) JSON truncado na 1ª resposta retorna 400 controlado (não aciona o Fixer).
 - **CI:** o projeto não tem GitHub Actions. Sugestão futura: job `npm ci && npm run regression` (Node 24). Não implementado.
+
+## 19. Meu Material — Fase 2: Passo 2.1 e Passo 2.2 (Síntese de IA e Rate Limiting)
+
+### Decisões Arquiteturais
+1. **Contratos Zod do Meu Material (`src/lib/validations/material-ai.ts`):**
+   - Resumo (tema central 5-250 chars, pontos-chave 2-6 itens de 10-200 chars, markdown estruturado).
+   - Flashcards (2-8 itens, frente/verso 5-300 chars, IDs gerados no servidor).
+   - Questões (2-6 itens, exatamente 4 alternativas distintas sem repetições, corretaIdx 0-3, justificativa e trecho de referência).
+   - Hidratação autoritativa: IDs gerados no servidor; campo `cobertura` fixado estritamente como `"recorte"` na ausência de comprovação de integralidade calculada pelo servidor (`comprovacaoIntegralidadeServidor: false`), rejeitando declarações não confiáveis do cliente.
+2. **Rota Edge de Síntese (`src/app/api/ai/material/gerar/route.ts`):**
+   - Exporta exclusivamente `runtime = "edge"` e `POST`.
+   - Autenticação prévia de sessão via cookie HttpOnly `aivur_session` antes de acessar credenciais ou invocar provedor.
+   - Cascata ordenada de modelos Groq (`gpt-oss-120b` -> `gpt-oss-20b` -> `qwen3.8-27b`) com interrupção imediata (sem cascata destrutiva) em HTTP 429.
+   - Fixer prompt limitado a 1 rodada de correção estrutural se a resposta inicial violar o contrato Zod.
+   - Preservação de status HTTP 429 se ocorrido durante o Fixer (não mascara como 422).
+   - Sanitização de erros da Groq: detalhes internos do provedor não vazam para o cliente.
+3. **Rate Limiting Defensivo (`src/lib/material-rate-limit.ts`):**
+   - Identidade confiável: preserva `cf-connecting-ip`. Se ausente ou vazio, descarta `x-forwarded-for` e cookies arbitrários, adotando cota compartilhada no isolate (`fallback:unknown`).
+   - Política conservadora de saturação: evicção determinística apenas de chaves comprovadamente expiradas (`now > resetTime`). Se o mapa atingir `maxEntries` (500) com todas as cotas ativas, novas chaves são recusadas (HTTP 429), eliminando a vulnerabilidade de quota reset por flood FIFO/LRU.
+4. **Validação:**
+   - 29/29 cenários cobertos no Regression Gate (`REG-MAT-001..014`, `REG-TRILHAS-001..015`).

@@ -29,6 +29,7 @@
     "REG-MAT-011": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): geração com material válido conclui com sucesso e contrato estrutural íntegro (1 chamada Groq)", "validatedOn": "2026-10-14" },
     "REG-MAT-012": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): JSON malformado ou fora do contrato aciona Fixer e recupera estrutura", "validatedOn": "2026-10-14" },
     "REG-MAT-013": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): falha irrecuperável do Fixer retorna 422 e erro 429 do provedor retorna 429 sem cascata", "validatedOn": "2026-10-14" },
-    "REG-MAT-014": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): metadados do cliente não forçam cobertura integral; 429 durante Fixer preserva status 429", "validatedOn": "2026-10-14" }
+    "REG-MAT-014": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): metadados do cliente não forçam cobertura integral; 429 durante Fixer preserva status 429", "validatedOn": "2026-10-14" },
+    "REG-MAT-015": { "domain": "material", "kind": "browser", "title": "Meu Material: integração frontend da síntese de IA com preservação em erro (429), renderização do estúdio (resumo, flashcards, questões) e reset", "validatedOn": "2026-10-15" }
   }
 }

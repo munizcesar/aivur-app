@@ -463,3 +463,62 @@ Antes de qualquer alteração futura em Trilhas:
    - Política conservadora de saturação: evicção determinística apenas de chaves comprovadamente expiradas (`now > resetTime`). Se o mapa atingir `maxEntries` (500) com todas as cotas ativas, novas chaves são recusadas (HTTP 429), eliminando a vulnerabilidade de quota reset por flood FIFO/LRU.
 4. **Validação:**
    - 29/29 cenários cobertos no Regression Gate (`REG-MAT-001..014`, `REG-TRILHAS-001..015`).
+
+## 20. Meu Material — Fase 2: Passo 2.3 (Integração do Estúdio de Estudo Ativo no Frontend)
+
+### Decisões Arquiteturais
+1. **Integração Real via Contratos Zod (`src/app/material/page.tsx`):**
+   - Conexão do botão explícito "Sintetizar com IA" à rota `POST /api/ai/material/gerar`.
+   - O payload enviado pelo cliente segue estritamente o `MaterialGenerateRequestSchema` (`titulo`, `conteudo`, `disciplina: "Geral"`, `metadados`).
+   - A resposta do servidor é validada via `MaterialGeneratedContentSchema.safeParse`. Se a resposta for inválida ou divergente, um erro controlado é apresentado sem recorrer a protótipos ou fallbacks silenciosos.
+2. **Remoção Completa de Mocks Estáticos (`FlashcardsTool.tsx` e `QuizTool.tsx`):**
+   - Ambos os componentes foram refatorados para aceitar exclusivamente props tipadas (`MaterialFlashcard[]` e `MaterialQuestion[]`).
+   - Todos os dados estáticos simulados foram removidos do código de produção.
+   - Conformidade estrita com a Regra de Titânio (`size={N}`, `shrink-0 flex-none`, sem classes `w-N h-N` conflitantes).
+3. **Preservação de Estado e Tratamento Defensivo de Erros:**
+   - Importar ou visualizar PDF/texto NÃO dispara chamadas à IA (preservação estrita do `REG-MAT-006`).
+   - Em falhas de rede ou status HTTP 401, 422, 429 e 503, o material validado (`verifiedMaterial`) e o texto digitado são 100% preservados na tela, permitindo nova tentativa manual sem perda de dados.
+   - Nenhuma retentativa automática é executada, evitando consumo não intencional de cotas.
+   - Mutex síncrono via `isGeneratingRef` e estado `isGenerating` previnem requisições concorrentes ou duplo clique.
+   - "Importar Outro Material" executa o reset explícito de todo o estado (`verifiedMaterial`, `generatedContent`, `aiError`, abas).
+4. **Proteção Evolutiva (Regression Gate):**
+   - Total de 30 cenários aprovados.
+   - `REG-MAT-015`: Teste de navegador (Puppeteer) cobrindo fluxo real ponta-a-ponta com interceptação de rede: validação sem IA, erro 429 com preservação do material, síntese com renderização do estúdio (Resumo, Flashcards com virada 3D e avaliação, Questões com feedback pedagógico e citação de fonte) e reinício explícito via "Importar Outro Material".
+
+### Ressalva de Segurança Resolvida (Autenticação Criptográfica de Sessão)
+- A validação de sessão na rota Edge `/api/ai/material/gerar` agora verifica estritamente a assinatura criptográfica HMAC-SHA256, expiração temporal e integridade do payload do cookie `aivur_session`.
+- Cookies forjados, não assinados, adulterados ou expirados são sumariamente rejeitados com HTTP 401 antes de qualquer invocação de IA.
+
+## 21. Autenticação Segura Global de Sessão (Fase 2 — Migração Completa)
+
+### Decisões Arquiteturais e Cobertura
+1. **Helper Centralizado Único (`src/lib/session.ts`):**
+   - Utiliza Web Crypto nativa (`crypto.subtle`) compatível com Edge Runtime e Node.js sem dependências externas.
+   - Formato do token: `${base64url(payload)}.${base64url(hmacSignature)}`.
+   - Payload: `{ sub: userId, iat: number, exp: number }`. Expiração padrão de 30 dias.
+   - Resolução de segredos de forma segura: `AUTH_SECRET` ou `ADMIN_SECRET` lidos prioritariamente via `getRequestContext().env` no Edge e `process.env` no ambiente de desenvolvimento/testes.
+   - Fallback para desenvolvimento local estritamente condicionado a `process.env.NODE_ENV !== "production"`.
+
+2. **Rotas Protegidas e Migradas Integralmente:**
+   - `POST /api/ai/gerar-trilha`: valida assinatura via `verifySessionCookie`; extrai `userId = session.userId`; rejeita forjamento/expiração com 401 antes da Groq.
+   - `POST /api/ai/material/gerar`: valida assinatura via `verifySessionCookie`; bloqueia consumo de IA se cookie for inválido, adulterado ou expirado.
+   - `GET, POST /api/trilhas`: valida assinatura; `userId = session.userId` utilizado como parâmetro vinculado em consultas D1 (isolamento por usuário).
+   - `GET, PUT, DELETE /api/trilhas/[id]`: valida assinatura; consultas D1 vinculam estritamente `session.userId` impedindo acesso cruzado (anti-IDOR).
+   - `POST /api/trilhas/[id]/gerar-mais`: valida assinatura; verifica propriedade no D1 antes de consumir a Groq.
+   - `POST /api/sync/pull`: valida assinatura; encaminha `session.userId` autenticado ao Worker.
+   - `POST /api/sync/push`: valida assinatura; grava `user_progress` com `session.userId` autenticado.
+   - `Page /trilhas/novo` (SSR): Server Component valida o cookie `aivur_session` assinado via `verifySessionCookie` antes de renderizar; redireciona para `/login` se ausente ou inválido.
+
+3. **Emissão de Sessão:**
+   - `src/app/api/auth/verify/route.ts`: assina criptograficamente o `userId` retornado pelo Magic Link antes de gravar o cookie HttpOnly `aivur_session`.
+   - `src/app/api/auth/dev-bypass/route.ts`: assina a sessão com `signSession("cesa.muniz@gmail.com")` mantendo bloqueio restrito a `development` (HTTP 403 em produção).
+
+4. **Proteção Evolutiva (Regression Gate):**
+   - `REG-MAT-009`: expandido para cobrir cookies ausentes, adulterados, expirados e forjados no Meu Material.
+   - `REG-TRILHAS-004`: expandido para cobrir ciclo completo de segurança: forjamento de cookie, adulteração de assinatura, expiração temporal, persistência D1 isolada por `session.userId`, rotas de sincronização (Push/Pull) e rejeição de acesso cruzado (anti-IDOR).
+   - `tests/regression/run.mjs` e `tests/regression/_support/browser.mjs`: sincronizam chaves de ambiente com `next dev` e emitem sessões assinadas legítimas para o Puppeteer.
+   - **Placar oficial:** 30/30 PASS mantido (`npm run regression`).
+
+5. **Validação em Produção (Concluída):**
+   - O segredo `AUTH_SECRET` foi registrado com sucesso no projeto Cloudflare Pages de produção (`aivur-app`) via `npx wrangler pages secret put AUTH_SECRET --project-name aivur-app`.
+   - O ambiente de produção passa a resolver `AUTH_SECRET` prioritariamente via `getRequestContext().env.AUTH_SECRET` no Edge Runtime, eliminando pendências de configuração para release.

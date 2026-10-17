@@ -5,6 +5,7 @@ import CriarTrilhaView from "@/components/Trilhas/CriarTrilhaView";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import SideDrawer from "@/components/SideDrawer/SideDrawer";
+import { verifySessionCookie } from "@/lib/session";
 
 export const runtime = "edge";
 
@@ -16,8 +17,9 @@ export const runtime = "edge";
 export default async function NovaTrilhaPage() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("aivur_session");
+  const session = await verifySessionCookie(sessionCookie?.value);
 
-  if (!sessionCookie || !sessionCookie.value || !sessionCookie.value.trim()) {
+  if (!session.valid) {
     redirect("/login");
   }
 

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Trilha, TrilhaFlashcard, TrilhaQuestao } from '@/mocks/trilhasMock';
 import { TrilhaSchema } from '@/lib/validations/trilha';
+import { verifySessionCookie } from '@/lib/session';
 
 export const runtime = 'edge';
 
@@ -31,14 +32,12 @@ export async function GET(
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('aivur_session');
 
-    if (!sessionCookie || !sessionCookie.value) {
+    const session = await verifySessionCookie(sessionCookie?.value);
+    if (!session.valid) {
       return NextResponse.json({ error: 'Sessão ausente ou inválida' }, { status: 401 });
     }
 
-    const userId = sessionCookie.value.trim();
-    if (!userId) {
-      return NextResponse.json({ error: 'Sessão ausente ou inválida' }, { status: 401 });
-    }
+    const userId = session.userId;
 
     const env = getRequestContext().env;
     const db = env.D1_DB || env.DB;
@@ -142,14 +141,12 @@ export async function PUT(
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('aivur_session');
 
-    if (!sessionCookie || !sessionCookie.value) {
+    const session = await verifySessionCookie(sessionCookie?.value);
+    if (!session.valid) {
       return NextResponse.json({ error: 'Sessão ausente ou inválida' }, { status: 401 });
     }
 
-    const userId = sessionCookie.value.trim();
-    if (!userId) {
-      return NextResponse.json({ error: 'Sessão ausente ou inválida' }, { status: 401 });
-    }
+    const userId = session.userId;
 
     const env = getRequestContext().env;
     const db = env.D1_DB || env.DB;
@@ -292,14 +289,12 @@ export async function DELETE(
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('aivur_session');
 
-    if (!sessionCookie || !sessionCookie.value) {
+    const session = await verifySessionCookie(sessionCookie?.value);
+    if (!session.valid) {
       return NextResponse.json({ error: 'Sessão ausente ou inválida' }, { status: 401 });
     }
 
-    const userId = sessionCookie.value.trim();
-    if (!userId) {
-      return NextResponse.json({ error: 'Sessão ausente ou inválida' }, { status: 401 });
-    }
+    const userId = session.userId;
 
     const env = getRequestContext().env;
     const db = env.D1_DB || env.DB;

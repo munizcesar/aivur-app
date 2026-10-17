@@ -5,6 +5,7 @@ import {
   AI_CALL_CAP, TPM_LIMIT, callGenerate, assertTrilhaContract, loadSchemas,
   validAiOutput, schemaInvalidAiOutput, ok, raw, truncated, fail,
 } from "../_support/harness.mjs";
+import { signSession } from "@/lib/session.ts";
 
 const TITLE = "Concurso de Teste";
 
@@ -53,12 +54,128 @@ export const cases = [
     title: "Sessão ausente/inválida retorna 401 controlado sem consumir IA",
     needs: "api",
     async run() {
+      // 1. Cookie ausente e vazio em /api/ai/gerar-trilha
       for (const cookie of [null, "   "]) {
         const { res, body, calls } = await callGenerate({ cookie, script: () => ok(validAiOutput()) });
         assert.equal(res.status, 401);
         assert.equal(typeof body.error, "string");
         assert.ok(body.error.length > 0);
         assert.equal(calls.groq.length, 0, "sem sessão não pode haver chamada à IA");
+      }
+
+      // 2. Cookie forjado sem assinatura válida em /api/ai/gerar-trilha
+      const { res: resForged, body: bodyForged, calls: callsForged } = await callGenerate({
+        cookie: "forged-trilha-session-123",
+        script: () => ok(validAiOutput()),
+      });
+      assert.equal(resForged.status, 401, "cookie forjado deve ser rejeitado com 401");
+      assert.match(bodyForged.error, /sessão/i);
+      assert.equal(callsForged.groq.length, 0, "cookie forjado não pode consumir IA");
+
+      // 3. Cookie com assinatura adulterada em /api/ai/gerar-trilha
+      const validToken = await signSession("trilha-user@aivur.com");
+      const [payloadB64, sigB64] = validToken.split(".");
+      const alteredSig = sigB64.slice(0, -2) + (sigB64.endsWith("x") ? "y" : "x");
+      const { res: resTampered, calls: callsTampered } = await callGenerate({
+        cookie: `${payloadB64}.${alteredSig}`,
+        script: () => ok(validAiOutput()),
+      });
+      assert.equal(resTampered.status, 401, "assinatura adulterada deve ser rejeitada com 401");
+      assert.equal(callsTampered.groq.length, 0, "assinatura adulterada não pode consumir IA");
+
+      // 4. Cookie com sessão expirada em /api/ai/gerar-trilha
+      const expiredToken = await signSession("trilha-user@aivur.com", { maxAgeMs: -1000 });
+      const { res: resExpired, calls: callsExpired } = await callGenerate({
+        cookie: expiredToken,
+        script: () => ok(validAiOutput()),
+      });
+      assert.equal(resExpired.status, 401, "sessão expirada deve ser rejeitada com 401");
+      assert.equal(callsExpired.groq.length, 0, "sessão expirada não pode consumir IA");
+
+      // 5. Proteção de rotas D1 de Trilhas (/api/trilhas e /api/trilhas/[id]/gerar-mais)
+      const { GET: getTrilhasRoute, POST: postTrilhasRoute } = await import("@/app/api/trilhas/route.ts");
+      const { POST: gerarMaisRoute } = await import("@/app/api/trilhas/[id]/gerar-mais/route.ts");
+
+      // GET /api/trilhas com cookie forjado
+      globalThis.__REG_COOKIES = { aivur_session: "untrusted-cookie" };
+      const getTrilhasRes = await getTrilhasRoute();
+      assert.equal(getTrilhasRes.status, 401, "GET /api/trilhas deve rejeitar cookie forjado com 401");
+
+      // POST /api/trilhas com cookie forjado
+      const postTrilhasReq = new Request("http://localhost/api/trilhas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titulo: "Trilha Teste", disciplina: "Direito", video: {}, flashcards: [], questoes: [] }),
+      });
+      const postTrilhasRes = await postTrilhasRoute(postTrilhasReq);
+      assert.equal(postTrilhasRes.status, 401, "POST /api/trilhas deve rejeitar cookie forjado com 401");
+
+      // POST /api/trilhas/[id]/gerar-mais com cookie forjado
+      const gerarMaisReq = new Request("http://localhost/api/trilhas/t-001/gerar-mais", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo: "flashcards" }),
+      });
+      const gerarMaisRes = await gerarMaisRoute(gerarMaisReq, { params: Promise.resolve({ id: "t-001" }) });
+      assert.equal(gerarMaisRes.status, 401, "POST /api/trilhas/[id]/gerar-mais deve rejeitar cookie forjado com 401");
+
+      // 6. Proteção de rotas de Sincronização (/api/sync/push e /api/sync/pull)
+      const { POST: syncPushRoute } = await import("@/app/api/sync/push/route.ts");
+      const { POST: syncPullRoute } = await import("@/app/api/sync/pull/route.ts");
+
+      // POST /api/sync/push com cookie forjado
+      const pushReq = new Request("http://localhost/api/sync/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "REGISTER_ANSWER", payload: { questionId: "q1", isCorrect: true } }),
+      });
+      const pushRes = await syncPushRoute(pushReq);
+      assert.equal(pushRes.status, 401, "POST /api/sync/push deve rejeitar cookie forjado com 401");
+
+      // POST /api/sync/pull com cookie forjado
+      const pullReq = new Request("http://localhost/api/sync/pull", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const pullRes = await syncPullRoute(pullReq);
+      const pullData = await pullRes.json();
+      assert.equal(pullData.success, false, "POST /api/sync/pull não pode autenticar cookie forjado");
+      assert.equal(pullData.reason, "unauthorized");
+
+      // 7. Isolamento de Dados entre Usuários (Anti-IDOR) em /api/trilhas/[id]
+      const { GET: getTrilhaIdRoute } = await import("@/app/api/trilhas/[id]/route.ts");
+      const validUserASession = await signSession("user-a@aivur.com");
+      globalThis.__REG_COOKIES = { aivur_session: validUserASession };
+
+      // Simula banco D1 com trilha pertencente exclusivamente a user-b
+      const mockD1 = {
+        prepare: (sql) => ({
+          bind: (...args) => ({
+            first: async () => {
+              // Se a query busca por id e user_id
+              const [idParam, userParam] = args;
+              if (idParam === "trilha-user-b" && userParam === "user-b@aivur.com") {
+                return { id: "trilha-user-b", user_id: "user-b@aivur.com", titulo: "Privada de B" };
+              }
+              // Se o usuário que pediu for user-a, não encontra
+              return null;
+            },
+            all: async () => ({ results: [] }),
+          }),
+        }),
+      };
+      globalThis.__REG_CF_CONTEXT = { env: { D1_DB: mockD1 } };
+
+      try {
+        const idorReq = new Request("http://localhost/api/trilhas/trilha-user-b");
+        const idorRes = await getTrilhaIdRoute(idorReq, { params: Promise.resolve({ id: "trilha-user-b" }) });
+        assert.equal(idorRes.status, 404, "Usuário A não pode acessar trilha de Usuário B (anti-IDOR)");
+        const idorData = await idorRes.json();
+        assert.match(idorData.error, /não encontrada/i);
+      } finally {
+        delete globalThis.__REG_CF_CONTEXT;
+        delete globalThis.__REG_COOKIES;
       }
     },
   },

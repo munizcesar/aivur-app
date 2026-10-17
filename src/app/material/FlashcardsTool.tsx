@@ -3,54 +3,50 @@
 import { useState } from "react";
 import styles from "./FlashcardsTool.module.css";
 import { RotateCcw } from "lucide-react";
+import type { MaterialFlashcard } from "@/lib/validations/material-ai";
 
-// Mock data
-const mockFlashcards = [
-  {
-    id: 1,
-    front: "O que é Habeas Corpus?",
-    back: "É um remédio constitucional (Art. 5º, LXVIII) destinado a proteger a liberdade de locomoção (ir, vir e permanecer) contra prisões ou restrições ilegais ou abusivas."
-  },
-  {
-    id: 2,
-    front: "Quais são os fundamentos da República Federativa do Brasil? (SOCI DIVAPLU)",
-    back: "SOberania, CIdadania, DIgnidade da pessoa humana, VAlores sociais do trabalho e da livre iniciativa, PLUralismo político. (Art. 1º da CF/88)"
-  },
-  {
-    id: 3,
-    front: "O Mandado de Injunção serve para quê?",
-    back: "Serve para viabilizar o exercício de um direito constitucionalmente previsto que está inviabilizado pela falta de uma norma regulamentadora (omissão legislativa)."
-  }
-];
+export interface FlashcardsToolProps {
+  flashcards: MaterialFlashcard[];
+}
 
-export default function FlashcardsTool() {
+export default function FlashcardsTool({ flashcards }: FlashcardsToolProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
 
-  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
+  if (!flashcards || flashcards.length === 0) {
+    return (
+      <div className={styles.toolContainer}>
+        <div className={styles.header}>
+          <p style={{ color: "var(--color-slate-blue)", padding: "2rem" }}>
+            Nenhum flashcard disponível para este material.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  const currentCard = mockFlashcards[currentIndex];
+  const currentCard = flashcards[currentIndex];
 
   const handleFlip = () => {
-    if (swipeDirection) return; // prevent clicking while swiping
+    if (swipeDirection) return;
     setIsFlipped(!isFlipped);
   };
 
-  const handleDecision = (direction: 'left' | 'right') => {
-    if (swipeDirection) return; // double click prevention
+  const handleDecision = (direction: "left" | "right") => {
+    if (swipeDirection) return;
     setSwipeDirection(direction);
 
-    // Wait for the swipe out animation to finish before loading the next card
     setTimeout(() => {
-      if (currentIndex < mockFlashcards.length - 1) {
+      if (currentIndex < flashcards.length - 1) {
         setIsFlipped(false);
         setSwipeDirection(null);
-        setCurrentIndex(prev => prev + 1);
+        setCurrentIndex((prev) => prev + 1);
       } else {
         setIsFinished(true);
       }
-    }, 300); // matches the CSS transition time
+    }, 300);
   };
 
   const handleRestart = () => {
@@ -60,72 +56,133 @@ export default function FlashcardsTool() {
     setCurrentIndex(0);
   };
 
+  const handleNext = () => {
+    if (currentIndex < flashcards.length - 1) {
+      setIsFlipped(false);
+      setSwipeDirection(null);
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setIsFlipped(false);
+      setSwipeDirection(null);
+      setCurrentIndex((prev) => prev - 1);
+    }
+  };
+
   if (isFinished) {
     return (
       <div className={styles.finishedState}>
-        <h2>Sessão Concluída! 🎉</h2>
-        <p>Você revisou todos os flashcards deste bloco.</p>
-        <button className={styles.restartBtn} onClick={handleRestart}>
-          <RotateCcw width={18} height={18} /> Revisar Novamente
+        <h2>Revisão Concluída! 🎉</h2>
+        <p>Você revisou todos os {flashcards.length} flashcards deste material.</p>
+        <button type="button" className={styles.restartBtn} onClick={handleRestart}>
+          <RotateCcw size={18} className="shrink-0 flex-none" /> Revisar Novamente
         </button>
       </div>
     );
   }
 
-  // Determine classes for swipe animation
   let cardSwipeClass = "";
-  if (swipeDirection === 'left') cardSwipeClass = styles.swipeLeft;
-  if (swipeDirection === 'right') cardSwipeClass = styles.swipeRight;
+  if (swipeDirection === "left") cardSwipeClass = styles.swipeLeft;
+  if (swipeDirection === "right") cardSwipeClass = styles.swipeRight;
 
   return (
     <div className={styles.toolContainer}>
       <header className={styles.header}>
         <span className={styles.counter}>
-          Cartão {currentIndex + 1} de {mockFlashcards.length}
+          Cartão {currentIndex + 1} de {flashcards.length}
         </span>
       </header>
 
       <div className={styles.scene}>
-        <div 
-          className={`${styles.card} ${isFlipped ? styles.isFlipped : ""} ${cardSwipeClass}`} 
+        <div
+          className={`${styles.card} ${isFlipped ? styles.isFlipped : ""} ${cardSwipeClass}`}
           onClick={!isFlipped ? handleFlip : undefined}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleFlip();
+            }
+          }}
+          aria-label={isFlipped ? "Verso do flashcard" : "Frente do flashcard"}
         >
           {/* FRENTE */}
           <div className={`${styles.cardFace} ${styles.cardFront}`}>
             <div className={styles.cardContent}>
-              <h3 className={styles.frontText}>{currentCard.front}</h3>
+              <h3 className={styles.frontText}>{currentCard.frente}</h3>
             </div>
-            <div className={styles.flipHint}>
-              Clique no cartão para virar
-            </div>
+            <div className={styles.flipHint}>Clique no cartão para virar</div>
           </div>
 
           {/* VERSO */}
           <div className={`${styles.cardFace} ${styles.cardBack}`}>
             <div className={styles.cardContent}>
               <h3 className={styles.backTitle}>Resposta:</h3>
-              <p className={styles.backText}>{currentCard.back}</p>
+              <p className={styles.backText}>{currentCard.verso}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* BOTÕES DE DECISÃO (Aparecem só no verso) */}
+      {/* CONTROLES DE NAVEGAÇÃO E AVALIAÇÃO */}
       <div className={`${styles.decisionArea} ${isFlipped && !swipeDirection ? styles.showDecisions : ""}`}>
         <div className={styles.binaryButtons}>
-          <button 
+          <button
+            type="button"
             className={`${styles.decisionBtn} ${styles.btnGhostRed}`}
-            onClick={() => handleDecision('left')}
+            onClick={() => handleDecision("left")}
           >
-            ❌ Errei
+            ❌ Preciso Revisar
           </button>
-          <button 
+          <button
+            type="button"
             className={`${styles.decisionBtn} ${styles.btnSolidGreen}`}
-            onClick={() => handleDecision('right')}
+            onClick={() => handleDecision("right")}
           >
-            ✅ Acertei
+            ✅ Dominei
           </button>
         </div>
+      </div>
+
+      <div style={{ display: "flex", gap: "1rem", marginTop: "1.5rem" }}>
+        <button
+          type="button"
+          onClick={handlePrev}
+          disabled={currentIndex === 0}
+          style={{
+            background: "transparent",
+            border: "1px solid rgba(107, 153, 179, 0.3)",
+            color: "var(--color-cream)",
+            padding: "0.4rem 0.9rem",
+            borderRadius: "6px",
+            fontSize: "0.85rem",
+            cursor: currentIndex === 0 ? "not-allowed" : "pointer",
+            opacity: currentIndex === 0 ? 0.4 : 1,
+          }}
+        >
+          ← Anterior
+        </button>
+        <button
+          type="button"
+          onClick={handleNext}
+          disabled={currentIndex === flashcards.length - 1}
+          style={{
+            background: "transparent",
+            border: "1px solid rgba(107, 153, 179, 0.3)",
+            color: "var(--color-cream)",
+            padding: "0.4rem 0.9rem",
+            borderRadius: "6px",
+            fontSize: "0.85rem",
+            cursor: currentIndex === flashcards.length - 1 ? "not-allowed" : "pointer",
+            opacity: currentIndex === flashcards.length - 1 ? 0.4 : 1,
+          }}
+        >
+          Próximo →
+        </button>
       </div>
     </div>
   );

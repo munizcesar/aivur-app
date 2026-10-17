@@ -1,6 +1,7 @@
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { verifySessionCookie } from "@/lib/session";
 
 export const runtime = 'edge';
 
@@ -8,11 +9,12 @@ export async function POST(req: Request) {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("aivur_session");
-    if (!sessionCookie || !sessionCookie.value) {
+    const session = await verifySessionCookie(sessionCookie?.value);
+    if (!session.valid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     
-    const userId = sessionCookie.value;
+    const userId = session.userId;
     const body = await req.json() as { action?: string; payload?: any; updatedAt?: number };
     
     if (!body.action || !body.payload) {

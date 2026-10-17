@@ -2,6 +2,7 @@ import { getRequestContext } from '@cloudflare/next-on-pages';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { extractCleanJson } from '@/lib/ai-protocols';
+import { verifySessionCookie } from '@/lib/session';
 
 export const runtime = 'edge';
 
@@ -28,14 +29,12 @@ export async function POST(
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('aivur_session');
 
-    if (!sessionCookie || !sessionCookie.value) {
+    const session = await verifySessionCookie(sessionCookie?.value);
+    if (!session.valid) {
       return NextResponse.json({ error: 'Sessão ausente ou inválida' }, { status: 401 });
     }
 
-    const userId = sessionCookie.value.trim();
-    if (!userId) {
-      return NextResponse.json({ error: 'Sessão ausente ou inválida' }, { status: 401 });
-    }
+    const userId = session.userId;
 
     const env = resolveEnv();
     const apiKey = env.GROQ_API_KEY || env.GROQ_API_KEY_2 || env.GROQ_API_KEY_3 || env.GROQ_API_KEY_FALLBACK;

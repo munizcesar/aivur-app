@@ -629,3 +629,210 @@
     transform: rotate(360deg);
   }
 }
+
+
+/* ─── ESTÁGIO 3: STUDIO DE ESTUDO ATIVO E IA ─── */
+
+.generateBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  background: var(--color-red, #C41230);
+  color: var(--color-cream, #FBEBD0);
+  border: none;
+  padding: 0.85rem 1.75rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(196, 18, 48, 0.35);
+}
+
+.generateBtn:hover:not(:disabled) {
+  background: #B0102B;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(196, 18, 48, 0.45);
+}
+
+.generateBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.loginLinkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  padding: 0.45rem 1rem;
+  background: rgba(196, 18, 48, 0.2);
+  border: 1px solid rgba(196, 18, 48, 0.4);
+  color: var(--color-cream);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.loginLinkBtn:hover {
+  background: rgba(196, 18, 48, 0.35);
+}
+
+.studioContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.studioHeaderCard {
+  background-color: rgba(10, 46, 69, 0.95);
+  border: 1px solid rgba(107, 153, 179, 0.35);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.studioTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-cream);
+  margin-bottom: 0.25rem;
+}
+
+.studioMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.studyTabsNav {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(5, 23, 35, 0.8);
+  padding: 0.4rem;
+  border-radius: 10px;
+  border: 1px solid rgba(107, 153, 179, 0.25);
+  width: fit-content;
+}
+
+.studyTabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--color-slate-blue);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.studyTabBtn:hover {
+  color: var(--color-cream);
+  background: rgba(107, 153, 179, 0.12);
+}
+
+.studyTabBtnActive {
+  background: rgba(10, 46, 69, 0.95);
+  color: var(--color-cream);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(107, 153, 179, 0.35);
+}
+
+.studioContentCard {
+  background-color: rgba(10, 46, 69, 0.9);
+  border: 1px solid rgba(107, 153, 179, 0.3);
+  border-radius: 12px;
+  padding: 2rem;
+  min-height: 400px;
+}
+
+/* ─── RESUMO TAB ─── */
+.summaryContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.themeCallout {
+  background: rgba(107, 153, 179, 0.12);
+  border-left: 4px solid var(--color-slate-blue);
+  border-radius: 0 8px 8px 0;
+  padding: 1.1rem 1.5rem;
+}
+
+.themeLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-slate-blue);
+  margin-bottom: 0.35rem;
+}
+
+.themeText {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-cream);
+  line-height: 1.5;
+}
+
+.keyPointsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionHeading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-cream);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.keyPointsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.keyPointItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(5, 23, 35, 0.65);
+  border: 1px solid rgba(107, 153, 179, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  color: var(--color-cream);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.markdownBox {
+  background: rgba(5, 23, 35, 0.6);
+  border: 1px solid rgba(107, 153, 179, 0.2);
+  border-radius: 8px;
+  padding: 1.5rem;
+  color: var(--color-cream);
+  font-size: 1rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

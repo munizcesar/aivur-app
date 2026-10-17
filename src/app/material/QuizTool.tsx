@@ -2,79 +2,110 @@
 
 import { useState } from "react";
 import styles from "./QuizTool.module.css";
-import { CheckCircle2, XCircle, Lightbulb } from "lucide-react";
+import { CheckCircle2, XCircle, Lightbulb, RotateCcw } from "lucide-react";
+import type { MaterialQuestion } from "@/lib/validations/material-ai";
 
-// Mock data
-const mockQuestions = [
-  {
-    id: 1,
-    text: "Segundo a Constituição Federal, é garantido o direito de propriedade, desde que:",
-    options: [
-      { id: "A", text: "Atenda à sua função social." },
-      { id: "B", text: "O proprietário pague o IPTU anualmente sem atrasos." },
-      { id: "C", text: "Seja destinada exclusivamente para moradia." },
-      { id: "D", text: "Haja autorização prévia do município." }
-    ],
-    correctOptionId: "A",
-    explanation: "A Constituição Federal estabelece em seu Art. 5º, inciso XXIII, que a propriedade atenderá a sua função social. Não basta ter o título, ela precisa cumprir um propósito na sociedade."
-  },
-  {
-    id: 2,
-    text: "Sobre os direitos políticos, o alistamento eleitoral e o voto são facultativos para:",
-    options: [
-      { id: "A", text: "Os maiores de dezoito anos e menores de sessenta anos." },
-      { id: "B", text: "Os analfabetos, os maiores de setenta anos e os maiores de dezesseis e menores de dezoito anos." },
-      { id: "C", text: "Apenas para os analfabetos e maiores de setenta anos." },
-      { id: "D", text: "Os militares em serviço ativo." }
-    ],
-    correctOptionId: "B",
-    explanation: "Conforme o Art. 14, § 1º, II da CF, o alistamento e o voto são facultativos para analfabetos, maiores de 70 anos e maiores de 16 e menores de 18 anos."
-  }
-];
+export interface QuizToolProps {
+  questoes: MaterialQuestion[];
+}
 
-export default function QuizTool() {
+export default function QuizTool({ questoes }: QuizToolProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [selectedOptionIdx, setSelectedOptionIdx] = useState<number | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [score, setScore] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
 
-  const question = mockQuestions[currentIndex];
+  if (!questoes || questoes.length === 0) {
+    return (
+      <div className={styles.quizContainer}>
+        <header className={styles.quizHeader}>
+          <p style={{ color: "var(--color-slate-blue)", textAlign: "center", padding: "2rem" }}>
+            Nenhuma questão disponível para este material.
+          </p>
+        </header>
+      </div>
+    );
+  }
 
-  const handleSelect = (id: string) => {
-    if (isConfirmed) return; // Prevent changing after confirmation
-    setSelectedOption(id);
+  const question = questoes[currentIndex];
+
+  const handleSelect = (idx: number) => {
+    if (isConfirmed) return;
+    setSelectedOptionIdx(idx);
   };
 
   const handleConfirm = () => {
+    if (selectedOptionIdx === null || isConfirmed) return;
     setIsConfirmed(true);
+    if (selectedOptionIdx === question.corretaIdx) {
+      setScore((prev) => prev + 1);
+    }
   };
 
   const handleNext = () => {
-    setIsConfirmed(false);
-    setSelectedOption(null);
-    setCurrentIndex((prev) => Math.min(prev + 1, mockQuestions.length - 1));
+    if (currentIndex < questoes.length - 1) {
+      setIsConfirmed(false);
+      setSelectedOptionIdx(null);
+      setCurrentIndex((prev) => prev + 1);
+    } else {
+      setIsFinished(true);
+    }
   };
+
+  const handleRestart = () => {
+    setCurrentIndex(0);
+    setSelectedOptionIdx(null);
+    setIsConfirmed(false);
+    setScore(0);
+    setIsFinished(false);
+  };
+
+  if (isFinished) {
+    const percentage = Math.round((score / questoes.length) * 100);
+    return (
+      <div className={styles.quizContainer} style={{ textAlign: "center", padding: "2rem" }}>
+        <h2 style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--color-cream)", marginBottom: "0.5rem" }}>
+          Simulado Concluído! 🎉
+        </h2>
+        <p style={{ color: "var(--color-slate-blue)", fontSize: "1.1rem", marginBottom: "1.5rem" }}>
+          Você acertou <strong>{score}</strong> de <strong>{questoes.length}</strong> questões ({percentage}% de aproveitamento).
+        </p>
+        <button
+          type="button"
+          onClick={handleRestart}
+          className={styles.confirmBtn}
+          style={{ maxWidth: "260px", margin: "0 auto", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+        >
+          <RotateCcw size={18} className="shrink-0 flex-none" /> Refazer Simulado
+        </button>
+      </div>
+    );
+  }
+
+  const letters = ["A", "B", "C", "D"];
 
   return (
     <div className={styles.quizContainer}>
       <header className={styles.quizHeader}>
         <span className={styles.progressCounter}>
-          Questão {currentIndex + 1} de {mockQuestions.length}
+          Questão {currentIndex + 1} de {questoes.length}
         </span>
         <div className={styles.progressBar}>
-          <div 
-            className={styles.progressFill} 
-            style={{ width: `${((currentIndex + 1) / mockQuestions.length) * 100}%` }}
+          <div
+            className={styles.progressFill}
+            style={{ width: `${((currentIndex + 1) / questoes.length) * 100}%` }}
           />
         </div>
       </header>
 
       <div className={styles.questionBlock}>
-        <h3 className={styles.questionText}>{question.text}</h3>
-        
+        <h3 className={styles.questionText}>{question.enunciado}</h3>
+
         <div className={styles.optionsList}>
-          {question.options.map((opt) => {
-            const isSelected = selectedOption === opt.id;
-            const isCorrect = opt.id === question.correctOptionId;
+          {question.opcoes.map((optText, optIdx) => {
+            const isSelected = selectedOptionIdx === optIdx;
+            const isCorrect = optIdx === question.corretaIdx;
             const isWrongSelected = isConfirmed && isSelected && !isCorrect;
             const isSuccess = isConfirmed && isCorrect;
 
@@ -89,26 +120,28 @@ export default function QuizTool() {
 
             return (
               <button
-                key={opt.id}
+                key={`${question.id}-opt-${optIdx}`}
+                type="button"
                 className={`${styles.optionCard} ${stateClass}`}
-                onClick={() => handleSelect(opt.id)}
+                onClick={() => handleSelect(optIdx)}
                 disabled={isConfirmed}
               >
-                <div className={styles.optionLetter}>{opt.id}</div>
-                <div className={styles.optionText}>{opt.text}</div>
-                {isConfirmed && isSuccess && <CheckCircle2 className={styles.resultIconCorrect} />}
-                {isConfirmed && isWrongSelected && <XCircle className={styles.resultIconWrong} />}
+                <div className={styles.optionLetter}>{letters[optIdx] ?? optIdx + 1}</div>
+                <div className={styles.optionText}>{optText}</div>
+                {isConfirmed && isSuccess && <CheckCircle2 size={20} className={`shrink-0 flex-none ${styles.resultIconCorrect}`} />}
+                {isConfirmed && isWrongSelected && <XCircle size={20} className={`shrink-0 flex-none ${styles.resultIconWrong}`} />}
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className={styles.actionArea}>
+      <div className={styles.actionArea} style={{ marginTop: "1.5rem" }}>
         {!isConfirmed ? (
-          <button 
-            className={styles.confirmBtn} 
-            disabled={!selectedOption}
+          <button
+            type="button"
+            className={styles.confirmBtn}
+            disabled={selectedOptionIdx === null}
             onClick={handleConfirm}
           >
             Confirmar Resposta
@@ -117,18 +150,23 @@ export default function QuizTool() {
           <div className={styles.feedbackArea}>
             <div className={styles.mentorExplanation}>
               <div className={styles.mentorHeader}>
-                <Lightbulb width={18} height={18} />
-                <strong>Explicação do Mentor</strong>
+                <Lightbulb size={18} className="shrink-0 flex-none" />
+                <strong>Justificativa Fundamentada</strong>
               </div>
-              <p>{question.explanation}</p>
+              <p>{question.justificativa}</p>
+              {question.trecho_referencia && (
+                <div style={{ marginTop: "0.75rem", fontSize: "0.85rem", color: "var(--color-slate-blue)", fontStyle: "italic", borderTop: "1px solid rgba(107, 153, 179, 0.2)", paddingTop: "0.5rem" }}>
+                  <strong>Fonte no material:</strong> &ldquo;{question.trecho_referencia}&rdquo;
+                </div>
+              )}
             </div>
-            
-            <button 
-              className={styles.nextBtn} 
+
+            <button
+              type="button"
+              className={styles.nextBtn}
               onClick={handleNext}
-              disabled={currentIndex === mockQuestions.length - 1}
             >
-              {currentIndex === mockQuestions.length - 1 ? "Simulado Finalizado" : "Próxima Questão ➔"}
+              {currentIndex === questoes.length - 1 ? "Finalizar Simulado ➔" : "Próxima Questão ➔"}
             </button>
           </div>
         )}

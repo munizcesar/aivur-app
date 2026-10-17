@@ -108,7 +108,14 @@ function silenceConsole() {
 export async function callGenerate({ script, cookie = "reg-user", title = "Concurso de Teste", text = "Conteúdo programático de teste." } = {}) {
   const { POST } = await loadRoute();
   const net = installFetch(script ?? (() => ok(validAiOutput())));
-  globalThis.__REG_COOKIES = cookie === null ? {} : { aivur_session: cookie };
+
+  let sessionCookieValue = cookie;
+  if (cookie === "reg-user") {
+    const { signSession } = await import("@/lib/session.ts");
+    sessionCookieValue = await signSession("reg-user");
+  }
+
+  globalThis.__REG_COOKIES = sessionCookieValue === null ? {} : { aivur_session: sessionCookieValue };
   const form = new FormData();
   form.append("title", title);
   form.append("text", text);

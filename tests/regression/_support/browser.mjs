@@ -5,6 +5,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { signSession } from "@/lib/session.ts";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../..");
@@ -50,7 +51,10 @@ export async function startBrowserEnv() {
     async newPage({ session = true } = {}) {
       const page = await browser.newPage();
       await page.setViewport({ width: 1280, height: 900 });
-      if (session) await page.setCookie({ name: "aivur_session", value: "reg-test-user", url: BASE });
+      if (session) {
+        const cookieValue = typeof session === "string" ? session : await signSession("reg-test-user");
+        await page.setCookie({ name: "aivur_session", value: cookieValue, url: BASE });
+      }
       page.setDefaultTimeout(60_000);
       return page;
     },

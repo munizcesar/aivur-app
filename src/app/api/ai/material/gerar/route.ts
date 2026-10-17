@@ -13,6 +13,7 @@ import {
   materialRateLimiter,
   resolveClientRateLimitKey,
 } from "@/lib/material-rate-limit";
+import { verifySessionCookie } from "@/lib/session";
 
 // ─── 1. RESOLUÇÃO DE BINDINGS NO EDGE ────────────────────────────────────────
 
@@ -33,20 +34,15 @@ export async function POST(req: Request) {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("aivur_session");
 
-  if (!sessionCookie || !sessionCookie.value) {
+  const session = await verifySessionCookie(sessionCookie?.value);
+  if (!session.valid) {
     return NextResponse.json(
       { error: "Sessão ausente ou inválida" },
       { status: 401 }
     );
   }
 
-  const userId = sessionCookie.value.trim();
-  if (!userId || userId === "null" || userId === "undefined" || userId === "[object Object]") {
-    return NextResponse.json(
-      { error: "Sessão ausente ou inválida" },
-      { status: 401 }
-    );
-  }
+  const userId = session.userId;
 
   // B. VERIFICAÇÃO DE CHAVE GROQ DISPONÍVEL
   const env = resolveEnv();

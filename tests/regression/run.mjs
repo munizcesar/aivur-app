@@ -3,13 +3,33 @@
 //   --only <ID>    executa apenas um caso (ex.: --only REG-TRILHAS-004)
 //   --list         lista a baseline
 import { register } from "node:module";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import path from "node:path";
 
 register("./_support/hooks.mjs", import.meta.url);
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+
+// Sincroniza variáveis de ambiente do .env.local (ex: ADMIN_SECRET) com o servidor next dev
+try {
+  const envPath = path.resolve(HERE, "../../.env.local");
+  if (existsSync(envPath)) {
+    const lines = readFileSync(envPath, "utf8").split(/\r?\n/);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eqIdx = trimmed.indexOf("=");
+      if (eqIdx > 0) {
+        const key = trimmed.slice(0, eqIdx).trim();
+        const val = trimmed.slice(eqIdx + 1).trim();
+        if (!process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+    }
+  }
+} catch (_) {}
 const args = process.argv.slice(2);
 const noBrowser = args.includes("--no-browser");
 const listOnly = args.includes("--list");

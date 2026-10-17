@@ -1,6 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { signSession } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
@@ -17,9 +18,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: data.error }, { status: 400 });
     }
     
-    // Set HttpOnly cookie
+    // Set HttpOnly cookie com assinatura HMAC-SHA256
+    const signedSession = await signSession(data.userId ?? "");
     const cookieStore = await cookies();
-    cookieStore.set("aivur_session", data.userId ?? '', {
+    cookieStore.set("aivur_session", signedSession, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

@@ -11,6 +11,8 @@ import {
   materialRateLimiter,
   resolveClientRateLimitKey,
 } from "@/lib/material-rate-limit.ts";
+import { signSession, verifySessionCookie } from "@/lib/session.ts";
+import { intercept, waitHydrated } from "../_support/browser.mjs";
 
 let routeModule;
 async function loadMaterialGenerateRoute() {
@@ -77,7 +79,12 @@ async function callMaterialGenerate({
   const { POST } = await loadMaterialGenerateRoute();
   const net = installFetch(script ?? (() => ok(validAiPayload())));
 
-  globalThis.__REG_COOKIES = cookie === null ? {} : { aivur_session: cookie };
+  let sessionCookieValue = cookie;
+  if (cookie === "reg-test-user") {
+    sessionCookieValue = await signSession("reg-test-user");
+  }
+
+  globalThis.__REG_COOKIES = sessionCookieValue === null ? {} : { aivur_session: sessionCookieValue };
 
   const defaultBody = {
     titulo: "Constituição Federal - Artigo 5º",
@@ -129,15 +136,102 @@ export const cases = [
     title: "Síntese de IA (/api/ai/material/gerar): sessão ausente ou inválida retorna 401 sem consumir IA",
     needs: "api",
     async run() {
+      // 1. Cookies nulos, vazios ou espaços em branco
       for (const invalidCookie of [null, "", "   "]) {
         const { res, body, calls } = await callMaterialGenerate({
           cookie: invalidCookie,
           script: () => ok(validAiPayload()),
         });
 
-        assert.equal(res.status, 401, "cookie inválido deve retornar 401");
+        assert.equal(res.status, 401, "cookie ausente/vazio deve retornar 401");
         assert.match(body.error, /sessão/i);
         assert.equal(calls.groq.length, 0, "não pode haver chamadas à Groq em 401");
+      }
+
+      // 2. Cookies forjados / texto puro não assinado (rejeição de tokens arbitrários)
+      for (const forged of ["forged-arbitrary-token", "cesa.muniz@gmail.com", "fake.token.value"]) {
+        const { res, body, calls } = await callMaterialGenerate({
+          cookie: forged,
+          script: () => ok(validAiPayload()),
+        });
+
+        assert.equal(res.status, 401, "cookie forjado sem assinatura válida deve retornar 401");
+        assert.match(body.error, /sessão/i);
+        assert.equal(calls.groq.length, 0, "não pode haver chamadas à Groq com cookie forjado");
+      }
+
+      // 3. Cookie com assinatura adulterada (payload válido, mas assinatura violada)
+      const validSigned = await signSession("aluno@aivur.com");
+      const [payloadB64, sigB64] = validSigned.split(".");
+      const alteredSig = sigB64.slice(0, -2) + (sigB64.endsWith("a") ? "b" : "a");
+      const tamperedCookie = `${payloadB64}.${alteredSig}`;
+
+      const { res: resTampered, body: bodyTampered, calls: callsTampered } = await callMaterialGenerate({
+        cookie: tamperedCookie,
+        script: () => ok(validAiPayload()),
+      });
+      assert.equal(resTampered.status, 401, "assinatura adulterada deve retornar 401");
+      assert.match(bodyTampered.error, /sessão/i);
+      assert.equal(callsTampered.groq.length, 0, "não pode consumir IA com assinatura adulterada");
+
+      // 4. Sessão expirada
+      const expiredSession = await signSession("aluno@aivur.com", { maxAgeMs: -1000 });
+      const { res: resExpired, body: bodyExpired, calls: callsExpired } = await callMaterialGenerate({
+        cookie: expiredSession,
+        script: () => ok(validAiPayload()),
+      });
+      assert.equal(resExpired.status, 401, "sessão expirada deve retornar 401");
+      assert.match(bodyExpired.error, /sessão/i);
+      assert.equal(callsExpired.groq.length, 0, "não pode consumir IA com sessão expirada");
+
+      // 5. Sessão válida: preservação do fluxo normal (autenticação OK)
+      const legitimateSession = await signSession("aluno-legitimo@aivur.com");
+      const { res: resValid, calls: callsValid } = await callMaterialGenerate({
+        cookie: legitimateSession,
+        script: () => ok(validAiPayload()),
+      });
+      assert.equal(resValid.status, 200, "sessão válida deve retornar 200");
+      assert.equal(callsValid.groq.length, 1, "sessão válida deve permitir chamada à IA");
+
+      // 6. Login / Magic link verify (/api/auth/verify): emite sessão válida e verificável
+      const { POST: verifyRoute } = await import("@/app/api/auth/verify/route.ts");
+      const originalFetch = globalThis.fetch;
+      try {
+        globalThis.fetch = async (url) => {
+          if (String(url).includes("/api/auth/verify")) {
+            return new Response(JSON.stringify({ userId: "verified-user@aivur.com" }), { status: 200 });
+          }
+          return new Response(JSON.stringify({ error: "not found" }), { status: 404 });
+        };
+        const verifyReq = new Request("http://localhost/api/auth/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: "magic-token-xyz" }),
+        });
+        const verifyRes = await verifyRoute(verifyReq);
+        assert.equal(verifyRes.status, 200, "verify deve retornar 200 para token válido");
+        const verifyData = await verifyRes.json();
+        assert.equal(verifyData.userId, "verified-user@aivur.com");
+        const emittedCookie = (globalThis.__REG_COOKIES || {}).aivur_session;
+        assert.ok(emittedCookie, "cookie aivur_session deve ser emitido");
+        const verification = await verifySessionCookie(emittedCookie);
+        assert.equal(verification.valid, true, "sessão emitida pelo verify deve ser válida");
+        assert.equal(verification.userId, "verified-user@aivur.com");
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+
+      // 7. Dev bypass (/api/auth/dev-bypass): bloqueado em produção
+      const { POST: devBypassRoute } = await import("@/app/api/auth/dev-bypass/route.ts");
+      const savedNodeEnv = process.env.NODE_ENV;
+      try {
+        process.env.NODE_ENV = "production";
+        const prodBypassRes = await devBypassRoute();
+        assert.equal(prodBypassRes.status, 403, "dev-bypass deve retornar 403 em produção");
+        const prodData = await prodBypassRes.json();
+        assert.match(prodData.error, /desenvolvimento/i);
+      } finally {
+        process.env.NODE_ENV = savedNodeEnv;
       }
     },
   },
@@ -323,7 +417,7 @@ export const cases = [
       // Requisições 1 a 3 com cf-connecting-ip ausente (null) e IPs falsos diferentes
       for (let i = 1; i <= 3; i++) {
         const resAbsent = await callMaterialGenerate({
-          cookie: `user-absent-${i}`,
+          cookie: await signSession(`user-absent-${i}`),
           headers: {
             "cf-connecting-ip": null,
             "x-forwarded-for": `203.0.113.${i}`,
@@ -336,7 +430,7 @@ export const cases = [
       // Requisições 4 e 5 com cf-connecting-ip presente mas vazio ("") e outros IPs falsos
       for (let i = 4; i <= 5; i++) {
         const resEmpty = await callMaterialGenerate({
-          cookie: `user-empty-${i}`,
+          cookie: await signSession(`user-empty-${i}`),
           headers: {
             "cf-connecting-ip": "",
             "x-forwarded-for": `198.51.100.${i}`,
@@ -348,7 +442,7 @@ export const cases = [
 
       // Requisição 6: Mesmo com nova sessão e novo x-forwarded-for falso, a cota compartilhada esgotou
       const blockedShared = await callMaterialGenerate({
-        cookie: "user-new-attempt",
+        cookie: await signSession("user-new-attempt"),
         headers: {
           "cf-connecting-ip": null,
           "x-forwarded-for": "192.0.2.99",
@@ -423,6 +517,267 @@ export const cases = [
         true,
         "após a expiração natural da janela, novas chaves voltam a ser admitidas"
       );
+    },
+  },
+  {
+    id: "REG-MAT-015",
+    title: "Meu Material: integração frontend da síntese de IA com preservação em erro (429), renderização do estúdio (resumo, flashcards, questões) e reset",
+    needs: "browser",
+    async run({ base, newPage }) {
+      const page = await newPage();
+      try {
+        let aiResponseConfig = {
+          status: 429,
+          body: { error: "Limite temporário de requisições excedido." },
+        };
+
+        const isMaterialGenerate = (req) =>
+          req.method() === "POST" && new URL(req.url()).pathname === "/api/ai/material/gerar";
+
+        const interceptedRequests = await intercept(page, [
+          {
+            test: isMaterialGenerate,
+            respond: () => aiResponseConfig,
+          },
+        ]);
+
+        // 1. Acessar /material
+        await page.goto(`${base}/material`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+        await page.waitForSelector("h1");
+
+        // 2. Alternar para aba "Colar Texto"
+        await waitHydrated(page, "button[role='tab']");
+        const tabs = await page.$$("button[role='tab']");
+        assert.ok(tabs.length >= 2, "deve renderizar as abas de modo de importação");
+        await tabs[1].click();
+
+        await waitHydrated(page, "textarea");
+
+        // 3. Digitar conteúdo válido (> 100 caracteres)
+        const validTextContent =
+          "A Constituição Federal de 1988 assegura a todos a igualdade perante a lei, sem distinção de qualquer natureza, garantindo-se a inviolabilidade do direito à vida, à liberdade e à propriedade, atendendo à sua função social.";
+        await page.click("textarea");
+        await page.keyboard.type(validTextContent, { delay: 2 });
+
+        // 4. Validar e Visualizar Texto (Fase 1)
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Validar e Visualizar Texto"));
+          btn?.click();
+        });
+
+        // 5. Verificar painel de conferência
+        await page.waitForFunction(
+          () => /conferência de importação/i.test(document.body.innerText),
+          { timeout: 10_000 }
+        );
+        const conferenceText = await page.evaluate(() => document.body.innerText);
+        assert.match(conferenceText, /Fase 1 Concluída/i);
+        assert.match(conferenceText, /Texto Colado/i);
+        assert.equal(
+          interceptedRequests.length,
+          0,
+          "Importação e conferência não podem disparar requisição à IA automaticamente"
+        );
+
+        // 6. Testar Falha e Preservação de Estado: Clicar em "Sintetizar com IA" com retorno 429
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Sintetizar com IA"));
+          btn?.click();
+        });
+
+        await page.waitForFunction(
+          () => /Limite temporário de requisições excedido/i.test(document.body.innerText),
+          { timeout: 10_000 }
+        );
+        assert.equal(interceptedRequests.length, 1, "deve ter interceptado 1 requisição à IA");
+
+        // Confirmar que o material validado continua preservado na tela após o erro 429
+        const afterErrorText = await page.evaluate(() => document.body.innerText);
+        assert.match(afterErrorText, /Conferência de Importação/i);
+        assert.match(afterErrorText, /Texto Colado/i);
+        assert.match(afterErrorText, /221 caracteres/i);
+
+        // 7. Testar Geração com Sucesso e Renderização do Estúdio
+        const validStudioData = {
+          titulo: "Constituição Federal - Artigo 5º",
+          disciplina: "Direito Constitucional",
+          escopoProcessado: {
+            caracteresProcessados: 221,
+            totalCaracteresMaterial: 221,
+            cobertura: "recorte",
+          },
+          resumo: {
+            tema_central: "Garantias fundamentais da pessoa humana e função social da propriedade na CF/88.",
+            pontos_chave: [
+              "Inviolabilidade do direito à vida, à liberdade e à segurança.",
+              "A propriedade atenderá obrigatoriamente a sua função social.",
+            ],
+            conteudo_markdown: "## Resumo Estruturado\n\nO artigo 5º da CF/88 estabelece direitos fundamentais...",
+          },
+          flashcards: [
+            {
+              id: "fc-101",
+              frente: "Qual é a exigência constitucional para o direito de propriedade?",
+              verso: "Atender a sua função social, conforme Art. 5º, XXIII da CF/88.",
+            },
+            {
+              id: "fc-102",
+              frente: "O que assegura o princípio da legalidade?",
+              verso: "Ninguém será obrigado a fazer ou deixar de fazer algo senão em virtude de lei.",
+            },
+          ],
+          questoes: [
+            {
+              id: "q-101",
+              enunciado: "Segundo a CF/88, o direito de propriedade atenderá:",
+              opcoes: [
+                "À sua função social.",
+                "Apenas aos interesses do proprietário.",
+                "A critério discricionário do município.",
+                "À finalidade comercial obrigatória.",
+              ],
+              corretaIdx: 0,
+              justificativa: "A propriedade atenderá a sua função social (Art. 5º, XXIII).",
+              trecho_referencia: "atendendo à sua função social",
+            },
+            {
+              id: "q-102",
+              enunciado: "Ninguém será submetido a tortura nem a tratamento desumano ou degradante, segundo a CF/88:",
+              opcoes: [
+                "Regra absoluta que veda qualquer forma de tortura.",
+                "Exceção aplicável em estado de sítio.",
+                "Permitida com autorização judicial.",
+                "Aplicável apenas a cidadãos natos.",
+              ],
+              corretaIdx: 0,
+              justificativa: "A vedação à tortura é categórica no Art. 5º, III da CF.",
+              trecho_referencia: "inviolabilidade do direito à vida",
+            },
+          ],
+        };
+
+        aiResponseConfig = {
+          status: 200,
+          body: validStudioData,
+        };
+
+        // Disparar geração novamente
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Sintetizar com IA"));
+          btn?.click();
+        });
+
+        // Aguardar o estúdio pedagógico ser renderizado
+        await page.waitForFunction(
+          () => /Garantias fundamentais da pessoa humana/i.test(document.body.innerText),
+          { timeout: 15_000 }
+        );
+        assert.equal(interceptedRequests.length, 2, "deve ter realizado a 2ª chamada");
+
+        // Validar contrato do payload enviado pelo frontend
+        const lastCall = interceptedRequests[1];
+        const postedPayload = JSON.parse(lastCall.postData);
+        assert.equal(postedPayload.disciplina, "Geral");
+        assert.equal(postedPayload.metadados.origem, "texto");
+        assert.equal(postedPayload.metadados.totalCaracteresMaterial, 221);
+
+        // 8. Validar Aba Resumo
+        const studioText = await page.evaluate(() => document.body.innerText);
+        assert.match(studioText, /Constituição Federal - Artigo 5º/i);
+        assert.match(studioText, /Recorte Pedagógico/i);
+        assert.match(studioText, /Inviolabilidade do direito à vida/i);
+
+        // 9. Validar Aba Flashcards
+        await page.evaluate(() => {
+          const tabs = [...document.querySelectorAll("button[role='tab']")];
+          const tab = tabs.find((t) => t.textContent.includes("Flashcards"));
+          tab?.click();
+        });
+
+        await page.waitForFunction(
+          () => /Qual é a exigência constitucional para o direito de propriedade/i.test(document.body.innerText),
+          { timeout: 5_000 }
+        );
+
+        // Virar o flashcard (frente -> verso)
+        await page.click("[role='button'][aria-label*='flashcard']");
+        await page.waitForFunction(
+          () => /Atender a sua função social/i.test(document.body.innerText),
+          { timeout: 5_000 }
+        );
+
+        // Clicar em "✅ Dominei"
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Dominei"));
+          btn?.click();
+        });
+
+        // Avançar para o próximo flashcard
+        await page.waitForFunction(
+          () => /princípio da legalidade/i.test(document.body.innerText),
+          { timeout: 5_000 }
+        );
+
+        // 10. Validar Aba Questões
+        await page.evaluate(() => {
+          const tabs = [...document.querySelectorAll("button[role='tab']")];
+          const tab = tabs.find((t) => t.textContent.includes("Questões"));
+          tab?.click();
+        });
+
+        await page.waitForFunction(
+          () => /Segundo a CF\/88, o direito de propriedade atenderá/i.test(document.body.innerText),
+          { timeout: 5_000 }
+        );
+
+        // Selecionar Alternativa A
+        await page.evaluate(() => {
+          const optBtns = [...document.querySelectorAll("button")].filter((b) =>
+            b.textContent.includes("À sua função social")
+          );
+          optBtns[0]?.click();
+        });
+
+        // Confirmar resposta
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Confirmar Resposta"));
+          btn?.click();
+        });
+
+        // Verificar justificativa fundamentada e trecho de referência
+        await page.waitForFunction(
+          () => /Justificativa Fundamentada/i.test(document.body.innerText),
+          { timeout: 5_000 }
+        );
+        const quizFeedbackText = await page.evaluate(() => document.body.innerText);
+        assert.match(quizFeedbackText, /A propriedade atenderá a sua função social/i);
+        assert.match(quizFeedbackText, /atendendo à sua função social/i);
+
+        // 11. Testar "Importar Outro Material" (Reset completo do fluxo)
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Importar Outro Material"));
+          btn?.click();
+        });
+
+        await page.waitForFunction(
+          () => /Upload de PDF|Cofre Editorial/i.test(document.body.innerText),
+          { timeout: 10_000 }
+        );
+        const resetText = await page.evaluate(() => document.body.innerText);
+        assert.equal(
+          /Garantias fundamentais da pessoa humana/i.test(resetText),
+          false,
+          "conteúdo gerado anterior deve ser desmontado"
+        );
+      } finally {
+        await page.close();
+      }
     },
   },
 ];

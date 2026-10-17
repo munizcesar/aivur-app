@@ -1,6 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { signSession } from "@/lib/session";
 
 export async function POST() {
   if (process.env.NODE_ENV !== "development") {
@@ -8,8 +9,9 @@ export async function POST() {
   }
 
   try {
+    const signedSession = await signSession("cesa.muniz@gmail.com");
     const cookieStore = await cookies();
-    cookieStore.set("aivur_session", "cesa.muniz@gmail.com", {
+    cookieStore.set("aivur_session", signedSession, {
       httpOnly: true,
       secure: false, // development is usually http
       sameSite: "lax",

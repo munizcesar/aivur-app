@@ -27,3 +27,14 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
 ## 2026-10-15 — Fase 2 (Meu Material: Integração do Estúdio de Estudo Ativo — Passo 2.3)
 
 - ADD REG-MAT-015 (camada Navegador): integração completa frontend de Meu Material (`/material`) com a rota de geração por IA (`/api/ai/material/gerar`); validação de bloqueio de requisições de IA na conferência; preservação integral do texto e metadados validados em erro HTTP 429; geração bem-sucedida renderizando o Estúdio de Estudo Ativo com contrato Zod estrito; interatividade completa com troca de abas (Resumo, Flashcards com virada 3D e avaliação, Questões com seleção de alternativas e justificativa fundamentada com trecho de referência); e reset explícito via "Importar Outro Material" desmontando o estúdio.
+
+## 2026-10-17 — AIVU (Chat Real com Inteligência Artificial v1)
+
+- ADD REG-AIVU-001 … 006 (camada API): implementação e validação do chat real com IA do AIVU (`/api/ai/aivu/chat`):
+  - REG-AIVU-001: validação Zod de entrada (rejeição com 400 de mensagem vazia, em branco, tipo incorreto ou JSON malformado sem chamada à IA).
+  - REG-AIVU-002: validação Zod de limites (rejeição com 400 para mensagens > 1000 caracteres, histórico > 8 itens ou papéis inválidos).
+  - REG-AIVU-003: autenticação estrita de sessão criptográfica HMAC-SHA256 (rejeição com 401 controlado para cookie ausente, vazio, forjado, adulterado ou expirado antes de qualquer processamento de IA).
+  - REG-AIVU-004: proteção de taxa por usuário ativo via `InMemoryRateLimiter` (cota de 15 mensagens / 15 minutos por usuário, bloqueando rajadas com 429 sem impactar outros usuários).
+  - REG-AIVU-005: round-trip completo de conversa válida com sessão assinada (retorna 200, contrato estrutural `{ reply, state: "speaking" }` validado por Zod, sanitização markdown e consumo de exatamente 1 chamada Groq com modelo `openai/gpt-oss-120b`).
+  - REG-AIVU-006: resiliência de borda contra falhas do provedor (conversão limpa de HTTP 429 da Groq para 429 amigável sem cascata, falhas 5xx e respostas inválidas/nulas de content convertidas para 502 Bad Gateway controlado, com garantia de zero vazamento de segredos ou stack traces).
+- ADD REG-AIVU-007 (camada Navegador): validação no Puppeteer da interface do widget AIVU (`AivoWidget.tsx`); abertura da janela, submissão de mensagem, interceptação de erro HTTP 502 da IA, exibição de erro controlado e recuperação automática do temporizador com reabilitação do input e restauração do mascote para idle sem congelamento em thinking ou speaking.

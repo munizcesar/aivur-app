@@ -15,12 +15,14 @@ interface AivoStore {
   messages: Message[];
   targetAnchor: string | null;
   isOpen: boolean;
+  isSending: boolean;
   
   setState: (state: AivoState) => void;
   addMessage: (msg: Omit<Message, 'id' | 'timestamp'>) => void;
   clearMessages: () => void;
   setTargetAnchor: (anchor: string | null) => void;
   setIsOpen: (isOpen: boolean) => void;
+  setIsSending: (isSending: boolean) => void;
 }
 
 export const useAivoStore = create<AivoStore>()(
@@ -28,10 +30,11 @@ export const useAivoStore = create<AivoStore>()(
     (set) => ({
       state: 'idle',
       messages: [
-        { id: '1', sender: 'aivo', text: 'Olá! Sou o AIVO, seu assistente. Como posso ajudar?', timestamp: Date.now() }
+        { id: '1', sender: 'aivo', text: 'Olá! Sou o AIVU, seu assistente. Como posso ajudar?', timestamp: Date.now() }
       ],
       targetAnchor: null,
       isOpen: false,
+      isSending: false,
 
       setState: (state) => set({ state }),
       addMessage: (msg) => set((prev) => ({
@@ -40,6 +43,7 @@ export const useAivoStore = create<AivoStore>()(
       clearMessages: () => set({ messages: [] }),
       setTargetAnchor: (targetAnchor) => set({ targetAnchor }),
       setIsOpen: (isOpen) => set({ isOpen }),
+      setIsSending: (isSending) => set({ isSending }),
     }),
     {
       name: 'aivo-storage',

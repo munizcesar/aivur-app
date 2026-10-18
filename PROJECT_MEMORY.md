@@ -522,3 +522,39 @@ Antes de qualquer alteração futura em Trilhas:
 5. **Validação em Produção (Concluída):**
    - O segredo `AUTH_SECRET` foi registrado com sucesso no projeto Cloudflare Pages de produção (`aivur-app`) via `npx wrangler pages secret put AUTH_SECRET --project-name aivur-app`.
    - O ambiente de produção passa a resolver `AUTH_SECRET` prioritariamente via `getRequestContext().env.AUTH_SECRET` no Edge Runtime, eliminando pendências de configuração para release.
+
+## 22. AIVU — Chat Real com Inteligência Artificial (v1)
+
+### Status: CONCLUÍDO E VALIDADO (37/37 TESTES PASS NO REGRESSION GATE).
+
+### 1. Escopo e Decisões Técnicas
+- **Identidade e Nomenclatura:** Mascote oficial AIVU no AIVUR. Preservados todos os nomes de arquivos legados (`AivoWidget.tsx`, `useAivoStore.ts`) e o componente de demonstração não utilizado (`src/components/Aivur/Aivur.tsx`), sem renomeações arriscadas.
+- **Contratos e Validações Zod (`src/lib/validations/aivu-chat.ts`):**
+  - Entrada (`AivuChatRequestSchema`): `message` obrigatória, 1 a 1.000 caracteres, tratada com `.trim()`; `history` opcional, teto defensivo de até 8 mensagens (`role: "user" | "assistant"`, `content: 1 a 1000 chars`).
+  - Saída (`AivuChatResponseSchema`): `{ reply: string, state: "speaking" }`.
+- **Rota Edge de Chat (`src/app/api/ai/aivu/chat/route.ts`):**
+  - Autenticação estrita no servidor: extrai `userId` exclusivamente do cookie assinado `aivur_session` via `verifySessionCookie`. Rejeita cookies ausentes, forjados, adulterados ou expirados com HTTP 401 antes de processar IA.
+  - Rate Limiting defensivo: `InMemoryRateLimiter` instanciado com cota de 15 mensagens / 15 minutos por usuário (`user:${userId}`).
+  - Provedor Groq com Failover: utiliza `callGroqWithFallback` e `getGroqKeysFromEnv`, iterando de forma transparente sobre as chaves disponíveis e modelo ativo `openai/gpt-oss-120b`.
+  - Protocolo de Sanitização: respostas tratadas via `extractCleanMarkdown` (remove tags `<think>` e resíduos). Respostas com content nulo, vazio ou inválido retornam status 502 controlado sem expor detalhes internos.
+  - Resposta Estruturada: completion JSON com status HTTP controlados (400 validação, 401 não autenticado, 429 limite de taxa, 502 erro do provedor de IA, 503 sem credenciais).
+- **Frontend e UX do Widget (`src/components/Aivo/AivoWidget.tsx` e `src/store/useAivoStore.ts`):**
+  - Mutex síncrono (`isSendingRef` + `isSending`) bloqueia envios simultâneos, duplo clique e disparo repetido via teclado (Enter).
+  - Gestão de temporizador de recuperação (`recoveryTimerRef`): cancela qualquer timer pendente ao iniciar nova mensagem e no unmount do componente, impedindo que timeouts antigos sobrescrevam o estado `thinking` ou `speaking` de requisições recentes.
+  - Preservação visual e de animação: integração do mascote mantendo os estados `idle` -> `thinking` durante o fetch -> `speaking` na recepção da resposta -> retorno automático para `idle` após 3,5 segundos.
+  - Resiliência após falhas: em erros de rede ou HTTP (401, 429, 502), o mascote exibe o estado `error` e recupera automaticamente para `idle` em 3 segundos, mantendo o input editável e desbloqueado para nova tentativa.
+  - Mensagens amigáveis para falha de sessão (orientando login) e cota atingida.
+- **Proteção Evolutiva (Regression Gate):**
+  - Criados 7 casos automatizados em `tests/regression/aivu/chat.case.mjs`:
+    - `REG-AIVU-001`: Validação Zod de entrada (rejeição de mensagem vazia, em branco ou JSON malformado).
+    - `REG-AIVU-002`: Validação Zod de limites (rejeição de mensagem > 1000 chars ou histórico > 8 itens).
+    - `REG-AIVU-003`: Rejeição com 401 de cookies ausentes, forjados, adulterados ou expirados sem consumir IA.
+    - `REG-AIVU-004`: Rate limit por usuário (15 req/15 min) bloqueando rajadas com 429.
+    - `REG-AIVU-005`: Conversa válida com sessão assinada, resposta markdown limpa e estado 'speaking' (1 chamada Groq com modelo `openai/gpt-oss-120b`).
+    - `REG-AIVU-006`: Resiliência contra erros da Groq (429 controlado, 502 para erro 5xx e para content nulo/vazio/inválido sem vazamento de segredos).
+    - `REG-AIVU-007`: Teste de navegador (Puppeteer) comprovando que sob falha HTTP 502 da IA, o widget renderiza o erro e reabilita o mascote e o input para `idle` sem travar em `thinking` ou `speaking`.
+  - Placar oficial: **37/37 PASS**.
+- **Limitações Conhecidas desta Versão (v1):**
+  - Rate limit em memória atua no isolate V8 (proteção por instância no Edge, não distribuído).
+  - Histórico mantido no cliente para a conversa imediata (sem persistência no D1, sem embeddings RAG e sem voz nesta fase).
+  - Modelo alinhado ao padrão de produção da plataforma (`openai/gpt-oss-120b`), substituindo o identificador obsoleto `llama3-70b-8192`.

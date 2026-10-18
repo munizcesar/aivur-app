@@ -10,13 +10,28 @@ import { motion, AnimatePresence } from "framer-motion";
 import styles from "./AivoWidget.module.css";
 
 export default function AivoWidget() {
-  const { state, messages, isOpen, targetAnchor, setIsOpen, addMessage, setState } = useAivoStore();
+  const { state, messages, isOpen, targetAnchor, isSending, setIsOpen, addMessage, setState, setIsSending } = useAivoStore();
   const isDrawerOpen = useQuizStore(s => s.isDrawerOpen);
   const quizModeActive = useQuizStore(s => s.step === 3 && s.mode !== 'redacao' && s.mode !== 'aivos360'); 
-  // Se for simulado, modo foco está ativo
 
   const [inputValue, setInputValue] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const isSendingRef = useRef(false);
+  const recoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearRecoveryTimer = () => {
+    if (recoveryTimerRef.current) {
+      clearTimeout(recoveryTimerRef.current);
+      recoveryTimerRef.current = null;
+    }
+  };
+
+  // Cleanup de timer ao desmontar componente
+  useEffect(() => {
+    return () => {
+      clearRecoveryTimer();
+    };
+  }, []);
 
   // Sync anchor with drawer
   useEffect(() => {
@@ -35,26 +50,84 @@ export default function AivoWidget() {
     }
   }, [messages, isOpen]);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const handleSend = async () => {
+    const text = inputValue.trim();
+    if (!text || isSendingRef.current) return;
     
-    addMessage({ sender: 'user', text: inputValue });
+    clearRecoveryTimer();
+    isSendingRef.current = true;
+    setIsSending(true);
+    addMessage({ sender: 'user', text });
     setInputValue("");
     setState('thinking');
-    
-    // Simulate AI reply
-    setTimeout(() => {
-      setState('speaking');
-      addMessage({ sender: 'aivo', text: 'Esta é uma resposta simulada. A integração completa será feita no back-end!' });
-      
-      setTimeout(() => {
+
+    // Monta o histórico recente para contexto (máximo 8 mensagens)
+    const historyPayload = messages
+      .slice(-8)
+      .map((m) => ({
+        role: m.sender === 'user' ? ('user' as const) : ('assistant' as const),
+        content: m.text,
+      }));
+
+    try {
+      const response = await fetch("/api/ai/aivu/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          history: historyPayload,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json() as { reply: string; state?: string };
+        addMessage({ sender: 'aivo', text: data.reply });
+        clearRecoveryTimer();
+        setState('speaking');
+        recoveryTimerRef.current = setTimeout(() => {
+          setState('idle');
+          recoveryTimerRef.current = null;
+        }, 3500);
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        let userFacingError = errData.error;
+        if (!userFacingError) {
+          if (response.status === 401) {
+            userFacingError = "Por favor, faça login para conversar com o AIVU.";
+          } else if (response.status === 429) {
+            userFacingError = "Limite de mensagens atingido. Por favor, aguarde alguns instantes.";
+          } else {
+            userFacingError = "Instabilidade temporária na comunicação. Tente novamente.";
+          }
+        }
+
+        addMessage({ sender: 'aivo', text: userFacingError });
+        clearRecoveryTimer();
+        setState('error');
+        recoveryTimerRef.current = setTimeout(() => {
+          setState('idle');
+          recoveryTimerRef.current = null;
+        }, 3000);
+      }
+    } catch {
+      addMessage({
+        sender: 'aivo',
+        text: "Erro de conexão ao falar com o AIVU. Verifique sua internet e tente novamente.",
+      });
+      clearRecoveryTimer();
+      setState('error');
+      recoveryTimerRef.current = setTimeout(() => {
         setState('idle');
+        recoveryTimerRef.current = null;
       }, 3000);
-    }, 1500);
+    } finally {
+      isSendingRef.current = false;
+      setIsSending(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSend();
+    if (e.key === 'Enter' && !isSendingRef.current) handleSend();
   };
 
   // Determine classes based on context
@@ -82,9 +155,9 @@ export default function AivoWidget() {
           >
             <div className={styles.chatHeader}>
               <div className={styles.chatTitle}>
-                <Sparkles width={16} height={16} /> AIVO Assistente
+                <Sparkles width={16} height={16} /> AIVU Assistente
               </div>
-              <button className={styles.closeBtn} onClick={() => setIsOpen(false)}>
+              <button className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label="Fechar chat">
                 <X width={16} height={16} />
               </button>
             </div>
@@ -102,12 +175,18 @@ export default function AivoWidget() {
               <input 
                 type="text" 
                 className={styles.chatInput}
-                placeholder="Pergunte algo ao AIVO..."
+                placeholder={isSending ? "AIVU está pensando..." : "Pergunte algo ao AIVU..."}
                 value={inputValue}
+                disabled={isSending}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
-              <button className={styles.sendBtn} onClick={handleSend} disabled={!inputValue.trim()}>
+              <button
+                className={styles.sendBtn}
+                onClick={handleSend}
+                disabled={!inputValue.trim() || isSending}
+                aria-label="Enviar mensagem"
+              >
                 <Send width={16} height={16} />
               </button>
             </div>

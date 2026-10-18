@@ -37,6 +37,14 @@
     "REG-AIVU-004": { "domain": "aivu", "kind": "api", "title": "Rate limit por usuário (15 req/15 min) bloqueia rajadas com 429", "validatedOn": "2026-10-17" },
     "REG-AIVU-005": { "domain": "aivu", "kind": "api", "title": "Conversa válida com sessão assinada retorna 200, resposta markdown limpa e estado 'speaking' (1 chamada Groq)", "validatedOn": "2026-10-17" },
     "REG-AIVU-006": { "domain": "aivu", "kind": "api", "title": "Resiliência contra falhas do provedor: 429 da Groq retorna 429 controlado, 5xx retorna 502 sem expor segredos", "validatedOn": "2026-10-17" },
-    "REG-AIVU-007": { "domain": "aivu", "kind": "browser", "title": "Widget AIVU no navegador: envio com falha de IA recupera o mascote e reabilita o chat sem travar em thinking", "validatedOn": "2026-10-17" }
+    "REG-AIVU-007": { "domain": "aivu", "kind": "browser", "title": "Widget AIVU no navegador: envio com falha de IA recupera o mascote e reabilita o chat sem travar em thinking", "validatedOn": "2026-10-17" },
+    "REG-JORNADA-001": { "domain": "jornadas", "kind": "api", "title": "Validação Zod dos contratos da Jornada de Edital: aceita ementa válida e rejeita estruturas malformadas ou vazias", "validatedOn": "2026-10-18" },
+    "REG-JORNADA-002": { "domain": "jornadas", "kind": "api", "title": "Autenticação e integridade de sessão: requisições sem sessão, adulteradas ou forjadas retornam 401 controlado", "validatedOn": "2026-10-18" },
+    "REG-JORNADA-003": { "domain": "jornadas", "kind": "api", "title": "Extração de ementa com IA (/api/ai/gerar-jornada): validação de limites (50-15.000 chars) e orçamento de tokens", "validatedOn": "2026-10-18" },
+    "REG-JORNADA-004": { "domain": "jornadas", "kind": "api", "title": "Resiliência da extração de ementa: autocorreção via Fixer Prompt em 1 tentativa e rejeição de saída truncada", "validatedOn": "2026-10-18" },
+    "REG-JORNADA-005": { "domain": "jornadas", "kind": "api", "title": "Criação persistida e idempotência [Mock D1 in-memory SQLite]: criação no D1 e retorno idempotente por ementa_hash", "validatedOn": "2026-10-18" },
+    "REG-JORNADA-006": { "domain": "jornadas", "kind": "api", "title": "Isolamento anti-IDOR [Mock D1 in-memory SQLite]: proteção estrita contra acesso, início ou deleção cruzada", "validatedOn": "2026-10-18" },
+    "REG-JORNADA-007": { "domain": "jornadas", "kind": "api", "title": "Concorrência e convergência determinística ao iniciar tópico [Mock D1 in-memory SQLite]: trilha estável sem órfãos", "validatedOn": "2026-10-18" },
+    "REG-JORNADA-008": { "domain": "jornadas", "kind": "api", "title": "Conclusão explícita de tópico e cálculo do próximo passo [Mock D1 in-memory SQLite]: evento persistido e recomendação linear", "validatedOn": "2026-10-18" }
   }
 }

@@ -38,3 +38,15 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
   - REG-AIVU-005: round-trip completo de conversa válida com sessão assinada (retorna 200, contrato estrutural `{ reply, state: "speaking" }` validado por Zod, sanitização markdown e consumo de exatamente 1 chamada Groq com modelo `openai/gpt-oss-120b`).
   - REG-AIVU-006: resiliência de borda contra falhas do provedor (conversão limpa de HTTP 429 da Groq para 429 amigável sem cascata, falhas 5xx e respostas inválidas/nulas de content convertidas para 502 Bad Gateway controlado, com garantia de zero vazamento de segredos ou stack traces).
 - ADD REG-AIVU-007 (camada Navegador): validação no Puppeteer da interface do widget AIVU (`AivoWidget.tsx`); abertura da janela, submissão de mensagem, interceptação de erro HTTP 502 da IA, exibição de erro controlado e recuperação automática do temporizador com reabilitação do input e restauração do mascote para idle sem congelamento em thinking ou speaking.
+
+## 2026-10-18 — Jornada de Edital (Módulo Trilhas / Etapa 1)
+
+- ADD REG-JORNADA-001 … 008 (camada Contratos, API e Persistência D1):
+  - REG-JORNADA-001: Validação Zod dos contratos da Jornada de Edital (`jornada.ts`), aceitando ementa estruturada válida e rejeitando disciplinas vazias, tópicos em branco, ausência de hashes ou texto fora dos limites (50 a 15.000 caracteres).
+  - REG-JORNADA-002: Autenticação e integridade de sessão em todas as rotas da Jornada (`/api/ai/gerar-jornada`, `/api/jornadas`, `/api/jornadas/[id]`), rejeitando cookies ausentes, forjados ou adulterados com HTTP 401 sem invocar IA nem consultar o banco.
+  - REG-JORNADA-003: Validação de limites da extração de ementa com IA (`/api/ai/gerar-jornada`), consumo estrito de 1 chamada Groq sob payload válido e bloqueio de entradas curtas ou excessivas.
+  - REG-JORNADA-004: Resiliência da extração de ementa com autocorreção controlada via Fixer Prompt em 1 tentativa única para JSON fora do contrato e conversão de saída truncada em erro controlado, sem alucinações.
+  - REG-JORNADA-005: Criação persistida no D1 com integridade referencial e resposta idempotente: requisições repetidas com idêntico `ementa_hash` retornam a jornada existente sem duplicar registros no D1.
+  - REG-JORNADA-006: Isolamento estrito anti-IDOR: validação de propriedade vinculando `session.userId` a todas as consultas D1, impedindo consulta, alteração ou exclusão de jornadas de outros usuários.
+  - REG-JORNADA-007: Concorrência e convergência determinística ao iniciar tópicos: múltiplas requisições simultâneas convergem atomicamente para a mesma trilha estável (`trilha_${topicoId}`) sem criar registros órfãos ou duplicatas em `trilhas`.
+  - REG-JORNADA-008: Conclusão explícita de tópico e cálculo do próximo passo: tópico só é concluído mediante evento explícito persistido (`POST /concluir`), atualizando o progresso geral e recomendando o próximo tópico em ordem linear.

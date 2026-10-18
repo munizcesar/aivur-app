@@ -28,6 +28,11 @@ async function ensureServer() {
   const deadline = Date.now() + 180_000;
   while (Date.now() < deadline) {
     if (await isUp()) {
+      // Pré-aquece rotas principais para evitar timeout de compilação a frio no primeiro teste de navegador
+      await Promise.all([
+        fetch(`${BASE}/material`, { signal: AbortSignal.timeout(60_000) }).catch(() => {}),
+        fetch(`${BASE}/trilhas`, { signal: AbortSignal.timeout(60_000) }).catch(() => {}),
+      ]);
       return {
         owned: true,
         stop: async () => {

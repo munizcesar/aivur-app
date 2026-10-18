@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowRight, Layers, ListChecks, Sparkles } from "lucide-react";
+import { ArrowRight, Compass, Layers, ListChecks, Sparkles } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
@@ -8,6 +8,7 @@ import { TRILHAS_MOCK } from "@/mocks/trilhasMock";
 import UserTrilhasGrid from '@/components/Trilhas/UserTrilhasGrid';
 import TrilhasErrorBoundary from '@/components/Trilhas/TrilhasErrorBoundary';
 import TrilhaProgressBar from '@/components/Trilhas/TrilhaProgressBar';
+import UserJornadasSection from '@/components/Jornadas/UserJornadasSection';
 
 export const metadata: Metadata = {
   title: "Trilhas de Estudo · AIVUR",
@@ -46,9 +47,16 @@ export default function TrilhasPage() {
                     <Sparkles size={18} strokeWidth={1.5} className="shrink-0 flex-none" aria-hidden="true" />
                     Gerar trilha com IA
                   </Link>
+                  <Link
+                    href="/jornadas/novo"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[var(--color-border)] text-[var(--color-heading)] text-sm md:text-base font-semibold no-underline transition-colors hover:bg-[var(--color-surface-offset)]"
+                  >
+                    <Compass size={18} strokeWidth={1.5} className="shrink-0 flex-none text-[var(--color-primary)]" />
+                    Jornada de Edital
+                  </Link>
                   <a
                     href="#exemplos"
-                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-[var(--color-border)] text-[var(--color-heading)] text-sm md:text-base font-semibold no-underline transition-colors hover:bg-[var(--color-surface-offset)]"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[var(--color-border)] text-[var(--color-heading)] text-sm md:text-base font-semibold no-underline transition-colors hover:bg-[var(--color-surface-offset)]"
                   >
                     Ver exemplos
                   </a>
@@ -67,6 +75,11 @@ export default function TrilhasPage() {
               </div>
             </div>
           </section>
+
+          {/* ── JORNADAS DE EDITAL (verticalizado com IA) ── */}
+          <TrilhasErrorBoundary>
+            <UserJornadasSection />
+          </TrilhasErrorBoundary>
 
           {/* ── MINHAS TRILHAS (dados reais do usuário) ── */}
           <section aria-labelledby="minhas-trilhas-title">

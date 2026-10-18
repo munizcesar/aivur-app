@@ -558,3 +558,53 @@ Antes de qualquer alteração futura em Trilhas:
   - Rate limit em memória atua no isolate V8 (proteção por instância no Edge, não distribuído).
   - Histórico mantido no cliente para a conversa imediata (sem persistência no D1, sem embeddings RAG e sem voz nesta fase).
   - Modelo alinhado ao padrão de produção da plataforma (`openai/gpt-oss-120b`), substituindo o identificador obsoleto `llama3-70b-8192`.
+
+## 23. Jornada de Edital — Verticalização e Estruturação de Estudos (Etapa 1)
+
+### Status: IMPLEMENTADO LOCALMENTE E VALIDADO (45/45 TESTES PASS NO REGRESSION GATE).
+
+### 1. Escopo e Decisões Técnicas
+- **Schema e Persistência Aditiva D1 (`migrations/0006_jornadas_edital.sql`):**
+  - Tabelas aditivas `jornadas` e `jornada_topicos` sem tocar no schema de `trilhas`, `trilha_flashcards`, `trilha_questoes` ou `user_progress`.
+  - Índices estáveis (`idx_jornadas_user`, `idx_jornadas_hash`, `idx_jornada_topicos_jornada`, `idx_jornada_topicos_trilha`).
+  - Integridade referencial com `ON DELETE CASCADE` de tópicos ao deletar a jornada.
+- **Contratos e Validações Zod (`src/lib/validations/jornada.ts`):**
+  - `TopicoDraftSchema`: título (3-200 chars), ordem (>= 1).
+  - `DisciplinaDraftSchema`: nome (2-120 chars), ordem (>= 1), tópicos (1-50 itens).
+  - `JornadaEmentaSchema`: 1 a 30 disciplinas, ordem linear, metadados opcionais.
+  - `GerarJornadaRequestSchema`: texto da ementa (50 a 15.000 chars), hashes SHA-256 (`doc_original_hash`, `ementa_hash`).
+  - `CriarJornadaRequestSchema`: payload validado de persistência da jornada revisada pelo usuário.
+- **Extração com Inteligência Artificial (`/api/ai/gerar-jornada`):**
+  - Validação estrita de sessão via `verifySessionCookie`. Rejeição com 401 controlado.
+  - Rate Limiting defensivo: 10 requisições / 10 minutos por usuário.
+  - Token Conservation: extrai exclusivamente matérias e tópicos essenciais sob demanda, sem gerar questões, flashcards ou resumos durante a importação.
+  - Resiliência e Auto-Correção: 1 tentativa controlada via Fixer Prompt em caso de JSON malformado ou fora do contrato Zod.
+  - Rejeição de saída truncada: converte respostas truncadas em erro recuperável (422), sem alucinação de dados faltantes.
+- **APIs de Persistência e Anti-IDOR (`/api/jornadas`, `/api/jornadas/[id]`):**
+  - `POST /api/jornadas`: criação atômica no D1 (jornada + tópicos em lote). Idempotência estrita: se o usuário submeter a mesma ementa (`ementa_hash`), a rota localiza a jornada existente e retorna `{ jornada, reused: true, is_existing: true }` sem duplicação de linhas.
+  - `GET /api/jornadas`: lista as jornadas do usuário com cálculo de progresso geral e contagem de tópicos.
+  - `GET /api/jornadas/[id]`: busca verticalizada da jornada agrupada por disciplinas com tópicos ordenados, vinculando estritamente `user_id = session.userId`.
+  - `DELETE /api/jornadas/[id]`: exclusão segura com proteção anti-IDOR.
+- **Convergência Determinística ao Iniciar Tópico (`/api/jornadas/[id]/topicos/[topicoId]/iniciar`):**
+  - Atribuição determinística do ID da trilha: `trilha_${topicoId.slice(0, 30)}`.
+  - Inserção atômica em batch no D1: cria o stub em `trilhas` se não existir e vincula `trilha_id` em `jornada_topicos`.
+  - Cliques simultâneos, retentativas ou concorrência convergem com segurança para a mesma trilha, sem criar registros órfãos.
+- **Conclusão Explícita e Próximo Passo Linear (`/api/jornadas/[id]/topicos/[topicoId]/concluir`):**
+  - Tópico só é concluído mediante evento explícito persistido (`POST /concluir`), alterando status para `concluido` e registrando timestamp `concluido_em`.
+  - Retorna o progresso atualizado e calcula linearmente o próximo tópico recomendado para estudo contínuo.
+- **Frontend e Experiência do Usuário:**
+  - `EmentaReviewModal.tsx`: modal de conferência humana permitindo adicionar, remover, editar nomes de disciplinas e tópicos antes de salvar.
+  - `CriarJornadaView.tsx`: importação fluida via texto ou PDF com extração no cliente, pré-validação e geração assistida.
+  - `JornadaView.tsx`: visão verticalizada do edital com barra de progresso, card de "Próximo Tópico Recomendado", accordions colapsáveis por disciplina e ações de "Estudar Tópico" e "Marcar como Concluído".
+  - `UserJornadasSection.tsx`: listagem de editais ativos na página principal de `/trilhas`.
+- **Proteção Evolutiva (Regression Gate):**
+  - 8 novos casos automatizados em `tests/regression/jornadas/api.case.mjs`:
+    - `REG-JORNADA-001`: Validação Zod dos contratos da Jornada de Edital.
+    - `REG-JORNADA-002`: Autenticação e integridade de sessão em todas as rotas (401 controlado).
+    - `REG-JORNADA-003`: Extração de ementa com limites de entrada e orçamento de tokens.
+    - `REG-JORNADA-004`: Resiliência contra JSON malformado e rejeição de respostas truncadas.
+    - `REG-JORNADA-005`: Criação persistida no D1 e idempotência por `ementa_hash`.
+    - `REG-JORNADA-006`: Isolamento estrito anti-IDOR.
+    - `REG-JORNADA-007`: Concorrência e convergência determinística ao iniciar tópico sem órfãos.
+    - `REG-JORNADA-008`: Conclusão explícita de tópico e cálculo do próximo passo.
+  - **Placar oficial:** 45/45 PASS (`npm run regression`).

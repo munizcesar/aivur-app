@@ -585,10 +585,12 @@ Antes de qualquer alteração futura em Trilhas:
   - `GET /api/jornadas`: lista as jornadas do usuário com cálculo de progresso geral e contagem de tópicos.
   - `GET /api/jornadas/[id]`: busca verticalizada da jornada agrupada por disciplinas com tópicos ordenados, vinculando estritamente `user_id = session.userId`.
   - `DELETE /api/jornadas/[id]`: exclusão segura com proteção anti-IDOR.
-- **Convergência Determinística ao Iniciar Tópico (`/api/jornadas/[id]/topicos/[topicoId]/iniciar`):**
+- **Convergência Determinística e Resiliência ao Iniciar Tópico (`/api/jornadas/[id]/topicos/[topicoId]/iniciar`):**
   - Atribuição determinística do ID da trilha: `trilha_${topicoId.slice(0, 30)}`.
   - Inserção atômica em batch no D1: cria o stub em `trilhas` se não existir e vincula `trilha_id` em `jornada_topicos`.
   - Cliques simultâneos, retentativas ou concorrência convergem com segurança para a mesma trilha, sem criar registros órfãos.
+  - Eliminação de fallback permissivo: exige confirmação estrita do `trilha_id` consolidado no banco D1, retornando 404 sem declarar sucesso falso se o tópico foi excluído ou o vínculo falhou.
+  - Preservação de vínculos pré-existentes sem sobrescrita.
 - **Conclusão Explícita e Próximo Passo Linear (`/api/jornadas/[id]/topicos/[topicoId]/concluir`):**
   - Tópico só é concluído mediante evento explícito persistido (`POST /concluir`), alterando status para `concluido` e registrando timestamp `concluido_em`.
   - Retorna o progresso atualizado e calcula linearmente o próximo tópico recomendado para estudo contínuo.
@@ -598,7 +600,7 @@ Antes de qualquer alteração futura em Trilhas:
   - `JornadaView.tsx`: visão verticalizada do edital com barra de progresso, card de "Próximo Tópico Recomendado", accordions colapsáveis por disciplina e ações de "Estudar Tópico" e "Marcar como Concluído".
   - `UserJornadasSection.tsx`: listagem de editais ativos na página principal de `/trilhas`.
 - **Proteção Evolutiva (Regression Gate):**
-  - 8 novos casos automatizados em `tests/regression/jornadas/api.case.mjs`:
+  - 9 casos automatizados em `tests/regression/jornadas/api.case.mjs`:
     - `REG-JORNADA-001`: Validação Zod dos contratos da Jornada de Edital.
     - `REG-JORNADA-002`: Autenticação e integridade de sessão em todas as rotas (401 controlado).
     - `REG-JORNADA-003`: Extração de ementa com limites de entrada e orçamento de tokens.
@@ -607,4 +609,10 @@ Antes de qualquer alteração futura em Trilhas:
     - `REG-JORNADA-006`: Isolamento estrito anti-IDOR.
     - `REG-JORNADA-007`: Concorrência e convergência determinística ao iniciar tópico sem órfãos.
     - `REG-JORNADA-008`: Conclusão explícita de tópico e cálculo do próximo passo.
-  - **Placar oficial:** 45/45 PASS (`npm run regression`).
+    - `REG-JORNADA-009`: Início de tópico resiliente (rejeição com 404 sem vínculo persistido e preservação de trilha pré-existente).
+  - **Placar oficial:** 46/46 PASS (`npm run regression`).
+- **Homologação Funcional em Banco Isolado Concluída com Sucesso:**
+  - Ambiente: Runtime Next.js 16 apontado para `scratch/disposable_d1` via `setupDevPlatform({ persist: { path: 'scratch/disposable_d1/v3' } })`.
+  - Migrações: 0001 a 0006 aplicadas exclusivamente no banco descartável.
+  - Testes Funcionais HTTP reais: 10/10 cenários aprovados (Criação, Ordenação global/disciplina, Isolamento multi-inquilino, Início com convergência, Idempotência de início, Rejeição 404 sem vínculo persistido, Conclusão com recálculo e próximo tópico, Tratamento seguro de erros de borda, Exclusão com CASCADE e SET NULL, Limpeza pontual de trilhas).
+  - Integridade do Banco Original: 100% intocado (`trilhas: 3, flashcards: 10, questoes: 13, user_progress: 1, d1_migrations: 0, sizeBytes: 57344, mtime inalterado`).

@@ -596,4 +596,103 @@ export const cases = [
       delete globalThis.__REG_COOKIES;
     },
   },
+  {
+    id: "REG-JORNADA-009",
+    title: "Início de tópico resiliente [Mock D1 in-memory SQLite]: rejeita 404 sem vínculo persistido e preserva trilha preexistente sem sobrescrever",
+    needs: "api",
+    async run() {
+      const { POST: criarJornada } = await import("@/app/api/jornadas/route.ts");
+      const { POST: iniciarTopico } = await import("@/app/api/jornadas/[id]/topicos/[topicoId]/iniciar/route.ts");
+
+      const mockDb = createMockD1();
+      globalThis.__REG_CF_CONTEXT = { env: { DB: mockDb } };
+
+      const userId = "estudante-resiliencia-inicio";
+      globalThis.__REG_COOKIES = { aivur_session: await createAuthCookie(userId) };
+
+      // 1. Cria jornada de teste com 4 tópicos
+      const resCreate = await criarJornada(new Request("http://localhost/api/jornadas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...validEmentaPayload(),
+          titulo_concurso: "Analista Judiciário",
+          edital_fonte_tipo: "TEXTO",
+          doc_original_hash: "9".repeat(64),
+          ementa_hash: "a".repeat(64),
+        }),
+      }));
+      const created = await resCreate.json();
+      const jornadaId = created.id;
+
+      const topicosList = await mockDb.prepare("SELECT id FROM jornada_topicos WHERE jornada_id = ? ORDER BY ordem_global ASC").bind(jornadaId).all();
+      const topico1 = topicosList.results[0];
+      const topico2 = topicosList.results[1];
+      const topico3 = topicosList.results[2];
+
+      // Cenário A: Simula remoção concorrente do tópico durante o batch (consolidated === null)
+      const origBatch = mockDb.batch;
+      mockDb.batch = async function (statements) {
+        mockDb.raw.exec(`DELETE FROM jornada_topicos WHERE id = '${topico1.id}'`);
+        return await origBatch.call(mockDb, statements);
+      };
+
+      const params1 = { params: Promise.resolve({ id: jornadaId, topicoId: topico1.id }) };
+      const res1 = await iniciarTopico(
+        new Request(`http://localhost/api/jornadas/${jornadaId}/topicos/${topico1.id}/iniciar`, { method: "POST" }),
+        params1
+      );
+      assert.equal(res1.status, 404, "Deve responder 404 quando o tópico não existe na consolidação");
+      const body1 = await res1.json();
+      assert.equal(body1.success, undefined, "Não deve retornar success: true");
+      assert.equal(body1.trilha_id, undefined, "Não deve retornar trilha_id fantasma");
+      assert.ok(body1.error, "Deve retornar mensagem de erro");
+
+      // Cenário B: Tópico existe mas coluna trilha_id não foi persistida (consolidated.trilha_id === null)
+      mockDb.batch = async function (statements) {
+        await origBatch.call(mockDb, statements);
+        mockDb.raw.exec(`UPDATE jornada_topicos SET trilha_id = NULL WHERE id = '${topico2.id}'`);
+      };
+
+      const params2 = { params: Promise.resolve({ id: jornadaId, topicoId: topico2.id }) };
+      const res2 = await iniciarTopico(
+        new Request(`http://localhost/api/jornadas/${jornadaId}/topicos/${topico2.id}/iniciar`, { method: "POST" }),
+        params2
+      );
+      assert.equal(res2.status, 404, "Deve responder 404 se o trilha_id não foi persistido no banco");
+      const body2 = await res2.json();
+      assert.equal(body2.success, undefined, "Não deve retornar success: true");
+      assert.equal(body2.trilha_id, undefined, "Não deve retornar trilha_id sem persistência");
+      assert.ok(body2.error);
+
+      // Restaura o batch normal
+      mockDb.batch = origBatch;
+
+      // Cenário C: Tópico já associado previamente a uma trilha (deve reutilizar sem sobrescrever)
+      const trilhaExistenteId = "trilha_legada_existente_999";
+      mockDb.raw.exec(`
+        INSERT INTO trilhas (id, user_id, titulo, disciplina, video_youtube_id, video_titulo, video_resumo)
+        VALUES ('${trilhaExistenteId}', '${userId}', 'Aula Pré-existente', 'Direito', 'abc12345', 'Vídeo', 'Resumo');
+        UPDATE jornada_topicos SET trilha_id = '${trilhaExistenteId}', status = 'em_andamento' WHERE id = '${topico3.id}';
+      `);
+
+      const params3 = { params: Promise.resolve({ id: jornadaId, topicoId: topico3.id }) };
+      const res3 = await iniciarTopico(
+        new Request(`http://localhost/api/jornadas/${jornadaId}/topicos/${topico3.id}/iniciar`, { method: "POST" }),
+        params3
+      );
+      assert.equal(res3.status, 200, "Deve responder 200 ao reutilizar trilha já associada");
+      const body3 = await res3.json();
+      assert.equal(body3.success, true);
+      assert.equal(body3.reused, true);
+      assert.equal(body3.trilha_id, trilhaExistenteId, "Deve retornar exatamente o trilha_id pré-existente");
+
+      // Confirma no banco que o vínculo permanece inalterado
+      const topico3Db = await mockDb.prepare("SELECT trilha_id FROM jornada_topicos WHERE id = ?").bind(topico3.id).first();
+      assert.equal(topico3Db.trilha_id, trilhaExistenteId, "Vínculo no banco não deve ser sobrescrito");
+
+      delete globalThis.__REG_CF_CONTEXT;
+      delete globalThis.__REG_COOKIES;
+    },
+  },
 ];

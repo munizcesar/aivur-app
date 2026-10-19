@@ -122,10 +122,17 @@ export async function POST(
       .bind(topicoId)
       .first<{ trilha_id: string; status: string }>();
 
+    if (!consolidated || !consolidated.trilha_id) {
+      return NextResponse.json(
+        { error: "Tópico não encontrado ou vínculo não persistido." },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
       {
-        trilha_id: consolidated?.trilha_id || targetTrilhaId,
-        status: consolidated?.status || "em_andamento",
+        trilha_id: consolidated.trilha_id,
+        status: consolidated.status,
         success: true,
       },
       { status: 200 }

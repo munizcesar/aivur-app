@@ -45,6 +45,7 @@
     "REG-JORNADA-005": { "domain": "jornadas", "kind": "api", "title": "Criação persistida e idempotência [Mock D1 in-memory SQLite]: criação no D1 e retorno idempotente por ementa_hash", "validatedOn": "2026-10-18" },
     "REG-JORNADA-006": { "domain": "jornadas", "kind": "api", "title": "Isolamento anti-IDOR [Mock D1 in-memory SQLite]: proteção estrita contra acesso, início ou deleção cruzada", "validatedOn": "2026-10-18" },
     "REG-JORNADA-007": { "domain": "jornadas", "kind": "api", "title": "Concorrência e convergência determinística ao iniciar tópico [Mock D1 in-memory SQLite]: trilha estável sem órfãos", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-008": { "domain": "jornadas", "kind": "api", "title": "Conclusão explícita de tópico e cálculo do próximo passo [Mock D1 in-memory SQLite]: evento persistido e recomendação linear", "validatedOn": "2026-10-18" }
+    "REG-JORNADA-008": { "domain": "jornadas", "kind": "api", "title": "Conclusão explícita de tópico e cálculo do próximo passo [Mock D1 in-memory SQLite]: evento persistido e recomendação linear", "validatedOn": "2026-10-18" },
+    "REG-JORNADA-009": { "domain": "jornadas", "kind": "api", "title": "Início de tópico resiliente [Mock D1 in-memory SQLite]: rejeita 404 sem vínculo persistido e preserva trilha preexistente sem sobrescrever", "validatedOn": "2026-10-18" }
   }
 }

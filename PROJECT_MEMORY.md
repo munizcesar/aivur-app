@@ -616,3 +616,9 @@ Antes de qualquer alteração futura em Trilhas:
   - Migrações: 0001 a 0006 aplicadas exclusivamente no banco descartável.
   - Testes Funcionais HTTP reais: 10/10 cenários aprovados (Criação, Ordenação global/disciplina, Isolamento multi-inquilino, Início com convergência, Idempotência de início, Rejeição 404 sem vínculo persistido, Conclusão com recálculo e próximo tópico, Tratamento seguro de erros de borda, Exclusão com CASCADE e SET NULL, Limpeza pontual de trilhas).
   - Integridade do Banco Original: 100% intocado (`trilhas: 3, flashcards: 10, questoes: 13, user_progress: 1, d1_migrations: 0, sizeBytes: 57344, mtime inalterado`).
+- **Migração em Produção Concluída e Validada (2026-10-21):**
+  - Banco remoto: `aivur-db` (`0c75d334-f109-46b6-8e3b-d2e47164a157`).
+  - Migração aplicada: `migrations/0006_jornadas_edital.sql` via `npx wrangler d1 migrations apply aivur-db --remote`.
+  - Tabelas criadas no remoto: `jornadas` e `jornada_topicos`.
+  - Índices criados no remoto: `idx_jornadas_user_id`, `idx_jornadas_user_hash`, `idx_jornada_topicos_disciplina`, `idx_jornada_topicos_global`, `idx_jornada_topicos_jornada_id`, `idx_jornada_topicos_trilha_id`.
+  - Status em `d1_migrations`: ID 6 registrado; `wrangler d1 migrations list` retorna `No migrations to apply!`.

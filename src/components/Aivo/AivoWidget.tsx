@@ -15,9 +15,29 @@ export default function AivoWidget() {
   const quizModeActive = useQuizStore(s => s.step === 3 && s.mode !== 'redacao' && s.mode !== 'aivos360'); 
 
   const [inputValue, setInputValue] = useState("");
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const isSendingRef = useRef(false);
   const recoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Acompanha a abertura do teclado virtual no mobile para ajustar a ancoragem
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+    const vv = window.visualViewport;
+
+    const handleViewportChange = () => {
+      if (!vv) return;
+      const offset = Math.max(0, window.innerHeight - (vv.offsetTop + vv.height));
+      setKeyboardOffset(offset);
+    };
+
+    vv.addEventListener("resize", handleViewportChange);
+    vv.addEventListener("scroll", handleViewportChange);
+    return () => {
+      vv.removeEventListener("resize", handleViewportChange);
+      vv.removeEventListener("scroll", handleViewportChange);
+    };
+  }, []);
 
   const clearRecoveryTimer = () => {
     if (recoveryTimerRef.current) {
@@ -127,7 +147,10 @@ export default function AivoWidget() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isSendingRef.current) handleSend();
+    if (e.key === 'Enter' && !e.shiftKey && !isSendingRef.current) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   // Determine classes based on context
@@ -149,16 +172,17 @@ export default function AivoWidget() {
         {isOpen && !targetAnchor && !quizModeActive && (
           <motion.div 
             className={styles.chatPanel}
+            style={keyboardOffset > 0 ? { bottom: `${keyboardOffset + 12}px` } : undefined}
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
           >
             <div className={styles.chatHeader}>
               <div className={styles.chatTitle}>
-                <Sparkles width={16} height={16} /> AIVU Assistente
+                <Sparkles width={16} height={16} className={styles.sparkleIcon} /> AIVU Assistente
               </div>
               <button className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label="Fechar chat">
-                <X width={16} height={16} />
+                <X width={20} height={20} />
               </button>
             </div>
             
@@ -171,7 +195,13 @@ export default function AivoWidget() {
               <div ref={chatEndRef} />
             </div>
 
-            <div className={styles.chatInputWrap}>
+            <form
+              className={styles.chatInputWrap}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
+              }}
+            >
               <input 
                 type="text" 
                 className={styles.chatInput}
@@ -182,22 +212,32 @@ export default function AivoWidget() {
                 onKeyDown={handleKeyDown}
               />
               <button
+                type="submit"
                 className={styles.sendBtn}
-                onClick={handleSend}
                 disabled={!inputValue.trim() || isSending}
                 aria-label="Enviar mensagem"
               >
-                <Send width={16} height={16} />
+                <Send width={18} height={18} />
               </button>
-            </div>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>
 
       <div 
         className={styles.mascotWrap} 
+        role="button"
+        tabIndex={0}
+        aria-label="Assistente AIVU"
         onClick={() => {
           if (!targetAnchor && !quizModeActive) {
+            setIsOpen(!isOpen);
+            if (!isOpen) setState('greeting');
+          }
+        }}
+        onKeyDown={(e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && !targetAnchor && !quizModeActive) {
+            e.preventDefault();
             setIsOpen(!isOpen);
             if (!isOpen) setState('greeting');
           }

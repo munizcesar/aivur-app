@@ -622,3 +622,18 @@ Antes de qualquer alteração futura em Trilhas:
   - Tabelas criadas no remoto: `jornadas` e `jornada_topicos`.
   - Índices criados no remoto: `idx_jornadas_user_id`, `idx_jornadas_user_hash`, `idx_jornada_topicos_disciplina`, `idx_jornada_topicos_global`, `idx_jornada_topicos_jornada_id`, `idx_jornada_topicos_trilha_id`.
   - Status em `d1_migrations`: ID 6 registrado; `wrangler d1 migrations list` retorna `No migrations to apply!`.
+
+## 13. AIVU Mobile & Refinamento Visual do Chat (Commit 2adbdf2 - 2026-10-22)
+
+- **Problemas Resolvidos:**
+  - Ocultamento por viewport reduzida: removida a regra `@media (max-height: 500px) and (max-width: 768px) { .widgetContainer { display: none; } }` que fazia o chat sumir quando o teclado virtual abria no celular ou em modo paisagem.
+  - Teclado virtual encobrindo o input: implementado rastreamento de `window.visualViewport` em `AivoWidget.tsx` para elevar dinamicamente o painel quando o teclado virtual abre.
+  - Ancoragem responsiva: painel fixado em `position: fixed; left: 16px; right: 16px; bottom: 16px; max-height: min(520px, calc(100dvh - 32px))` no mobile e ancorado à direita em paisagem compacta (`max-height: 500px`).
+  - Touch targets e formulário: botões de envio e fechamento ajustados para 44x44px; input envolvido em `<form onSubmit>` semântico garantindo submissão por Enter/Go no teclado e por toque.
+- **Refinamento Cromático & WCAG 2.2:**
+  - Definidos tokens CSS escopados em `AivoWidget.module.css` para dark mode (painel `#1B293B`, cabeçalho `#162231`, corpo `#111C2B`, input `#111D2D` com foco `#8295AE`, texto primário `#F1F5F9`, secundário `#C0CCDB`, placeholder `#8E9DAF`, botão carmesim `#B52D49`).
+  - Contraste medido: texto sobre fundo atinge até 15.49:1 (WCAG AAA); botão carmesim 6.11:1 (WCAG AA); foco 4.81:1 (> 3.0:1 UI não-textual).
+- **Validação:**
+  - 6 viewports testadas via Puppeteer (390x844, 390x500, 390x420, 667x375, 844x390, 1280x900): 100% aprovadas.
+  - Regression Gate: 46/46 PASS (`npm run regression`).
+  - Publicação: commit `2adbdf2`, deploy `01255a6a-9bca-49ad-91a7-a1d3b9e50ce2` ativo no Cloudflare Pages e `https://aivur.com.br` respondendo HTTP 200.

@@ -6,24 +6,34 @@
   /* Tokens Padrão (Dark Mode Institucional AIVUR) */
   --aivu-panel-bg: #1B293B;
   --aivu-panel-border: #34465E;
+  --aivu-panel-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.25);
   --aivu-header-bg: #162231;
   --aivu-header-border: #2E4057;
+  --aivu-header-title: #F1F5F9;
+  --aivu-header-sparkle: #B52D49;
+  --aivu-close-btn-color: #C0CCDB;
+  --aivu-close-btn-hover-bg: rgba(255, 255, 255, 0.08);
+  --aivu-close-btn-hover-color: #F1F5F9;
   --aivu-body-bg: #111C2B;
-  --aivu-input-wrap-bg: #1B293B;
+  --aivu-msg-aivo-bg: #1F2E42;
+  --aivu-msg-aivo-border: #33465E;
+  --aivu-msg-aivo-text: #F1F5F9;
+  --aivu-msg-user-bg: #2A3F5A;
+  --aivu-msg-user-border: #445D7E;
+  --aivu-msg-user-text: #F1F5F9;
+  --aivu-input-wrap-bg: #162231;
   --aivu-input-wrap-border: #2E4057;
   --aivu-input-bg: #111D2D;
   --aivu-input-border: #34465E;
-  --aivu-input-focus: #8295AE;
-  --aivu-text-primary: #F1F5F9;
-  --aivu-text-secondary: #C0CCDB;
-  --aivu-placeholder: #8E9DAF;
-  --aivu-msg-aivo-bg: #1F2E42;
-  --aivu-msg-aivo-border: #33465E;
-  --aivu-msg-user-bg: #2A3F5A;
-  --aivu-msg-user-border: #445D7E;
+  --aivu-input-text: #F1F5F9;
+  --aivu-input-placeholder: #8E9DAF;
+  --aivu-input-focus-border: #8295AE;
+  --aivu-input-focus-ring: 0 0 0 2px rgba(130, 149, 174, 0.28);
   --aivu-btn-primary: #B52D49;
   --aivu-btn-hover: #C93554;
   --aivu-btn-text: #FFFFFF;
+  --aivu-btn-disabled-bg: rgba(181, 45, 73, 0.35);
+  --aivu-btn-disabled-color: rgba(255, 255, 255, 0.55);
 
   position: fixed;
   z-index: 900;
@@ -35,26 +45,37 @@
 }
 
 :global([data-theme="light"]) .widgetContainer {
+  /* Tokens Light Mode Institucional AIVUR */
   --aivu-panel-bg: #FFFFFF;
   --aivu-panel-border: #CBD5E1;
+  --aivu-panel-shadow: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
   --aivu-header-bg: #F8FAFC;
   --aivu-header-border: #E2E8F0;
+  --aivu-header-title: #0A2E45;
+  --aivu-header-sparkle: #C41230;
+  --aivu-close-btn-color: #4A6B80;
+  --aivu-close-btn-hover-bg: rgba(15, 23, 42, 0.06);
+  --aivu-close-btn-hover-color: #0A2E45;
   --aivu-body-bg: #F1F5F9;
-  --aivu-input-wrap-bg: #FFFFFF;
-  --aivu-input-wrap-border: #E2E8F0;
-  --aivu-input-bg: #FFFFFF;
-  --aivu-input-border: #CBD5E1;
-  --aivu-input-focus: #475569;
-  --aivu-text-primary: #0F172A;
-  --aivu-text-secondary: #475569;
-  --aivu-placeholder: #64748B;
   --aivu-msg-aivo-bg: #FFFFFF;
-  --aivu-msg-aivo-border: #E2E8F0;
+  --aivu-msg-aivo-border: #CBD5E1;
+  --aivu-msg-aivo-text: #0F172A;
   --aivu-msg-user-bg: #0A2E45;
   --aivu-msg-user-border: #0A2E45;
+  --aivu-msg-user-text: #FFFFFF;
+  --aivu-input-wrap-bg: #FFFFFF;
+  --aivu-input-wrap-border: #E2E8F0;
+  --aivu-input-bg: #F8FAFC;
+  --aivu-input-border: #CBD5E1;
+  --aivu-input-text: #0F172A;
+  --aivu-input-placeholder: #64748B;
+  --aivu-input-focus-border: #0A2E45;
+  --aivu-input-focus-ring: 0 0 0 2px rgba(10, 46, 69, 0.18);
   --aivu-btn-primary: #C41230;
   --aivu-btn-hover: #A30F28;
   --aivu-btn-text: #FFFFFF;
+  --aivu-btn-disabled-bg: rgba(196, 18, 48, 0.35);
+  --aivu-btn-disabled-color: rgba(255, 255, 255, 0.6);
 }
 
 .widgetContainer.defaultPos {
@@ -99,7 +120,7 @@
   background: var(--aivu-panel-bg);
   border: 1px solid var(--aivu-panel-border);
   border-radius: 16px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--aivu-panel-shadow);
   display: flex;
   flex-direction: column;
   pointer-events: auto;
@@ -120,7 +141,7 @@
 .chatTitle {
   font-weight: 700;
   font-size: 0.95rem;
-  color: var(--aivu-text-primary);
+  color: var(--aivu-header-title);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -128,14 +149,14 @@
 }
 
 .sparkleIcon {
-  color: var(--aivu-btn-primary);
+  color: var(--aivu-header-sparkle);
   flex-shrink: 0;
 }
 
 .closeBtn {
   background: transparent;
   border: none;
-  color: var(--aivu-text-secondary);
+  color: var(--aivu-close-btn-color);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -148,8 +169,8 @@
 }
 
 .closeBtn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--aivu-text-primary);
+  background: var(--aivu-close-btn-hover-bg);
+  color: var(--aivu-close-btn-hover-color);
 }
 
 .chatBody {
@@ -176,7 +197,7 @@
 .message.aivo {
   background: var(--aivu-msg-aivo-bg);
   border: 1px solid var(--aivu-msg-aivo-border);
-  color: var(--aivu-text-primary);
+  color: var(--aivu-msg-aivo-text);
   align-self: flex-start;
   border-bottom-left-radius: 4px;
 }
@@ -184,7 +205,7 @@
 .message.user {
   background: var(--aivu-msg-user-bg);
   border: 1px solid var(--aivu-msg-user-border);
-  color: var(--aivu-text-primary);
+  color: var(--aivu-msg-user-text);
   align-self: flex-end;
   border-bottom-right-radius: 4px;
 }
@@ -208,20 +229,20 @@
   border-radius: 22px;
   border: 1px solid var(--aivu-input-border);
   background: var(--aivu-input-bg);
-  color: var(--aivu-text-primary);
+  color: var(--aivu-input-text);
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .chatInput::placeholder {
-  color: var(--aivu-placeholder);
+  color: var(--aivu-input-placeholder);
   opacity: 1;
 }
 
 .chatInput:focus {
-  border-color: var(--aivu-input-focus);
-  box-shadow: 0 0 0 2px rgba(130, 149, 174, 0.25);
+  border-color: var(--aivu-input-focus-border);
+  box-shadow: var(--aivu-input-focus-ring);
 }
 
 .sendBtn {
@@ -252,7 +273,8 @@
 }
 
 .sendBtn:disabled {
-  opacity: 0.45;
+  background: var(--aivu-btn-disabled-bg);
+  color: var(--aivu-btn-disabled-color);
   cursor: not-allowed;
 }
 

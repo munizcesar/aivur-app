@@ -21,6 +21,49 @@ async function isUp() {
   }
 }
 
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    // Apenas ESRCH prova conclusivamente que o PID não existe no sistema.
+    // EPERM indica que o processo existe mas não há permissão para sinalizá-lo.
+    if (err && err.code === "ESRCH") {
+      return false;
+    }
+    return true;
+  }
+}
+
+async function terminateChildProcess(child) {
+  if (!child || !child.pid) return;
+
+  if (process.platform === "win32") {
+    const res = spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+    if (res.error) {
+      console.error(`AVISO: Falha ao executar taskkill no processo PID ${child.pid}:`, res.error.message);
+    } else if (res.status !== 0 && res.status !== 128) {
+      console.error(`AVISO: taskkill retornou código ${res.status} para o processo PID ${child.pid}.`);
+    }
+  } else {
+    try {
+      child.kill("SIGTERM");
+    } catch (err) {
+      console.error(`AVISO: Falha ao enviar SIGTERM para o processo PID ${child.pid}:`, err?.message || err);
+    }
+  }
+
+  // Aguarda até 3 segundos para confirmar encerramento real do processo filho
+  const deadline = Date.now() + 3000;
+  while (isProcessAlive(child.pid) && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 100));
+  }
+
+  if (isProcessAlive(child.pid)) {
+    console.error(`AVISO: Não foi possível confirmar o encerramento do processo PID ${child.pid}.`);
+  }
+}
+
 async function ensureServer() {
   if (await isUp()) return { owned: false, stop: async () => {} };
   const nextBin = path.join(ROOT, "node_modules/next/dist/bin/next");
@@ -28,22 +71,21 @@ async function ensureServer() {
   const deadline = Date.now() + 180_000;
   while (Date.now() < deadline) {
     if (await isUp()) {
-      // Pré-aquece rotas principais para evitar timeout de compilação a frio no primeiro teste de navegador
-      await Promise.all([
-        fetch(`${BASE}/material`, { signal: AbortSignal.timeout(60_000) }).catch(() => {}),
-        fetch(`${BASE}/trilhas`, { signal: AbortSignal.timeout(60_000) }).catch(() => {}),
-      ]);
+      // Pré-aquece rotas principais sequencialmente para evitar timeout de compilação a frio no primeiro teste de navegador
+      await fetch(`${BASE}/material`, { signal: AbortSignal.timeout(60_000) }).catch(() => {});
+      await fetch(`${BASE}/trilhas`, { signal: AbortSignal.timeout(60_000) }).catch(() => {});
+      const warmCookie = await signSession("reg-warmup-user");
+      await fetch(`${BASE}/trilhas/novo`, { headers: { cookie: `aivur_session=${warmCookie}` }, signal: AbortSignal.timeout(90_000) }).catch(() => {});
       return {
         owned: true,
         stop: async () => {
-          if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
-          else child.kill("SIGTERM");
+          await terminateChildProcess(child);
         },
       };
     }
     await new Promise((r) => setTimeout(r, 1500));
   }
-  child.kill();
+  await terminateChildProcess(child);
   throw new Error(`Servidor de desenvolvimento não ficou pronto em ${BASE} (180s).`);
 }
 

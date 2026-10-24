@@ -35,6 +35,12 @@ const noBrowser = args.includes("--no-browser");
 const listOnly = args.includes("--list");
 const onlyIdx = args.indexOf("--only");
 const only = onlyIdx >= 0 ? args[onlyIdx + 1] : null;
+
+if (onlyIdx >= 0 && (!only || only.startsWith("-"))) {
+  console.error("ERRO: O parâmetro --only exige um ID de teste válido (ex: --only REG-MAT-001). Use --list para listar os IDs.");
+  process.exit(1);
+}
+
 const CASE_TIMEOUT = { api: 30_000, browser: 240_000 };
 
 function findCaseFiles(dir) {
@@ -57,10 +63,19 @@ function withTimeout(promise, ms, id) {
 }
 
 const baseline = JSON.parse(readFileSync(path.join(HERE, "baseline.json"), "utf8"));
+const baselineTotal = Object.keys(baseline.cases).length;
 const cases = [];
 for (const file of findCaseFiles(HERE)) {
   const mod = await import(pathToFileURL(file).href);
   for (const c of mod.cases ?? []) cases.push({ ...c, file: path.relative(HERE, file) });
+}
+
+if (only) {
+  const exists = cases.some((c) => c.id === only);
+  if (!exists) {
+    console.error(`ERRO: O ID "${only}" fornecido em --only não existe no catálogo de testes. Use --list para ver os IDs disponíveis.`);
+    process.exit(1);
+  }
 }
 
 // ─── Integridade da baseline (anti "apagar teste para passar") ─────────────
@@ -140,6 +155,9 @@ if (failed > 0 || registryErrors.length > 0) {
   exit = 1;
 } else if (skipped > 0) {
   console.log(`REGRESSION GATE: INCOMPLETE — ${passed}/${passed + skipped} (${skipped} pulado(s); isto NÃO é PASS)`);
+  exit = 2;
+} else if (only || selected.length < baselineTotal) {
+  console.log(`REGRESSION GATE: PARTIAL — ${passed}/${baselineTotal} (execução restrita a ${selected.length} caso(s); isto NÃO é PASS de suíte completa)`);
   exit = 2;
 } else {
   console.log(`REGRESSION GATE: PASS — ${passed}/${total}`);

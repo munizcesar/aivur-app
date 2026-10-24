@@ -775,3 +775,34 @@ Antes de qualquer alteração futura em Trilhas:
   - `npx tsc --noEmit`: Exit 0 (zero erros TypeScript).
   - `npm run build`: Exit 0 (Turbopack production build compilou 13/13 rotas estáticas com sucesso).
   - `npm run regression`: Exit 0 (59/59 PASS).
+
+## 19. Migração AIVO → AIVU (Fases 1 e 2: Identidade Pública, Compatibilidade Interna e Validação Visual DOM — 2026-10-24)
+
+### 1. Fase 1: Identidade Pública
+- Atualização cirúrgica de rótulos e acessibilidade voltados ao usuário:
+  - `src/app/trilhas/page.tsx`: atributo `alt="AIVU indicando o caminho de estudos"`.
+  - `src/components/Aivo/AivoMascot.tsx`: acessibilidade `aria-label={\`AIVU — ${STATE_CAPTIONS[state] || state}\`}`.
+- Zero alteração em nomes de componentes, arquivos, hooks ou contratos.
+
+### 2. Fase 2: Compatibilidade Interna do Assistente
+- **Tipagem Expandida (`src/store/useAivoStore.ts`):**
+  - `Message.sender` expandido de `'user' | 'aivo'` para `'user' | 'aivo' | 'aivu'`.
+  - Garante persistência e leitura sem conflitos de tipo para mensagens históricas (`aivo`) e novas mensagens (`aivu`).
+  - Preservação estrita da chave de armazenamento `aivo-storage` e formato do Zustand.
+- **Folha de Estilos Unificada (`src/components/Aivo/AivoWidget.module.css`):**
+  - Adicionado seletor `.message.aivu` pareado com `.message.aivo`.
+- **Renderização e Fallback Defensivo (`src/components/Aivo/AivoWidget.tsx`):**
+  - `${styles[msg.sender] || (msg.sender === 'user' ? styles.user : styles.aivo)}`.
+  - Garante que mesmo sob variações futuras de sender o estilo visual do assistente ou do usuário seja sempre aplicado no DOM.
+
+### 3. Verificação Final da Fase 2 (DOM Real via Puppeteer)
+- **Caso REG-AIVU-015 adicionado a `tests/regression/aivu/chat.case.mjs`:**
+  - Injeção controlada no `sessionStorage` (`aivo-storage`) de mensagens com `sender: 'aivo'`, `sender: 'aivu'` e `sender: 'user'`.
+  - Abertura real da janela do chat e inspeção de propriedades computadas (`window.getComputedStyle`):
+    - Mensagens legadas (`aivo`) e modernas (`aivu`): alinhamento `flex-start`, border-radius do assistente (`borderBottomLeftRadius: 4px`), cores de fundo e texto idênticas.
+    - Mensagens do usuário (`user`): alinhamento `flex-end`, border-radius invertido (`borderBottomRightRadius: 4px`) e contraste cromático distinto.
+- **Portões Validados:**
+  - `git diff --check`: 0 erros.
+  - `npx tsc --noEmit`: Exit 0.
+  - `npm run regression`: **60/60 PASS** (52 API + 8 browser tests).
+  - `npm run build`: Exit 0 (Turbopack production build compilou 13/13 rotas estáticas com sucesso).

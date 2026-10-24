@@ -85,3 +85,10 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
   - Preservação integral do `conteudo_parcial` no corpo da resposta rejeitada, evitando descarte involuntário do progresso anterior.
 - ADD REG-JORNADA-015:
   - Contrato do frontend na retomada parcial (`CriarJornadaView.tsx`): interceptação de HTTP 422 com conteúdo parcial estruturado, preservação de `edital_hash`, `bloco_inicio` e `conteudo_parcial`, e reenvio no clique de "Tentar novamente" com o texto de edital original, garantindo conclusão sem recomeço forçado e rejeição imediata em caso de edital adulterado.
+
+## 2026-10-24 — AIVU (Migração AIVO → AIVU: Compatibilidade Visual e Renderização DOM)
+
+- ADD REG-AIVU-015 (camada Navegador):
+  - Validação no DOM real via Puppeteer dos estilos computados do widget (`AivoWidget.tsx` e `AivoWidget.module.css`).
+  - Confirmação de renderização com classes e regras visuais idênticas para mensagens históricas (`sender: 'aivo'`) e modernas (`sender: 'aivu'`) com alinhamento à esquerda (`flex-start`), cor de fundo institucional, cor de texto e raio de borda do assistente (`borderBottomLeftRadius: 4px`).
+  - Confirmação de estilização do usuário (`sender: 'user'`) preservando alinhamento à direita (`flex-end`), raio de borda invertido (`borderBottomRightRadius: 4px`) e contraste cromático diferenciado.

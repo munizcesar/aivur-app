@@ -194,7 +194,8 @@
   word-break: break-word;
 }
 
-.message.aivo {
+.message.aivo,
+.message.aivu {
   background: var(--aivu-msg-aivo-bg);
   border: 1px solid var(--aivu-msg-aivo-border);
   color: var(--aivu-msg-aivo-text);

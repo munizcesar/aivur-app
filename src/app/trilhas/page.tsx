@@ -67,7 +67,7 @@ export default function TrilhasPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/aivur/trilhas.png"
-                  alt="Aivo indicando o caminho de estudos"
+                  alt="AIVU indicando o caminho de estudos"
                   width={1254}
                   height={1254}
                   className="w-[160px] md:w-[200px] lg:w-[230px] h-auto object-contain animate-float-premium motion-reduce:animate-none"

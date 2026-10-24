@@ -6,7 +6,7 @@ export type AivoState = 'idle' | 'greeting' | 'speaking' | 'thinking' | 'loading
 
 export interface Message {
   id: string;
-  sender: 'user' | 'aivo';
+  sender: 'user' | 'aivo' | 'aivu';
   text: string;
   timestamp: number;
 }

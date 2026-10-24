@@ -360,7 +360,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
         ...style,
       }}
     >
-      <svg viewBox="0 0 200 200" width="100%" height="100%" role="img" aria-label={`Aivo — ${STATE_CAPTIONS[state] || state}`}>
+      <svg viewBox="0 0 200 200" width="100%" height="100%" role="img" aria-label={`AIVU — ${STATE_CAPTIONS[state] || state}`}>
         <defs>
           <radialGradient id={`sphere-${uid}`} cx="32%" cy="26%" r="85%">
             <stop offset="0%" stopColor={colors.sphereHi} />

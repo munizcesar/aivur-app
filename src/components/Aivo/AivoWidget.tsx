@@ -210,7 +210,7 @@ export default function AivoWidget() {
             
             <div className={styles.chatBody}>
               {messages.map((msg) => (
-                <div key={msg.id} className={`${styles.message} ${styles[msg.sender]}`}>
+                <div key={msg.id} className={`${styles.message} ${styles[msg.sender] || (msg.sender === 'user' ? styles.user : styles.aivo)}`}>
                   {msg.text}
                 </div>
               ))}

@@ -818,4 +818,99 @@ export const cases = [
       assert.equal(useAivoStore.getState().activeContext, null);
     },
   },
+  {
+    id: "REG-AIVU-015",
+    title: "Widget AIVU no navegador: compatibilidade visual de estilos no DOM para sender 'aivu', 'aivo' e 'user'",
+    needs: "browser",
+    async run({ base, newPage }) {
+      const page = await newPage();
+      try {
+        // Pré-carrega o sessionStorage com mensagens das variantes de sender (legado aivo, moderno aivu e user)
+        await page.evaluateOnNewDocument(() => {
+          sessionStorage.setItem(
+            "aivo-storage",
+            JSON.stringify({
+              state: {
+                isOpen: false,
+                messages: [
+                  { id: "msg-legacy-aivo", sender: "aivo", text: "Mensagem histórica AIVO", timestamp: 1000 },
+                  { id: "msg-new-aivu", sender: "aivu", text: "Mensagem moderna AIVU", timestamp: 2000 },
+                  { id: "msg-user-1", sender: "user", text: "Mensagem do estudante", timestamp: 3000 },
+                ],
+              },
+              version: 0,
+            })
+          );
+        });
+
+        await page.goto(`${base}/material`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+
+        // Clica no mascote para abrir a janela do chat
+        const mascotSelector = "[class*='mascotWrap']";
+        await page.waitForSelector(mascotSelector, { timeout: 20_000 });
+        await waitHydrated(page, mascotSelector);
+        await page.click(mascotSelector);
+
+        // Aguarda o input e o corpo de mensagens do chat estarem visíveis
+        const inputSelector = "input[placeholder*='AIVU']";
+        await page.waitForSelector(inputSelector, { timeout: 15_000 });
+        await waitHydrated(page, inputSelector);
+
+        // Aguarda que as mensagens estejam presentes no DOM
+        await page.waitForFunction(
+          () => document.querySelectorAll("[class*='message']").length >= 3,
+          { timeout: 15_000 }
+        );
+
+        // Valida classes e estilos computados no DOM real do navegador
+        const messageStyles = await page.evaluate(() => {
+          const nodes = Array.from(document.querySelectorAll("[class*='message']"));
+          return nodes.map((el) => {
+            const cs = window.getComputedStyle(el);
+            return {
+              text: el.innerText.trim(),
+              className: el.className,
+              alignSelf: cs.alignSelf,
+              borderBottomLeftRadius: cs.borderBottomLeftRadius,
+              borderBottomRightRadius: cs.borderBottomRightRadius,
+              backgroundColor: cs.backgroundColor,
+              color: cs.color,
+            };
+          });
+        });
+
+        const legacyAivo = messageStyles.find((m) => m.text.includes("Mensagem histórica AIVO"));
+        assert.ok(legacyAivo, "Mensagem com sender 'aivo' deve estar presente no DOM");
+        assert.equal(legacyAivo.alignSelf, "flex-start", "Mensagem 'aivo' deve alinhar à esquerda");
+        assert.equal(legacyAivo.borderBottomLeftRadius, "4px", "Mensagem 'aivo' deve ter borda inferior esquerda arredondada do assistente");
+
+        const modernAivu = messageStyles.find((m) => m.text.includes("Mensagem moderna AIVU"));
+        assert.ok(modernAivu, "Mensagem com sender 'aivu' deve estar presente no DOM");
+        assert.equal(modernAivu.alignSelf, "flex-start", "Mensagem 'aivu' deve alinhar à esquerda");
+        assert.equal(modernAivu.borderBottomLeftRadius, "4px", "Mensagem 'aivu' deve ter borda inferior esquerda arredondada do assistente");
+        assert.equal(
+          modernAivu.backgroundColor,
+          legacyAivo.backgroundColor,
+          "Mensagem 'aivu' deve ter a mesma cor de fundo visual que a mensagem 'aivo'"
+        );
+        assert.equal(
+          modernAivu.color,
+          legacyAivo.color,
+          "Mensagem 'aivu' deve ter a mesma cor de texto que a mensagem 'aivo'"
+        );
+
+        const userMsg = messageStyles.find((m) => m.text.includes("Mensagem do estudante"));
+        assert.ok(userMsg, "Mensagem com sender 'user' deve estar presente no DOM");
+        assert.equal(userMsg.alignSelf, "flex-end", "Mensagem 'user' deve alinhar à direita");
+        assert.equal(userMsg.borderBottomRightRadius, "4px", "Mensagem 'user' deve ter borda inferior direita arredondada do usuário");
+        assert.notEqual(
+          userMsg.backgroundColor,
+          modernAivu.backgroundColor,
+          "Mensagem do usuário deve ter cor de fundo distinta do assistente"
+        );
+      } finally {
+        await page.close();
+      }
+    },
+  },
 ];

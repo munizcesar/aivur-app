@@ -71,7 +71,65 @@ export async function POST(req: Request) {
     );
   }
 
-  const { title, text, banca, ano, cargo } = parseResult.data;
+  const { title, text, banca, ano, cargo, bloco_inicio, edital_hash, conteudo_parcial } = parseResult.data;
+
+  // Importa utilitários de chunking e cálculo determinístico de hash
+  const { splitEditalIntoBlocks, consolidateDisciplinas, computeEditalHash } =
+    await import("@/lib/jornada-chunking");
+
+  // Blindagem de retomada parcial: valida vinculação estrita ao edital original
+  const isResumption =
+    (bloco_inicio !== undefined && bloco_inicio > 1) || conteudo_parcial !== undefined;
+
+  if (isResumption) {
+    // Rejeita conflito entre hash externo da requisição e hash do conteúdo parcial
+    if (
+      edital_hash &&
+      conteudo_parcial?.edital_hash &&
+      edital_hash.toLowerCase() !== conteudo_parcial.edital_hash.toLowerCase()
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Conflito entre o hash do edital fornecido na requisição e o hash registrado no conteúdo parcial.",
+          motivo: "CONFLITO_HASH",
+          edital_hash_externo: edital_hash,
+          edital_hash_conteudo_parcial: conteudo_parcial.edital_hash,
+          conteudo_parcial: conteudo_parcial || undefined,
+        },
+        { status: 400 }
+      );
+    }
+
+    const providedHash = (edital_hash || conteudo_parcial?.edital_hash)?.toLowerCase();
+
+    if (!providedHash) {
+      return NextResponse.json(
+        {
+          error:
+            "Identificação do edital ausente para retomada parcial. Forneça o hash do edital original (edital_hash).",
+          motivo: "HASH_AUSENTE",
+          conteudo_parcial: conteudo_parcial || undefined,
+        },
+        { status: 400 }
+      );
+    }
+
+    const currentEditalHash = await computeEditalHash(text);
+    if (providedHash !== currentEditalHash) {
+      return NextResponse.json(
+        {
+          error:
+            "O conteúdo do edital enviado na retomada difere do edital que originou o conteúdo parcial.",
+          motivo: "EDITAL_DIVERGENTE",
+          edital_hash_esperado: providedHash,
+          edital_hash_recebido: currentEditalHash,
+          conteudo_parcial: conteudo_parcial || undefined,
+        },
+        { status: 400 }
+      );
+    }
+  }
 
   const env = resolveEnv();
   const groqApiKeys = getGroqKeysFromEnv(env);
@@ -85,7 +143,33 @@ export async function POST(req: Request) {
 
   const primaryApiKey = groqApiKeys[0];
 
-  const systemPrompt = `Você é um coordenador pedagógico especialista em concursos públicos.
+  const fallbackModels = [
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.8-27b",
+  ];
+
+  // Particiona o conteúdo programático em blocos seguros
+  const blocks = splitEditalIntoBlocks(text);
+  const totalBlocks = blocks.length;
+
+  // Inicializa com conteúdo parcial prévio se fornecido (retomada sem duplicação)
+  const completedBlocks: Array<{ disciplinas?: any[] }> = [];
+  if (conteudo_parcial?.disciplinas && Array.isArray(conteudo_parcial.disciplinas)) {
+    completedBlocks.push({ disciplinas: conteudo_parcial.disciplinas });
+  }
+
+  const startIndex =
+    bloco_inicio && bloco_inicio >= 1 && bloco_inicio <= totalBlocks
+      ? bloco_inicio - 1
+      : 0;
+
+  async function processChunk(
+    chunkText: string,
+    blockIndex: number,
+    total: number
+  ): Promise<{ success: true; data: any } | { success: false; status: number; error: string; etapa_falha?: any }> {
+    const systemPrompt = `Você é um coordenador pedagógico especialista em concursos públicos.
 Sua missão é extrair e organizar a árvore de Conteúdo Programático do edital fornecido.
 Diretrizes:
 - Extraia APENAS disciplinas e tópicos de estudo. NÃO invente matérias ou tópicos que não constam no edital.
@@ -94,14 +178,14 @@ Diretrizes:
 - NÃO gere resumos, questões ou flashcards. Devolva estritamente a ementa estruturada.
 - O retorno DEVE ser um objeto JSON puro, sem blocos markdown.`;
 
-  const userPrompt = `Concurso: "${title}"
+    const userPrompt = `Concurso: "${title}"
 ${banca ? `Banca: "${banca}"` : ""}
 ${ano ? `Ano: ${ano}` : ""}
 ${cargo ? `Cargo: "${cargo}"` : ""}
 
-Texto do Edital / Conteúdo Programático:
+${total > 1 ? `Conteúdo Programático do Edital (Seção ${blockIndex + 1} de ${total}):` : "Texto do Edital / Conteúdo Programático:"}
 """
-${text}
+${chunkText}
 """
 
 Retorne APENAS um JSON no seguinte formato:
@@ -123,157 +207,226 @@ Retorne APENAS um JSON no seguinte formato:
   ]
 }`;
 
-  const messages = [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: userPrompt },
-  ];
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ];
 
-  const fallbackModels = [
-    "openai/gpt-oss-120b",
-    "openai/gpt-oss-20b",
-    "qwen/qwen3.8-27b",
-  ];
+    let groqResponse: Response | null = null;
+    let lastErrorStatus = 500;
+    let lastErrorText = "";
 
-  let groqResponse: Response | null = null;
-  let lastErrorStatus = 500;
-  let lastErrorText = "";
+    for (const modelId of fallbackModels) {
+      try {
+        groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${primaryApiKey.trim()}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: modelId,
+            messages,
+            temperature: 0.1,
+            max_tokens: 2200,
+            response_format: { type: "json_object" },
+          }),
+        });
 
-  for (const modelId of fallbackModels) {
-    try {
-      groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${primaryApiKey.trim()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: modelId,
-          messages,
-          temperature: 0.1,
-          max_tokens: 2200,
-          response_format: { type: "json_object" },
-        }),
-      });
+        if (groqResponse.ok) {
+          break;
+        }
 
-      if (groqResponse.ok) {
-        break;
+        lastErrorStatus = groqResponse.status;
+        lastErrorText = await groqResponse.text();
+
+        if (groqResponse.status === 429) {
+          break;
+        }
+      } catch (err: any) {
+        lastErrorStatus = 500;
+        lastErrorText = err.message || "Erro de rede";
       }
-
-      lastErrorStatus = groqResponse.status;
-      lastErrorText = await groqResponse.text();
-
-      // Interrupção imediata em 429 para proteger TPM
-      if (groqResponse.status === 429) {
-        break;
-      }
-    } catch (err: any) {
-      lastErrorStatus = 500;
-      lastErrorText = err.message || "Erro de rede";
     }
-  }
 
-  if (!groqResponse || !groqResponse.ok) {
-    if (lastErrorStatus === 429) {
-      return NextResponse.json(
-        { error: "Limite temporário de requisições da IA atingido. Aguarde alguns instantes." },
-        { status: 429 }
+    if (!groqResponse || !groqResponse.ok) {
+      if (lastErrorStatus === 429) {
+        return {
+          success: false,
+          status: 429,
+          error: "Limite temporário de requisições da IA atingido. Aguarde alguns instantes.",
+        };
+      }
+      return {
+        success: false,
+        status: 502,
+        error: "Instabilidade temporária na comunicação com o provedor de IA.",
+      };
+    }
+
+    const data = (await groqResponse.json()) as any;
+    const choice = data.choices?.[0];
+    const messageContent = choice?.message?.content;
+
+    if (choice?.finish_reason === "length") {
+      return {
+        success: false,
+        status: 422,
+        error:
+          total > 1
+            ? `A resposta da seção ${blockIndex + 1} de ${total} do edital foi truncada por limite de tamanho.`
+            : "A resposta do edital foi truncada por limite de tamanho. Forneça uma seção mais concisa do conteúdo programático.",
+        etapa_falha: {
+          bloco_indice: blockIndex + 1,
+          total_blocos: total,
+          motivo: "LIMITE_TOKENS",
+        },
+      };
+    }
+
+    let parsedJson: any;
+    try {
+      const jsonString = extractCleanJson(messageContent || "");
+      parsedJson = JSON.parse(jsonString);
+    } catch {
+      // Se o parse falhar, tenta o Fixer Prompt uma vez
+      parsedJson = null;
+    }
+
+    // Valida se parsedJson atende a estrutura mínima de disciplinas com tópicos
+    const isStructurallyValid =
+      parsedJson &&
+      typeof parsedJson === "object" &&
+      Array.isArray(parsedJson.disciplinas) &&
+      parsedJson.disciplinas.length > 0 &&
+      parsedJson.disciplinas.every(
+        (d: any) =>
+          d &&
+          typeof d.nome === "string" &&
+          Array.isArray(d.topicos) &&
+          d.topicos.length > 0
       );
+
+    if (!isStructurallyValid) {
+      const fixerPrompt = `O retorno abaixo falhou na estrutura da ementa de estudos.
+CONTEÚDO RECEBIDO:
+${messageContent || ""}
+
+Sua tarefa: estruture e corrija APENAS o JSON puro no formato exigido (objeto com 'disciplinas', onde cada disciplina possui 'nome' e 'topicos' não-vazios com 'titulo'). Devolva APENAS o JSON válido.`;
+
+      try {
+        const fixerRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${primaryApiKey.trim()}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: fallbackModels[0],
+            messages: [{ role: "user", content: fixerPrompt }],
+            temperature: 0.1,
+            max_tokens: 2200,
+            response_format: { type: "json_object" },
+          }),
+        });
+
+        if (fixerRes.ok) {
+          const fixerData = (await fixerRes.json()) as any;
+          const fixerContent = fixerData.choices?.[0]?.message?.content;
+          const cleanFixer = extractCleanJson(fixerContent || "");
+          const parsedFixer = JSON.parse(cleanFixer);
+
+          if (
+            parsedFixer &&
+            typeof parsedFixer === "object" &&
+            Array.isArray(parsedFixer.disciplinas) &&
+            parsedFixer.disciplinas.length > 0
+          ) {
+            parsedJson = parsedFixer;
+          }
+        }
+      } catch (_) {}
     }
-    return NextResponse.json(
-      { error: "Instabilidade temporária na comunicação com o provedor de IA." },
-      { status: 502 }
-    );
-  }
 
-  const data = (await groqResponse.json()) as any;
-  const choice = data.choices?.[0];
-  const messageContent = choice?.message?.content;
-
-  if (choice?.finish_reason === "length") {
-    return NextResponse.json(
-      { error: "A resposta do edital foi truncada por limite de tamanho. Forneça uma seção mais concisa do conteúdo programático." },
-      { status: 422 }
-    );
-  }
-
-  let parsedJson: any;
-  try {
-    const jsonString = extractCleanJson(messageContent || "");
-    parsedJson = JSON.parse(jsonString);
-  } catch {
-    return NextResponse.json(
-      { error: "A IA retornou um formato de ementa inválido." },
-      { status: 400 }
-    );
-  }
-
-  // Preenche metadados do concurso a partir da requisição se a IA não tiver preenchido
-  if (parsedJson && typeof parsedJson === "object") {
-    parsedJson.titulo_concurso = parsedJson.titulo_concurso || parseResult.data.title;
-    if (parseResult.data.banca && !parsedJson.banca) parsedJson.banca = parseResult.data.banca;
-    if (parseResult.data.ano && !parsedJson.ano) parsedJson.ano = parseResult.data.ano;
-    if (parseResult.data.cargo && !parsedJson.cargo) parsedJson.cargo = parseResult.data.cargo;
-  }
-
-  // Validação Zod com o schema da ementa
-  let validationResult = JornadaEmentaSchema.safeParse(parsedJson);
-
-  // Tentativa única de Fixer Prompt se falhar a validação estrutural
-  if (!validationResult.success) {
-    const fixerPrompt = `O JSON abaixo falhou na validação estrutural da ementa de estudos.
-ERROS:
-${JSON.stringify(validationResult.error.issues, null, 2)}
-
-JSON ORIGINAL:
-${JSON.stringify(parsedJson, null, 2)}
-
-Sua tarefa: corrija APENAS a estrutura JSON para cumprir as regras (cada disciplina deve ter 'nome' e 'topicos', sem títulos duplicados). Devolva APENAS o JSON válido.`;
-
-    try {
-      const fixerRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${primaryApiKey.trim()}`,
-          "Content-Type": "application/json",
+    if (
+      !parsedJson ||
+      !Array.isArray(parsedJson.disciplinas) ||
+      parsedJson.disciplinas.length === 0
+    ) {
+      return {
+        success: false,
+        status: 422,
+        error:
+          total > 1
+            ? `Não foi possível estruturar as matérias na seção ${blockIndex + 1} de ${total} do edital.`
+            : "A IA retornou um formato de ementa inválido.",
+        etapa_falha: {
+          bloco_indice: blockIndex + 1,
+          total_blocos: total,
+          motivo: "FORMATO_INVALIDO",
         },
-        body: JSON.stringify({
-          model: fallbackModels[0],
-          messages: [{ role: "user", content: fixerPrompt }],
-          temperature: 0.1,
-          max_tokens: 2200,
-          response_format: { type: "json_object" },
-        }),
-      });
+      };
+    }
 
-      if (fixerRes.ok) {
-        const fixerData = (await fixerRes.json()) as any;
-        const fixerContent = fixerData.choices?.[0]?.message?.content;
-        const cleanFixer = extractCleanJson(fixerContent || "");
-        const parsedFixer = JSON.parse(cleanFixer);
+    return { success: true, data: parsedJson };
+  }
 
-        if (parsedFixer && typeof parsedFixer === "object") {
-          parsedFixer.titulo_concurso = parsedFixer.titulo_concurso || parseResult.data.title;
-          if (parseResult.data.banca && !parsedFixer.banca) parsedFixer.banca = parseResult.data.banca;
-          if (parseResult.data.ano && !parsedFixer.ano) parsedFixer.ano = parseResult.data.ano;
-          if (parseResult.data.cargo && !parsedFixer.cargo) parsedFixer.cargo = parseResult.data.cargo;
-        }
+  // Executa o processamento sequencial e seguro de cada bloco
+  for (let i = startIndex; i < totalBlocks; i++) {
+    const blockText = blocks[i];
+    const chunkResult = await processChunk(blockText, i, totalBlocks);
 
-        const secondValidation = JornadaEmentaSchema.safeParse(parsedFixer);
-        if (secondValidation.success) {
-          validationResult = secondValidation;
-        }
+    if (!chunkResult.success) {
+      if (chunkResult.status === 429) {
+        return NextResponse.json({ error: chunkResult.error }, { status: 429 });
       }
-    } catch (_) {}
 
-    if (!validationResult.success) {
+      // Retorna erro estruturado preservando todo o progresso validado até o momento
+      const partialDisciplinas = consolidateDisciplinas(completedBlocks);
+      const computedHash = await computeEditalHash(text);
       return NextResponse.json(
         {
-          error: "Não foi possível estruturar a ementa no formato correto.",
-          details: validationResult.error.flatten(),
+          error: chunkResult.error,
+          etapa_falha: chunkResult.etapa_falha,
+          edital_hash: computedHash,
+          conteudo_parcial: {
+            titulo_concurso: title,
+            banca: banca || undefined,
+            ano: ano || new Date().getFullYear(),
+            cargo: cargo || undefined,
+            edital_hash: computedHash,
+            disciplinas: partialDisciplinas,
+          },
         },
-        { status: 422 }
+        { status: chunkResult.status }
       );
     }
+
+    completedBlocks.push(chunkResult.data);
+  }
+
+  // Consolidação final sem duplicatas com ordenação determinística
+  const consolidatedDisciplinas = consolidateDisciplinas(completedBlocks);
+  const finalEditalHash = await computeEditalHash(text);
+
+  const candidateEmenta = {
+    titulo_concurso: title,
+    banca: banca || undefined,
+    ano: ano || new Date().getFullYear(),
+    cargo: cargo || undefined,
+    edital_hash: finalEditalHash,
+    disciplinas: consolidatedDisciplinas,
+  };
+
+  const validationResult = JornadaEmentaSchema.safeParse(candidateEmenta);
+  if (!validationResult.success) {
+    return NextResponse.json(
+      {
+        error: "Não foi possível consolidar a ementa no formato correto.",
+        details: validationResult.error.flatten(),
+      },
+      { status: 422 }
+    );
   }
 
   return NextResponse.json(validationResult.data, { status: 200 });

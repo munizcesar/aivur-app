@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAivoStore } from "@/store/useAivoStore";
 import {
   BookOpen,
   CheckCircle2,
@@ -71,6 +72,32 @@ export default function JornadaView({ initialJornada }: JornadaViewProps) {
     jornada.topicos.find((t) => t.status === "em_andamento") ||
     jornada.topicos.find((t) => t.status === "pendente") ||
     jornada.topicos[0];
+
+  // Sincroniza a jornada e o tópico em foco com o cérebro central do AIVU
+  useEffect(() => {
+    useAivoStore.getState().setActiveContext({
+      pathname: `/jornadas/${jornada.id}`,
+      modulo: "jornadas",
+      atividade: "analisando_edital",
+      titulo: jornada.titulo_concurso,
+      disciplina: proximoTopico?.disciplina,
+      topico: proximoTopico?.titulo_topico,
+      trecho_foco: proximoTopico
+        ? `Tópico atual da jornada: ${proximoTopico.disciplina} - ${proximoTopico.titulo_topico} (Status: ${proximoTopico.status}). Progresso geral: ${jornada.progresso_geral}%.`
+        : `Jornada: ${jornada.titulo_concurso}. Progresso geral: ${jornada.progresso_geral}%.`,
+      metadados: {
+        jornadaId: jornada.id,
+        progresso: `${jornada.progresso_geral}%`,
+        banca: jornada.banca || "Indefinida",
+        cargo: jornada.cargo || "Indefinido",
+        totalTopicos: String(jornada.topicos.length),
+      },
+    });
+
+    return () => {
+      useAivoStore.getState().setActiveContext(null);
+    };
+  }, [jornada.id, jornada.titulo_concurso, jornada.progresso_geral, jornada.banca, jornada.cargo, jornada.topicos.length, proximoTopico?.disciplina, proximoTopico?.titulo_topico, proximoTopico?.status]);
 
   const handleStartTopico = async (topico: JornadaTopicoDB) => {
     try {

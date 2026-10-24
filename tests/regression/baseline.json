@@ -38,6 +38,13 @@
     "REG-AIVU-005": { "domain": "aivu", "kind": "api", "title": "Conversa válida com sessão assinada retorna 200, resposta markdown limpa e estado 'speaking' (1 chamada Groq)", "validatedOn": "2026-10-17" },
     "REG-AIVU-006": { "domain": "aivu", "kind": "api", "title": "Resiliência contra falhas do provedor: 429 da Groq retorna 429 controlado, 5xx retorna 502 sem expor segredos", "validatedOn": "2026-10-17" },
     "REG-AIVU-007": { "domain": "aivu", "kind": "browser", "title": "Widget AIVU no navegador: envio com falha de IA recupera o mascote e reabilita o chat sem travar em thinking", "validatedOn": "2026-10-17" },
+    "REG-AIVU-008": { "domain": "aivu", "kind": "api", "title": "Isolamento de contexto e retrocompatibilidade com contexto ausente ou geral", "validatedOn": "2026-10-22" },
+    "REG-AIVU-009": { "domain": "aivu", "kind": "api", "title": "Contexto tipado por módulo e troca dinâmica de contexto pedagógico", "validatedOn": "2026-10-22" },
+    "REG-AIVU-010": { "domain": "aivu", "kind": "api", "title": "Regra restritiva de ancoragem no Meu Material: base estrita na fonte e rejeição de extrapolações", "validatedOn": "2026-10-22" },
+    "REG-AIVU-011": { "domain": "aivu", "kind": "api", "title": "Privacidade e orçamento de tokens: limites Zod em trecho_foco e poda defensiva de histórico", "validatedOn": "2026-10-22" },
+    "REG-AIVU-012": { "domain": "aivu", "kind": "api", "title": "Transição dinâmica de contexto entre telas (Questões -> Meu Material -> Reset): isolamento estrito sem resíduos", "validatedOn": "2026-10-23" },
+    "REG-AIVU-013": { "domain": "aivu", "kind": "api", "title": "Preservação do histórico pedagógico da conversa durante a navegação entre telas de estudo", "validatedOn": "2026-10-23" },
+    "REG-AIVU-014": { "domain": "aivu", "kind": "api", "title": "Trilhas: alternância dinâmica de contexto entre teoria, flashcards e questões sem retenção de estado anterior", "validatedOn": "2026-10-23" },
     "REG-JORNADA-001": { "domain": "jornadas", "kind": "api", "title": "Validação Zod dos contratos da Jornada de Edital: aceita ementa válida e rejeita estruturas malformadas ou vazias", "validatedOn": "2026-10-18" },
     "REG-JORNADA-002": { "domain": "jornadas", "kind": "api", "title": "Autenticação e integridade de sessão: requisições sem sessão, adulteradas ou forjadas retornam 401 controlado", "validatedOn": "2026-10-18" },
     "REG-JORNADA-003": { "domain": "jornadas", "kind": "api", "title": "Extração de ementa com IA (/api/ai/gerar-jornada): validação de limites (50-15.000 chars) e orçamento de tokens", "validatedOn": "2026-10-18" },
@@ -46,6 +53,12 @@
     "REG-JORNADA-006": { "domain": "jornadas", "kind": "api", "title": "Isolamento anti-IDOR [Mock D1 in-memory SQLite]: proteção estrita contra acesso, início ou deleção cruzada", "validatedOn": "2026-10-18" },
     "REG-JORNADA-007": { "domain": "jornadas", "kind": "api", "title": "Concorrência e convergência determinística ao iniciar tópico [Mock D1 in-memory SQLite]: trilha estável sem órfãos", "validatedOn": "2026-10-18" },
     "REG-JORNADA-008": { "domain": "jornadas", "kind": "api", "title": "Conclusão explícita de tópico e cálculo do próximo passo [Mock D1 in-memory SQLite]: evento persistido e recomendação linear", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-009": { "domain": "jornadas", "kind": "api", "title": "Início de tópico resiliente [Mock D1 in-memory SQLite]: rejeita 404 sem vínculo persistido e preserva trilha preexistente sem sobrescrever", "validatedOn": "2026-10-18" }
+    "REG-JORNADA-009": { "domain": "jornadas", "kind": "api", "title": "Início de tópico resiliente [Mock D1 in-memory SQLite]: rejeita 404 sem vínculo persistido e preserva trilha preexistente sem sobrescrever", "validatedOn": "2026-10-18" },
+    "REG-JORNADA-010": { "domain": "jornadas", "kind": "api", "title": "Segmentação e processamento de edital extenso com múltiplas disciplinas em blocos seguros", "validatedOn": "2026-10-22" },
+    "REG-JORNADA-011": { "domain": "jornadas", "kind": "api", "title": "Tratamento defensivo de truncamento por limite de tokens e JSON incompleto com relatório de etapa", "validatedOn": "2026-10-22" },
+    "REG-JORNADA-012": { "domain": "jornadas", "kind": "api", "title": "Preservação de conteúdo parcial em falha de bloco posterior e retomada sem duplicação", "validatedOn": "2026-10-22" },
+    "REG-JORNADA-013": { "domain": "jornadas", "kind": "api", "title": "Consolidação determinística de ementas: deduplicação de disciplinas, tópicos repetidos e ordenação estável", "validatedOn": "2026-10-22" },
+    "REG-JORNADA-014": { "domain": "jornadas", "kind": "api", "title": "Blindagem da retomada parcial: validação de hash do edital, rejeição de edital divergente ou hash ausente e preservação de conteúdo parcial", "validatedOn": "2026-10-23" },
+    "REG-JORNADA-015": { "domain": "jornadas", "kind": "api", "title": "Contrato do frontend na retomada: preservação de edital_hash, bloco_inicio e conteudo_parcial em resposta 422", "validatedOn": "2026-10-23" }
   }
 }

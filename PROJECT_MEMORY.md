@@ -637,3 +637,141 @@ Antes de qualquer alteração futura em Trilhas:
   - 6 viewports testadas via Puppeteer (390x844, 390x500, 390x420, 667x375, 844x390, 1280x900): 100% aprovadas.
   - Regression Gate: 46/46 PASS (`npm run regression`).
   - Publicação: commit `2adbdf2`, deploy `01255a6a-9bca-49ad-91a7-a1d3b9e50ce2` ativo no Cloudflare Pages e `https://aivur.com.br` respondendo HTTP 200.
+
+## 14. Jornadas: Particionamento Seguro de Editais e Resiliência contra Truncamento (2026-10-22)
+
+- **Diagnóstico da Causa Raiz:**
+  - O erro *"A resposta do edital foi truncada por limite de tamanho. Forneça uma seção mais concisa do conteúdo programático."* ocorria na etapa de geração do modelo de IA (etapa 3).
+  - Editais com múltiplas disciplinas exigiam árvores JSON de saída com dezenas de tópicos, excedendo o teto de saída (`max_tokens: 2200`). O provedor Groq encerrava com `choice.finish_reason = "length"`, acionando o aborto imediato em HTTP 422.
+  - No frontend (`CriarJornadaView.tsx`), havia ainda um corte truncador em 12.000 caracteres (`rawText.slice(0, 12000)`), antes de atingir o limite de 15.000 da API.
+- **Estratégia Implementada:**
+  - **Módulo de Particionamento e Consolidação (`src/lib/jornada-chunking.ts`):**
+    - `splitEditalIntoBlocks`: segmenta o edital preservando fronteiras naturais de disciplinas e tópicos, com teto seguro de 2.800 caracteres por bloco. Editais curtos são mantidos em 1 único bloco (1 chamada à IA).
+    - `consolidateDisciplinas`: consolida os retornos parciais, mescla disciplinas equivalentes (case-insensitive/prefixos), deduplica tópicos (normalização de numeração e pontuação) e impõe tetos defensivos (30 tópicos por disciplina, 15 disciplinas por jornada).
+  - **Orquestração na Rota (`/api/ai/gerar-jornada`):**
+    - Processa cada bloco de forma sequencial controlada.
+    - Em caso de falha ou truncamento em bloco posterior, responde HTTP 422 com `etapa_falha` (`motivo: LIMITE_TOKENS` / `FORMATO_INVALIDO`) e `conteudo_parcial` contendo as disciplinas já validadas, evitando descarte do trabalho concluído.
+    - Suporte a retomada sem duplicação via campos opcionais `bloco_inicio` e `conteudo_parcial` no schema Zod (`GerarJornadaRequestSchema`).
+  - **Frontend (`CriarJornadaView.tsx`):**
+    - Elevado o teto de corte para 15.000 caracteres, permitindo a transmissão integral do edital para o backend particionar.
+- **Validação:**
+  - Adicionados testes `REG-JORNADA-010` (edital extenso em múltiplos blocos), `REG-JORNADA-011` (finish_reason = length e formato inválido com relatório de etapa), `REG-JORNADA-012` (preservação de conteúdo parcial e retomada) e `REG-JORNADA-013` (consolidação determinística e deduplicação).
+  - Regression Gate: **50/50 PASS** (0 falhas, 0 skips).
+
+## 15. AIVU: Evolução do Cérebro Central — Professor Particular Inteligente (2026-10-22)
+
+- **Auditoria do Ecossistema Atual do AIVU:**
+  - **Rota de IA:** `src/app/api/ai/aivu/chat/route.ts` (Edge runtime, modelo Groq `openai/gpt-oss-120b`, `max_tokens: 600`, rotação de chaves via `getGroqKeysFromEnv`, rate limiter por usuário de 15 req/15 min).
+  - **Widget e Apresentação:** `src/components/Aivo/AivoWidget.tsx` (injetado via `AivoWrapper.tsx` no `layout.tsx`, rastreia visualViewport para mobile, formulário semântico e balões com tokens de cores calculados para Light e Dark).
+  - **Gerenciamento de Estado:** `src/store/useAivoStore.ts` (Zustand com persistência em `sessionStorage`).
+  - **Contratos:** `src/lib/validations/aivu-chat.ts` (`AivuChatRequestSchema` mensagem 1-1000 chars, histórico máx 8 mensagens).
+- **Arquitetura Implementada (`src/lib/aivu-brain.ts`):**
+  - **Contrato Tipado de Contexto (`AivuPageContextSchema`):**
+    - Campos essenciais: `pathname` (máx 200), `modulo` (`home`, `jornadas`, `trilhas`, `questoes`, `material`, `redacao`, `auth`, `geral`), `atividade` (`navegando`, `resolvendo_questao`, `revisando_flashcard`, `lendo_teoria`, `analisando_edital`, `estudando_material`, `redigindo_texto`), `titulo` (máx 180), `disciplina` (máx 100), `topico` (máx 180), `trecho_foco` (estritamente limitado a 1.500 caracteres), `metadados` (dicionário raso de strings até 300 chars).
+    - **Privacidade e Zero DOM Scraping:** Contexto deliberado e estruturado. Nenhuma raspagem indiscriminada de DOM, cookies, inputs sensíveis ou histórico externo.
+  - **Orçamento de Tokens Compatível com Groq (`AIVU_TOKEN_BUDGET`):**
+    - Entrada máxima segura: 2.400 tokens.
+    - Reserva do Prompt do Sistema (Persona + Protocolos): 450 tokens.
+    - Reserva de Contexto da Página Atual: 450 tokens.
+    - Reserva de Histórico Recente: 1.100 tokens (poda automática de mensagens mais antigas preservando a integridade da conversa mais recente).
+    - Reserva da Pergunta do Usuário: 400 tokens.
+    - Reserva de Saída Garantida: 600 tokens (sem truncamento de explicações pedagógicas).
+  - **Montador de Contexto (`assembleAivuPromptMessages`):**
+    - Injeta a persona do Professor Particular: didático, mentor, rigoroso contra pegadinhas de banca e acolhedor.
+    - Carrega dinamicamente regras de domínio jurídico via `getDomainRules` quando a matéria é identificada.
+    - Diretriz pedagógica para questões: foco em descartar distratores e fundamentar o gabarito.
+    - **Regra Restritiva de Fonte para "Meu Material":** Quando `modulo === "material"`, o assistente opera sob diretriz estrita de responder exclusivamente com base no trecho fornecido e responder expressamente `"Informação não encontrada no material fornecido."` caso a dúvida extrapole o documento.
+  - **Frontend Integrado (`AivoWidget.tsx`):**
+    - Importa `usePathname` do Next.js.
+    - Prioriza `activeContext` (definido explicitamente por componentes filhos na store) ou deriva automaticamente a partir da rota ativa.
+    - Envia `context` opcionalmente no payload JSON para a rota de chat.
+  - **Retrocompatibilidade Estrita:**
+    - O campo `context` em `AivuChatRequestSchema` é `.optional()`. Clientes legados e testes que omitem o campo continuam funcionando com 100% de estabilidade.
+- **Validação Evolutiva (Regression Gate):**
+  - Adicionados 4 novos casos de teste em `tests/regression/aivu/chat.case.mjs` registrados em `tests/regression/baseline.json` e `CHANGELOG.md`:
+    - `REG-AIVU-008`: Isolamento de contexto e retrocompatibilidade com contexto ausente ou geral.
+    - `REG-AIVU-009`: Contexto tipado por módulo e troca dinâmica de contexto pedagógico (Trilhas com protocolo de domínio e Questões com distratores).
+    - `REG-AIVU-010`: Regra restritiva de ancoragem no Meu Material (base estrita na fonte e recusa controlada).
+    - `REG-AIVU-011`: Privacidade e orçamento de tokens (limite Zod de 1.500 chars em `trecho_foco` e poda defensiva de histórico na reserva de 1.100 tokens).
+  - Regression Gate: **54/54 PASS** (100% de aprovação em testes de API e Navegador).
+
+## 16. AIVU: Fase 2 — Contexto Real das Telas em Atividade (2026-10-23)
+
+### 1. Decisões Arquiteturais e Isolamento de Estado
+- **Isolamento de Estado Epêmero vs. Histórico Pedagógico (`src/store/useAivoStore.ts`):**
+  - Configurado `partialize: (state) => ({ messages: state.messages, isOpen: state.isOpen })`.
+  - O campo `activeContext` foi deliberadamente excluído do `sessionStorage`. Fica restrito à memória de execução do cliente (Zustand in-memory state), garantindo que ao recarregar a página ou navegar, trechos e metadados de atividades anteriores sejam sumariamente descartados.
+  - O histórico de mensagens (`messages`) e o estado de visibilidade (`isOpen`) permanecem 100% preservados, mantendo a continuidade do diálogo pedagógico entre diferentes telas.
+- **Ciclo de Vida do Contexto nas Telas Conectadas:**
+  - Cada componente que representa uma atividade ativa registra seu contexto via `useAivoStore.getState().setActiveContext(...)` em `useEffect`.
+  - No cleanup de desmontagem (`return () => { setActiveContext(null); }`) ou ao invalidar o conteúdo exibido, o contexto é zerado imediatamente, prevenindo vazamento de contexto entre telas.
+  - **Zero Scraping & Limite Seguro:** Nenhum HTML ou DOM é capturado. Somente os campos tipados de `AivuPageContextSchema` são preenchidos com teto de 1.500 caracteres em `trecho_foco`.
+
+### 2. Telas Efetivamente Conectadas
+1. **Questões (`src/components/Wizard/WizardStep3.tsx`):**
+   - Atividade: `resolvendo_questao`.
+   - Dados injetados: `materia`, `assunto`, `banca`, número da questão ativa (`idx + 1` de `total`), enunciado (`qText`) e alternativas formatadas.
+   - Reseta no unmount e quando a lista de questões é esvaziada.
+2. **Meu Material (`src/app/material/page.tsx`):**
+   - Atividade: `estudando_material`.
+   - Dados injetados: título do material verificado, recorte seguro dos primeiros 1.500 caracteres do conteúdo validado (`verifiedMaterial.conteudo.slice(0, 1500)`) e aba ativa (`estudio` ou `fonte`).
+   - Reseta no unmount, ao clicar em "Importar Outro Material" e quando `verifiedMaterial` é nulo.
+   - Ativação estrita do protocolo de fundamentação na fonte no backend (`modulo === "material"`).
+3. **Jornadas de Edital (`src/components/Jornadas/JornadaView.tsx`):**
+   - Atividade: `analisando_edital`.
+   - Dados injetados: título do concurso, progresso geral (`progresso_geral%`), próximo tópico recomendado (`disciplina`, `titulo_topico`, `status`), total de disciplinas e tópicos.
+   - Reseta no unmount.
+4. **Trilhas de Aprendizagem (`src/components/Trilhas/TrilhaSalaV2.tsx`):**
+   - Atividade dinâmica conforme gaveteiro aberto: `resolvendo_questao` (seção questões), `revisando_flashcard` (seção flashcards) ou `lendo_teoria` (seção resumo).
+   - Dados injetados: título da trilha, disciplina e seção ativa.
+   - Reseta no unmount.
+
+### 3. Proteção Evolutiva (Regression Gate)
+- Adicionados 3 novos testes automatizados em `tests/regression/aivu/chat.case.mjs` registrados em `tests/regression/baseline.json` e `CHANGELOG.md`:
+  - `REG-AIVU-012`: Transição dinâmica entre telas (Questões -> Meu Material -> Reset/Dashboard) garantindo descarte imediato de contexto e ausência de vazamento residual no prompt de sistema.
+  - `REG-AIVU-013`: Preservação do histórico pedagógico da conversa durante a transição de telas com rotação de contexto específico.
+  - `REG-AIVU-014`: Alternância dinâmica de seções em Trilhas (teoria/resumo -> flashcards -> questões), garantindo atualização imediata de atividade e limpeza de regras anteriores.
+- **Placar oficial:** **57/57 PASS** na Regression Gate (`npm run regression`: 50/50 testes de API + 7/7 testes de navegador em Puppeteer 100% aprovados após adição de `wrangler` como devDependency).
+
+## 17. Fase 6 — Revisão do Lockfile e Preparação Segura do Commit (2026-10-23)
+
+### 1. Auditoria Estrutural do `package-lock.json`
+- **Causa Raiz do Diff de 9.053 Linhas:**
+  - O algoritmo Myers padrão do `git diff` alinhou falsamente chaves JSON repetitivas (`version`, `resolved`, `integrity`, `dev: true`, `license: "MIT"`) entre blocos de pacotes adjacentes ao intercalar 68 novos pacotes em ordem alfabética.
+  - Avaliado com `git diff --patience --stat package-lock.json`, o diff semântico real é de **1.156 adições e 1 deleção** (+`wrangler` em `devDependencies` e blocos de pacotes).
+  - 100% dos 663 pacotes originais permaneceram com versões, integridade e metadados rigorosamente idênticos.
+  - O `lockfileVersion: 3` e npm `11.12.1` foram estritamente preservados, sem regenerações artificiais.
+  - `wrangler` instalado estritamente em `devDependencies` (`3.114.17`), atendendo a peerDependency (`^3.28.2 || ^4.0.0`) de `@cloudflare/next-on-pages@1.13.16`.
+- **Auditoria de Resiliência das Rotas de Jornada e AIVU:**
+  - `jornada-chunking.ts` e `/api/ai/gerar-jornada`: segmentação coerente (teto 2.800 chars), consolidação com deduplicação estável (`seenTopics`), tratamento de `finish_reason === "length"` com 422 e `conteudo_parcial`, e retomada por `bloco_inicio`.
+- **Validação de Portões:**
+  - `git diff --check`: 0 erros.
+  - `npx tsc --noEmit`: Exit 0 (zero erros TypeScript).
+  - `npm run build`: Exit 0 (Turbopack production build gerou 13/13 rotas estáticas com sucesso).
+  - `npm run regression`: **57/57 PASS** (50 testes de API + 7 testes de navegador em Puppeteer).
+- **Conclusão:** PRONTO PARA COMMIT.
+
+## 18. Fase 7 — Blindagem da Retomada Parcial de Jornada (2026-10-23)
+
+### 1. Decisões Arquiteturais e Proteção Contra Mistura de Editais
+- **Hash SHA-256 Determinístico (`computeEditalHash` em `src/lib/jornada-chunking.ts`):**
+  - Normalização estrita: conversão de CRLF para LF e remoção de espaços nas extremidades antes da geração do digest nativo Web Crypto (`crypto.subtle.digest`).
+- **Contratos Zod Atualizados (`src/lib/validations/jornada.ts`):**
+  - `JornadaEmentaSchema` e `GerarJornadaRequestSchema`: incorporado campo `edital_hash` opcional de 64 caracteres hexadecimais, mantendo 100% de retrocompatibilidade com requisições iniciais e fluxos legados.
+- **Validação de Retomada na Rota Edge (`/api/ai/gerar-jornada`):**
+  - Detecção autoritativa de retomada (`isResumption = bloco_inicio > 1 || conteudo_parcial !== undefined`).
+  - Rejeição de conflitos de hash: se `edital_hash` da requisição e `conteudo_parcial.edital_hash` divergirem (comparação case-insensitive), rejeita com HTTP 400 (`motivo: CONFLITO_HASH`) e preserva `conteudo_parcial`.
+  - Se `edital_hash` estiver ausente em ambos: rejeição com HTTP 400 (`motivo: HASH_AUSENTE`), preservando integralmente `conteudo_parcial` na resposta.
+  - Se `edital_hash` divergente do hash do texto fornecido: rejeição com HTTP 400 (`motivo: EDITAL_DIVERGENTE`), expondo `edital_hash_esperado` e `edital_hash_recebido`, com preservação de `conteudo_parcial`.
+  - Respostas com falha parcial (422) passam a emitir `edital_hash` tanto no corpo quanto embutido em `conteudo_parcial.edital_hash`.
+  - **Diferenciação Conceitual Estrita:** O SHA-256 garante a integridade do vínculo com o texto bruto do edital. Ele NÃO autentica criptograficamente o `conteudo_parcial`, cuja integridade é garantida estruturalmente pelo esquema Zod (`JornadaEmentaSchema`).
+- **Proteção Evolutiva (Regression Gate):**
+  - Adicionado `REG-JORNADA-014` com 6 sub-casos: (1) retomada válida com mesmo edital (200 OK), (2) edital divergente (400 EDITAL_DIVERGENTE), (3) hash ausente (400 HASH_AUSENTE), (4) hash malformado externo (400), (5) conflito de hashes externo vs parcial (400 CONFLITO_HASH com preservação de conteúdo) e (6) hash não-hexadecimal embutido em `conteudo_parcial` (400 Zod).
+  - Adicionado `REG-JORNADA-015`: contrato do frontend na retomada parcial (`CriarJornadaView.tsx`) — interceptação de HTTP 422 com conteúdo parcial estruturado, preservação de `edital_hash`, `bloco_inicio` e `conteudo_parcial`, e reenvio no clique de "Tentar novamente" com o texto de edital original, garantindo conclusão sem recomeço forçado e rejeição com `EDITAL_DIVERGENTE` em caso de edital adulterado.
+  - Registrado em `tests/regression/baseline.json` e `CHANGELOG.md`.
+  - **Placar oficial:** **59/59 PASS** (`npm run regression`: 52 testes de API + 7 testes de navegador em Puppeteer 100% aprovados).
+- **Validação de Portões Concluída:**
+  - `git diff --check`: 0 erros.
+  - `npx tsc --noEmit`: Exit 0 (zero erros TypeScript).
+  - `npm run build`: Exit 0 (Turbopack production build compilou 13/13 rotas estáticas com sucesso).
+  - `npm run regression`: Exit 0 (59/59 PASS).

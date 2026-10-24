@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useQuizStore } from "@/store/useQuizStore";
+import { useAivoStore } from "@/store/useAivoStore";
 import {
   AlertTriangle,
   BarChart2,
@@ -161,6 +162,44 @@ export default function WizardStep3() {
     return () => abortRef.current?.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sincroniza a questão ativa com o cérebro central do AIVU
+  useEffect(() => {
+    if (loading || error || generatedQuestions.length === 0) {
+      useAivoStore.getState().setActiveContext(null);
+      return;
+    }
+
+    const currentQ = generatedQuestions[currentQuestionIndex];
+    if (!currentQ) {
+      useAivoStore.getState().setActiveContext(null);
+      return;
+    }
+
+    const normalized = normalizeQuestion(currentQ);
+    const optionsText = normalized.qOptions.map((o) => `(${o.key}) ${o.text}`).join("\n");
+    const trechoFoco = `${normalized.qText}\n\nAlternativas:\n${optionsText}`.slice(0, 1500);
+
+    useAivoStore.getState().setActiveContext({
+      pathname: "/questoes",
+      modulo: "questoes",
+      atividade: "resolvendo_questao",
+      disciplina: filters.materia && filters.materia !== "Todas" ? filters.materia : undefined,
+      topico: filters.assunto && filters.assunto !== "Todos" ? filters.assunto : undefined,
+      titulo: `Questão ${currentQuestionIndex + 1} de ${generatedQuestions.length}`,
+      trecho_foco: trechoFoco,
+      metadados: {
+        banca: filters.banca && filters.banca !== "Todas" ? filters.banca : "Geral",
+        indiceQuestao: String(currentQuestionIndex + 1),
+        totalQuestoes: String(generatedQuestions.length),
+        statusResposta: results[currentQuestionIndex] !== null ? (results[currentQuestionIndex] ? "Acertou" : "Errou") : "Não respondida",
+      },
+    });
+
+    return () => {
+      useAivoStore.getState().setActiveContext(null);
+    };
+  }, [loading, error, generatedQuestions, currentQuestionIndex, filters.materia, filters.assunto, filters.banca, results]);
 
   const fetchQuestions = async () => {
     setLoading(true);

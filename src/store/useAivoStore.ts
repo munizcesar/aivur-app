@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { AivuPageContext } from '@/lib/aivu-brain';
 
 export type AivoState = 'idle' | 'greeting' | 'speaking' | 'thinking' | 'loading' | 'success' | 'error' | 'sleepy' | 'hidden' | 'minimized';
 
@@ -16,6 +17,7 @@ interface AivoStore {
   targetAnchor: string | null;
   isOpen: boolean;
   isSending: boolean;
+  activeContext: AivuPageContext | null;
   
   setState: (state: AivoState) => void;
   addMessage: (msg: Omit<Message, 'id' | 'timestamp'>) => void;
@@ -23,6 +25,7 @@ interface AivoStore {
   setTargetAnchor: (anchor: string | null) => void;
   setIsOpen: (isOpen: boolean) => void;
   setIsSending: (isSending: boolean) => void;
+  setActiveContext: (context: AivuPageContext | null) => void;
 }
 
 export const useAivoStore = create<AivoStore>()(
@@ -35,6 +38,7 @@ export const useAivoStore = create<AivoStore>()(
       targetAnchor: null,
       isOpen: false,
       isSending: false,
+      activeContext: null,
 
       setState: (state) => set({ state }),
       addMessage: (msg) => set((prev) => ({
@@ -44,10 +48,15 @@ export const useAivoStore = create<AivoStore>()(
       setTargetAnchor: (targetAnchor) => set({ targetAnchor }),
       setIsOpen: (isOpen) => set({ isOpen }),
       setIsSending: (isSending) => set({ isSending }),
+      setActiveContext: (activeContext) => set({ activeContext }),
     }),
     {
       name: 'aivo-storage',
       storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        messages: state.messages,
+        isOpen: state.isOpen,
+      }),
     }
   )
 );

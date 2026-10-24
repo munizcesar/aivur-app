@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { TRILHAS_MOCK, type TrilhaQuestao, type Trilha } from "@/mocks/trilhasMock";
 import { useStudyStore } from "@/store/useStudyStore";
+import { useAivoStore } from "@/store/useAivoStore";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { type ReactNode } from "react";
@@ -566,6 +567,58 @@ export default function TrilhaSalaV2() {
   const [openSection, setOpenSection] = useState<SectionId | null>(null);
   const [forceGallery, setForceGallery] = useState(false);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
+
+  // Sincroniza a trilha e seção ativa com o AIVU Professor Particular
+  useEffect(() => {
+    if (!trilha) {
+      useAivoStore.getState().setActiveContext(null);
+      return;
+    }
+
+    let atividade: "navegando" | "resolvendo_questao" | "revisando_flashcard" | "lendo_teoria" = "navegando";
+    let trechoFoco: string | undefined = undefined;
+
+    if (openSection === "questoes") {
+      atividade = "resolvendo_questao";
+      if (activeQuestoes.length > 0) {
+        const q = activeQuestoes[0];
+        const opts = (q.opcoes || []).map((opt, i) => `(${String.fromCharCode(65 + i)}) ${opt}`).join("\n");
+        trechoFoco = `Questão da Trilha:\n${q.enunciado}\n\nAlternativas:\n${opts}`.slice(0, 1500);
+      }
+    } else if (openSection === "flashcards") {
+      atividade = "revisando_flashcard";
+      if (activeFlashcards.length > 0) {
+        const fc = activeFlashcards[0];
+        trechoFoco = `Flashcard de Estudo:\nFrente: ${fc.frente}\nVerso: ${fc.verso}`.slice(0, 1500);
+      }
+    } else if (openSection === "resumo") {
+      atividade = "lendo_teoria";
+      trechoFoco = (activeResumoMarkdown || activeResumoText || "").slice(0, 1500);
+    } else {
+      const disc = (trilha as any).disciplina || (trilha as any).materia || "Geral";
+      trechoFoco = `Trilha: ${trilha.titulo}. Matéria: ${disc}.`.slice(0, 1500);
+    }
+
+    const disciplinaNome = (trilha as any).disciplina || (trilha as any).materia || undefined;
+
+    useAivoStore.getState().setActiveContext({
+      pathname: `/trilhas/${trilha.id}`,
+      modulo: "trilhas",
+      atividade,
+      disciplina: disciplinaNome,
+      topico: trilha.titulo,
+      titulo: trilha.titulo,
+      trecho_foco: trechoFoco || undefined,
+      metadados: {
+        trilhaId: trilha.id,
+        secaoAtiva: openSection || "geral",
+      },
+    });
+
+    return () => {
+      useAivoStore.getState().setActiveContext(null);
+    };
+  }, [trilha, openSection, activeQuestoes, activeFlashcards, activeResumoMarkdown, activeResumoText]);
 
   const formatViews = (views: number) => {
     if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M visualizações`;

@@ -9,6 +9,7 @@ import {
   AlertCircle,
   FolderCheck,
   Compass,
+  RefreshCw,
 } from "lucide-react";
 import type { JornadaEmentaType } from "@/lib/validations/jornada";
 import EmentaReviewModal from "./EmentaReviewModal";
@@ -41,13 +42,25 @@ export default function CriarJornadaView() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const handleProcessEdital = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [partialResumption, setPartialResumption] = useState<{
+    bloco_inicio: number;
+    total_blocos?: number;
+    edital_hash: string;
+    conteudo_parcial: JornadaEmentaType;
+    originalText: string;
+    disciplinasCount: number;
+  } | null>(null);
+
+  const handleProcessEdital = async (
+    e?: React.FormEvent,
+    forceResumption?: boolean
+  ) => {
+    if (e) e.preventDefault();
     if (!title.trim()) {
       setError("Preencha o título do concurso.");
       return;
     }
-    if (!text.trim() && !file) {
+    if (!text.trim() && !file && !partialResumption) {
       setError("Cole o texto do conteúdo programático ou envie o arquivo PDF do edital.");
       return;
     }
@@ -58,7 +71,7 @@ export default function CriarJornadaView() {
     try {
       let rawText = text.trim();
 
-      if (file) {
+      if (file && (!partialResumption || !forceResumption)) {
         if (file.type !== "application/pdf") {
           throw new Error("Apenas arquivos PDF são aceitos.");
         }
@@ -78,33 +91,48 @@ export default function CriarJornadaView() {
         rawText = fullText.trim();
       }
 
-      if (rawText.length < 50) {
+      const textForAi = rawText.length > 15000 ? rawText.slice(0, 15000) : rawText;
+
+      const isResuming = Boolean(
+        forceResumption ||
+        (partialResumption && partialResumption.originalText === textForAi)
+      );
+
+      const effectiveText =
+        isResuming && partialResumption ? partialResumption.originalText : textForAi;
+
+      if (effectiveText.length < 50) {
         throw new Error(
           "Conteúdo insuficiente do edital. O texto deve ter pelo menos 50 caracteres de matérias e tópicos."
         );
       }
 
       // Calcula os hashes criptográficos para rastreabilidade e idempotência
-      const calculatedDocHash = await sha256Hex(rawText);
-      const normalizedForHash = rawText.toLowerCase().replace(/\s+/g, " ").trim();
+      const calculatedDocHash = await sha256Hex(effectiveText);
+      const normalizedForHash = effectiveText.toLowerCase().replace(/\s+/g, " ").trim();
       const calculatedEmentaHash = await sha256Hex(normalizedForHash);
 
       setDocHash(calculatedDocHash);
       setEmentaHash(calculatedEmentaHash);
 
-      // Limita defensivamente a 12.000 caracteres para a chamada da IA
-      const textForAi = rawText.length > 12000 ? rawText.slice(0, 12000) : rawText;
+      const requestPayload: any = {
+        title: title.trim(),
+        text: effectiveText,
+        banca: banca.trim() || undefined,
+        cargo: cargo.trim() || undefined,
+        ano: Number(ano) || undefined,
+      };
+
+      if (isResuming && partialResumption) {
+        requestPayload.bloco_inicio = partialResumption.bloco_inicio;
+        requestPayload.edital_hash = partialResumption.edital_hash;
+        requestPayload.conteudo_parcial = partialResumption.conteudo_parcial;
+      }
 
       const res = await fetch("/api/ai/gerar-jornada", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          text: textForAi,
-          banca: banca.trim() || undefined,
-          cargo: cargo.trim() || undefined,
-          ano: Number(ano) || undefined,
-        }),
+        body: JSON.stringify(requestPayload),
       });
 
       if (!res.ok) {
@@ -112,10 +140,41 @@ export default function CriarJornadaView() {
           router.push("/login?redirect=/jornadas/novo");
           return;
         }
+
         const errJson = (await res.json().catch(() => ({}))) as any;
+
+        // Se o servidor retornou conteúdo parcial (status 422), preserva para retomada
+        if (
+          res.status === 422 &&
+          errJson.conteudo_parcial &&
+          Array.isArray(errJson.conteudo_parcial.disciplinas) &&
+          errJson.conteudo_parcial.disciplinas.length > 0 &&
+          (errJson.edital_hash || errJson.conteudo_parcial.edital_hash)
+        ) {
+          const nextBlock = errJson.etapa_falha?.bloco_indice || 2;
+          const hash = errJson.edital_hash || errJson.conteudo_parcial.edital_hash;
+
+          setPartialResumption({
+            bloco_inicio: nextBlock,
+            total_blocos: errJson.etapa_falha?.total_blocos,
+            edital_hash: hash,
+            conteudo_parcial: errJson.conteudo_parcial,
+            originalText: effectiveText,
+            disciplinasCount: errJson.conteudo_parcial.disciplinas.length,
+          });
+
+          setError(
+            errJson.error ||
+            `A estruturação foi interrompida na seção ${nextBlock}. Você pode tentar novamente para retomar de onde parou.`
+          );
+          return;
+        }
+
         throw new Error(errJson.error || "Falha ao analisar edital.");
       }
 
+      // Sucesso na extração total ou na retomada completa
+      setPartialResumption(null);
       const ementaData = (await res.json()) as JornadaEmentaType;
       setExtractedEmenta(ementaData);
     } catch (err: any) {
@@ -189,9 +248,52 @@ export default function CriarJornadaView() {
         </button>
       </div>
 
-      {error && (
+      {partialResumption && (
+        <div
+          data-testid="jornada-resumption-banner"
+          className="mb-6 p-5 rounded-2xl bg-amber-950/40 border border-amber-800 text-amber-200 text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle size={20} className="shrink-0 flex-none mt-0.5 text-amber-400" />
+            <div>
+              <p className="font-bold text-amber-100 m-0">
+                Estruturação parcial preservada ({partialResumption.disciplinasCount} matéria{partialResumption.disciplinasCount > 1 ? "s" : ""} salva{partialResumption.disciplinasCount > 1 ? "s" : ""})
+              </p>
+              <p className="text-xs text-amber-300/80 mt-1 m-0">
+                {error ||
+                  `O processamento foi interrompido na seção ${partialResumption.bloco_inicio}. Você pode retomar de onde parou sem perder o progresso já analisado.`}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              data-testid="btn-retry-jornada"
+              disabled={isLoading}
+              onClick={() => handleProcessEdital(undefined, true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={`shrink-0 flex-none ${isLoading ? "animate-spin" : ""}`} />
+              <span>Tentar novamente</span>
+            </button>
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={() => {
+                setPartialResumption(null);
+                setError(null);
+              }}
+              className="px-3 py-2 rounded-xl border border-amber-800 hover:bg-amber-900/50 text-amber-300 text-xs font-semibold transition-colors"
+            >
+              Descartar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {error && !partialResumption && (
         <div className="mb-6 p-4 rounded-xl bg-red-950/40 border border-red-800 text-red-200 text-sm flex items-start gap-3">
-          <AlertCircle size={18} className="shrink-0 mt-0.5 text-red-400" />
+          <AlertCircle size={18} className="shrink-0 flex-none mt-0.5 text-red-400" />
           <span>{error}</span>
         </div>
       )}
@@ -211,7 +313,10 @@ export default function CriarJornadaView() {
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (partialResumption) setPartialResumption(null);
+                }}
                 placeholder="Ex: TJ-SP — Escrevente Técnico Judiciário"
                 required
                 className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-heading)] text-sm focus:outline-none focus:border-[var(--color-primary)]"
@@ -225,7 +330,10 @@ export default function CriarJornadaView() {
               <input
                 type="text"
                 value={banca}
-                onChange={(e) => setBanca(e.target.value)}
+                onChange={(e) => {
+                  setBanca(e.target.value);
+                  if (partialResumption) setPartialResumption(null);
+                }}
                 placeholder="Ex: VUNESP, Cebraspe, FGV"
                 className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-heading)] text-sm focus:outline-none focus:border-[var(--color-primary)]"
               />
@@ -239,7 +347,10 @@ export default function CriarJornadaView() {
                 <input
                   type="text"
                   value={cargo}
-                  onChange={(e) => setCargo(e.target.value)}
+                  onChange={(e) => {
+                    setCargo(e.target.value);
+                    if (partialResumption) setPartialResumption(null);
+                  }}
                   placeholder="Ex: Escrevente"
                   className="w-full px-3 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-heading)] text-sm focus:outline-none focus:border-[var(--color-primary)]"
                 />
@@ -251,7 +362,10 @@ export default function CriarJornadaView() {
                 <input
                   type="number"
                   value={ano}
-                  onChange={(e) => setAno(Number(e.target.value))}
+                  onChange={(e) => {
+                    setAno(Number(e.target.value));
+                    if (partialResumption) setPartialResumption(null);
+                  }}
                   min={2020}
                   max={2035}
                   className="w-full px-3 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-heading)] text-sm focus:outline-none focus:border-[var(--color-primary)]"
@@ -296,7 +410,10 @@ export default function CriarJornadaView() {
             <div>
               <textarea
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  if (partialResumption) setPartialResumption(null);
+                }}
                 rows={9}
                 placeholder="Cole aqui o trecho do edital contendo as disciplinas e tópicos (ex: Língua Portuguesa, Direito Constitucional...)"
                 className="w-full p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-heading)] text-sm focus:outline-none focus:border-[var(--color-primary)] leading-relaxed font-mono text-xs"
@@ -313,7 +430,10 @@ export default function CriarJornadaView() {
                 <input
                   type="file"
                   accept="application/pdf"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    setFile(e.target.files?.[0] || null);
+                    if (partialResumption) setPartialResumption(null);
+                  }}
                   className="hidden"
                 />
               </label>
@@ -332,10 +452,19 @@ export default function CriarJornadaView() {
           className="w-full py-3.5 px-6 rounded-xl bg-[var(--color-primary)] hover:bg-[#6B0000] text-white text-base font-bold shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {isLoading ? (
-            <span>Analisando e Estruturando o Edital com IA...</span>
+            <span>
+              {partialResumption
+                ? "Retomando estruturação do edital..."
+                : "Analisando e Estruturando o Edital com IA..."}
+            </span>
+          ) : partialResumption ? (
+            <>
+              <RefreshCw size={18} className="shrink-0 flex-none" />
+              <span>Retomar da Seção {partialResumption.bloco_inicio} (Tentar novamente)</span>
+            </>
           ) : (
             <>
-              <Sparkles size={18} />
+              <Sparkles size={18} className="shrink-0 flex-none" />
               <span>Estruturar Ementa do Edital</span>
             </>
           )}

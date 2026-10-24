@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { useAivoStore } from "@/store/useAivoStore";
 import { useQuizStore } from "@/store/useQuizStore";
 import { Aivo } from "./AivoMascot";
@@ -10,7 +11,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import styles from "./AivoWidget.module.css";
 
 export default function AivoWidget() {
-  const { state, messages, isOpen, targetAnchor, isSending, setIsOpen, addMessage, setState, setIsSending } = useAivoStore();
+  const pathname = usePathname();
+  const { state, messages, isOpen, targetAnchor, isSending, activeContext, setIsOpen, addMessage, setState, setIsSending } = useAivoStore();
   const isDrawerOpen = useQuizStore(s => s.isDrawerOpen);
   const quizModeActive = useQuizStore(s => s.step === 3 && s.mode !== 'redacao' && s.mode !== 'aivos360'); 
 
@@ -89,6 +91,25 @@ export default function AivoWidget() {
         content: m.text,
       }));
 
+    // Determina o contexto da página: prioriza activeContext explícito ou infere da rota atual
+    let effectiveContext = activeContext;
+    if (!effectiveContext && pathname) {
+      let derivedModulo: "home" | "jornadas" | "trilhas" | "questoes" | "material" | "redacao" | "auth" | "geral" = "geral";
+      if (pathname === "/" || pathname === "/dashboard") derivedModulo = "home";
+      else if (pathname.includes("jornada")) derivedModulo = "jornadas";
+      else if (pathname.includes("trilha")) derivedModulo = "trilhas";
+      else if (pathname.includes("questao") || pathname.includes("questoes")) derivedModulo = "questoes";
+      else if (pathname.includes("material")) derivedModulo = "material";
+      else if (pathname.includes("redacao")) derivedModulo = "redacao";
+      else if (pathname.includes("login") || pathname.includes("register")) derivedModulo = "auth";
+
+      effectiveContext = {
+        pathname: pathname.slice(0, 200),
+        modulo: derivedModulo,
+        atividade: "navegando",
+      };
+    }
+
     try {
       const response = await fetch("/api/ai/aivu/chat", {
         method: "POST",
@@ -96,6 +117,7 @@ export default function AivoWidget() {
         body: JSON.stringify({
           message: text,
           history: historyPayload,
+          context: effectiveContext || undefined,
         }),
       });
 

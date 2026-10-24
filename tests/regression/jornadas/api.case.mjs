@@ -695,4 +695,614 @@ export const cases = [
       delete globalThis.__REG_COOKIES;
     },
   },
+  {
+    id: "REG-JORNADA-010",
+    title: "Segmentação e processamento de edital extenso com múltiplas disciplinas em blocos seguros",
+    needs: "api",
+    async run() {
+      try {
+        const { POST } = await import("@/app/api/ai/gerar-jornada/route.ts");
+        const validCookie = await createAuthCookie();
+        globalThis.__REG_COOKIES = { aivur_session: validCookie };
+
+        // Edital extenso (> 2800 caracteres) com 4 disciplinas distintas
+        const disc1 = "LÍNGUA PORTUGUESA:\n1. Compreensão e interpretação de textos.\n2. Tipologia textual.\n3. Ortografia oficial.\n" + "A".repeat(800) + "\n";
+        const disc2 = "DIREITO CONSTITUCIONAL:\n1. Direitos e deveres individuais.\n2. Organização do Estado.\n" + "B".repeat(800) + "\n";
+        const disc3 = "DIREITO ADMINISTRATIVO:\n1. Atos administrativos.\n2. Poderes da administração.\n" + "C".repeat(800) + "\n";
+        const disc4 = "RACIOCÍNIO LÓGICO:\n1. Estruturas lógicas.\n2. Lógica de argumentação.\n" + "D".repeat(800) + "\n";
+        const extensiveText = disc1 + disc2 + disc3 + disc4;
+
+        assert.ok(extensiveText.length > 2800, "Texto deve exceder o limite de bloco único");
+
+        let callCount = 0;
+        const net = installFetch(() => {
+          callCount++;
+          if (callCount === 1) {
+            return ok({
+              disciplinas: [
+                { nome: "Língua Portuguesa", topicos: [{ titulo: "Interpretação de textos" }, { titulo: "Ortografia oficial" }] },
+                { nome: "Direito Constitucional", topicos: [{ titulo: "Direitos e deveres individuais" }] },
+              ],
+            });
+          }
+          return ok({
+            disciplinas: [
+              { nome: "Direito Administrativo", topicos: [{ titulo: "Atos administrativos" }] },
+              { nome: "Raciocínio Lógico", topicos: [{ titulo: "Estruturas lógicas" }] },
+            ],
+          });
+        });
+
+        try {
+          const req = new Request("http://localhost/api/ai/gerar-jornada", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: "Concurso Unificado 2026",
+              text: extensiveText,
+              banca: "Cebraspe",
+              ano: 2026,
+            }),
+          });
+          const res = await POST(req);
+          assert.equal(res.status, 200, "Edital extenso particionado deve responder 200 com sucesso");
+          const body = await res.json();
+          assert.ok(callCount >= 2, "Deve particionar e realizar chamadas controladas por bloco");
+          assert.equal(body.disciplinas.length, 4, "Deve consolidar todas as 4 disciplinas");
+          assert.equal(body.titulo_concurso, "Concurso Unificado 2026");
+          const validation = JornadaEmentaSchema.safeParse(body);
+          assert.equal(validation.success, true, "Resultado consolidado deve cumprir o schema Zod");
+        } finally {
+          net.restore();
+        }
+      } finally {
+        delete globalThis.__REG_COOKIES;
+      }
+    },
+  },
+  {
+    id: "REG-JORNADA-011",
+    title: "Tratamento defensivo de truncamento por limite de tokens e JSON incompleto com relatório de etapa",
+    needs: "api",
+    async run() {
+      try {
+        const { POST } = await import("@/app/api/ai/gerar-jornada/route.ts");
+        const validCookie = await createAuthCookie();
+        globalThis.__REG_COOKIES = { aivur_session: validCookie };
+
+        // 1. Truncamento com finish_reason === 'length'
+        const netLength = installFetch(() => {
+          return new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  message: { content: '{"disciplinas": [{"nome": "Direito' },
+                  finish_reason: "length",
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        });
+
+        try {
+          const req = new Request("http://localhost/api/ai/gerar-jornada", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: "Polícia Civil",
+              text: "LÍNGUA PORTUGUESA:\n1. Tópico A.\n" + "Z".repeat(3000) + "\nDIREITO:\n1. Tópico B.",
+            }),
+          });
+          const res = await POST(req);
+          assert.equal(res.status, 422, "Deve retornar status 422 em truncamento por limite de tokens");
+          const body = await res.json();
+          assert.ok(body.error.includes("truncada"), "Mensagem de erro deve detalhar truncamento");
+          assert.equal(body.etapa_falha.motivo, "LIMITE_TOKENS");
+          assert.ok(body.etapa_falha.bloco_indice >= 1);
+        } finally {
+          netLength.restore();
+        }
+
+        // 2. Retorno com formato inválido/incompleto irrecuperável
+        const netInvalid = installFetch(() => ok({ texto_livre_sem_disciplinas: true }));
+        try {
+          const req = new Request("http://localhost/api/ai/gerar-jornada", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: "Polícia Civil",
+              text: "Conteúdo com mais de 50 caracteres para validação de formato inválido.",
+            }),
+          });
+          const res = await POST(req);
+          assert.equal(res.status, 422, "Formato sem disciplinas deve falhar com 422");
+          const body = await res.json();
+          assert.equal(body.etapa_falha.motivo, "FORMATO_INVALIDO");
+        } finally {
+          netInvalid.restore();
+        }
+      } finally {
+        delete globalThis.__REG_COOKIES;
+      }
+    },
+  },
+  {
+    id: "REG-JORNADA-012",
+    title: "Preservação de conteúdo parcial em falha de bloco posterior e retomada sem duplicação",
+    needs: "api",
+    async run() {
+      try {
+        const { POST } = await import("@/app/api/ai/gerar-jornada/route.ts");
+        const validCookie = await createAuthCookie();
+        globalThis.__REG_COOKIES = { aivur_session: validCookie };
+
+        const block1Text = "LÍNGUA PORTUGUESA:\n1. Ortografia.\n" + "A".repeat(1600) + "\n";
+        const block2Text = "DIREITO CONSTITUCIONAL:\n1. Direitos fundamentais.\n" + "B".repeat(1600);
+        const fullText = block1Text + block2Text;
+
+        // Fase 1: Bloco 1 sucede, Bloco 2 falha
+        let callCount = 0;
+        const netFailSecond = installFetch(() => {
+          callCount++;
+          if (callCount === 1) {
+            return ok({
+              disciplinas: [
+                { nome: "Língua Portuguesa", topicos: [{ titulo: "Ortografia oficial" }] },
+              ],
+            });
+          }
+          // Bloco 2 falha por limite
+          return new Response(
+            JSON.stringify({
+              choices: [{ message: { content: "{}" }, finish_reason: "length" }],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        });
+
+        let savedPartial = null;
+        try {
+          const req = new Request("http://localhost/api/ai/gerar-jornada", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: "TRF 2026",
+              text: fullText,
+            }),
+          });
+          const res = await POST(req);
+          assert.equal(res.status, 422);
+          const body = await res.json();
+          assert.equal(body.etapa_falha.bloco_indice, 2, "Deve identificar exatamente o bloco 2 como causador");
+          assert.ok(body.conteudo_parcial, "Deve preservar conteúdo parcial validado");
+          assert.equal(body.conteudo_parcial.disciplinas.length, 1);
+          assert.equal(body.conteudo_parcial.disciplinas[0].nome, "Língua Portuguesa");
+          savedPartial = body.conteudo_parcial;
+        } finally {
+          netFailSecond.restore();
+        }
+
+        // Fase 2: Retomada a partir do bloco 2 com conteudo_parcial prévio
+        const netResume = installFetch(() => {
+          return ok({
+            disciplinas: [
+              { nome: "Direito Constitucional", topicos: [{ titulo: "Direitos fundamentais" }] },
+            ],
+          });
+        });
+
+        try {
+          const reqResume = new Request("http://localhost/api/ai/gerar-jornada", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: "TRF 2026",
+              text: fullText,
+              bloco_inicio: 2,
+              conteudo_parcial: savedPartial,
+            }),
+          });
+          const resResume = await POST(reqResume);
+          assert.equal(resResume.status, 200, "Retomada deve responder 200");
+          const bodyResume = await resResume.json();
+          assert.equal(bodyResume.disciplinas.length, 2, "Deve combinar bloco salvo + bloco retomado");
+          assert.equal(bodyResume.disciplinas[0].nome, "Língua Portuguesa");
+          assert.equal(bodyResume.disciplinas[1].nome, "Direito Constitucional");
+        } finally {
+          netResume.restore();
+        }
+      } finally {
+        delete globalThis.__REG_COOKIES;
+      }
+    },
+  },
+  {
+    id: "REG-JORNADA-013",
+    title: "Consolidação determinística de ementas: deduplicação de disciplinas, tópicos repetidos e ordenação estável",
+    needs: "api",
+    async run() {
+      const { consolidateDisciplinas, consolidateEmenta, splitEditalIntoBlocks } = await import("@/lib/jornada-chunking.ts");
+
+      // 1. Testa segmentação
+      const small = "LÍNGUA PORTUGUESA:\n1. Interpretação.";
+      assert.equal(splitEditalIntoBlocks(small).length, 1, "Edital curto deve gerar exatamente 1 bloco");
+
+      // 2. Consolidação com variações de caixa, prefixos de numeração e duplicatas
+      const blocks = [
+        {
+          disciplinas: [
+            {
+              nome: "DIREITO CONSTITUCIONAL",
+              topicos: [
+                { titulo: "1.1 - Direitos e Garantias Fundamentais", edital_item_ref: "Item 1.1" },
+                { titulo: "Organização do Estado" },
+              ],
+            },
+          ],
+        },
+        {
+          disciplinas: [
+            {
+              nome: "disciplina: Direito Constitucional",
+              topicos: [
+                { titulo: "Direitos e Garantias Fundamentais" }, // duplicata com formatação diferente
+                { titulo: "Poder Judiciário" },
+              ],
+            },
+            {
+              nome: "Língua Portuguesa",
+              topicos: [
+                { titulo: "a) Ortografia oficial" },
+                { titulo: "b) Pontuação" },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const merged = consolidateDisciplinas(blocks);
+      assert.equal(merged.length, 2, "Deve consolidar em 2 disciplinas sem duplicação de nome");
+      assert.equal(merged[0].nome, "DIREITO CONSTITUCIONAL");
+      assert.equal(merged[0].topicos.length, 3, "Tópico repetido não deve ser duplicado");
+      assert.equal(merged[0].topicos[0].titulo, "1.1 - Direitos e Garantias Fundamentais");
+      assert.equal(merged[0].topicos[1].titulo, "Organização do Estado");
+      assert.equal(merged[0].topicos[2].titulo, "Poder Judiciário");
+
+      // 3. Testa limites defensivos (capping em 30 tópicos e 15 disciplinas)
+      const massiveBlocks = [
+        {
+          disciplinas: [
+            {
+              nome: "Super Matéria",
+              topicos: Array.from({ length: 45 }, (_, i) => ({ titulo: `Tópico ${i + 1}` })),
+            },
+          ],
+        },
+      ];
+      const capped = consolidateDisciplinas(massiveBlocks);
+      assert.equal(capped[0].topicos.length, 30, "Deve limitar em 30 tópicos por disciplina");
+
+      // 4. Validação final via consolidateEmenta
+      const ementa = consolidateEmenta(blocks, { title: "Concurso TJ" });
+      const parseResult = JornadaEmentaSchema.safeParse(ementa);
+      assert.equal(parseResult.success, true, "Ementa consolidada deve passar 100% no schema Zod");
+    },
+  },
+  {
+    id: "REG-JORNADA-014",
+    title: "Blindagem da retomada parcial: validação de hash do edital, rejeição de edital divergente ou hash ausente e preservação de conteúdo parcial",
+    needs: "api",
+    async run() {
+      try {
+        const { POST } = await import("@/app/api/ai/gerar-jornada/route.ts");
+        const { computeEditalHash } = await import("@/lib/jornada-chunking.ts");
+        const validCookie = await createAuthCookie();
+        globalThis.__REG_COOKIES = { aivur_session: validCookie };
+
+        const editalOriginalText =
+          "LÍNGUA PORTUGUESA:\n1. Ortografia oficial.\n" +
+          "A".repeat(1600) +
+          "\nDIREITO CONSTITUCIONAL:\n1. Direitos e garantias fundamentais.\n" +
+          "B".repeat(1600);
+
+        const editalDivergenteText =
+          "RACIOCÍNIO LÓGICO:\n1. Equivalências lógicas e proposições.\n" +
+          "C".repeat(1600) +
+          "\nDIREITO PENAL:\n1. Crimes contra a administração pública.\n" +
+          "D".repeat(1600);
+
+        const hashOriginal = await computeEditalHash(editalOriginalText);
+
+        const savedPartialContent = {
+          titulo_concurso: "TRF 2026",
+          ano: 2026,
+          edital_hash: hashOriginal,
+          disciplinas: [
+            {
+              nome: "Língua Portuguesa",
+              topicos: [{ titulo: "Ortografia oficial" }],
+            },
+          ],
+        };
+
+        // 1. Retomada VÁLIDA com o mesmo edital e hash correspondente -> 200 OK
+        const netValidResume = installFetch(() => {
+          return ok({
+            disciplinas: [
+              {
+                nome: "Direito Constitucional",
+                topicos: [{ titulo: "Direitos e garantias fundamentais" }],
+              },
+            ],
+          });
+        });
+
+        try {
+          const reqValid = new Request("http://localhost/api/ai/gerar-jornada", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: "TRF 2026",
+              text: editalOriginalText,
+              bloco_inicio: 2,
+              conteudo_parcial: savedPartialContent,
+            }),
+          });
+          const resValid = await POST(reqValid);
+          assert.equal(resValid.status, 200, "Retomada com o mesmo edital deve retornar 200");
+          const bodyValid = await resValid.json();
+          assert.equal(bodyValid.disciplinas.length, 2);
+          assert.equal(bodyValid.disciplinas[0].nome, "Língua Portuguesa");
+          assert.equal(bodyValid.disciplinas[1].nome, "Direito Constitucional");
+          assert.equal(bodyValid.edital_hash, hashOriginal);
+        } finally {
+          netValidResume.restore();
+        }
+
+        // 2. Retomada com TEXTO DE EDITAL DIFERENTE -> 400 EDITAL_DIVERGENTE com preservação de conteúdo parcial
+        const reqDivergent = new Request("http://localhost/api/ai/gerar-jornada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "TRF 2026",
+            text: editalDivergenteText,
+            bloco_inicio: 2,
+            conteudo_parcial: savedPartialContent,
+          }),
+        });
+        const resDivergent = await POST(reqDivergent);
+        assert.equal(resDivergent.status, 400, "Retomada com edital divergente deve retornar 400");
+        const bodyDivergent = await resDivergent.json();
+        assert.equal(bodyDivergent.motivo, "EDITAL_DIVERGENTE");
+        assert.ok(bodyDivergent.error.includes("difere"));
+        assert.equal(bodyDivergent.edital_hash_esperado, hashOriginal);
+        // Preservação do conteúdo parcial
+        assert.ok(bodyDivergent.conteudo_parcial, "Deve preservar o conteúdo parcial na resposta de rejeição");
+        assert.equal(bodyDivergent.conteudo_parcial.disciplinas.length, 1);
+        assert.equal(bodyDivergent.conteudo_parcial.disciplinas[0].nome, "Língua Portuguesa");
+
+        // 3. Retomada com HASH AUSENTE -> 400 HASH_AUSENTE com preservação de conteúdo parcial
+        const partialWithoutHash = {
+          titulo_concurso: "TRF 2026",
+          ano: 2026,
+          disciplinas: [
+            {
+              nome: "Língua Portuguesa",
+              topicos: [{ titulo: "Ortografia oficial" }],
+            },
+          ],
+        };
+        const reqNoHash = new Request("http://localhost/api/ai/gerar-jornada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "TRF 2026",
+            text: editalOriginalText,
+            bloco_inicio: 2,
+            conteudo_parcial: partialWithoutHash,
+          }),
+        });
+        const resNoHash = await POST(reqNoHash);
+        assert.equal(resNoHash.status, 400, "Retomada sem hash deve retornar 400");
+        const bodyNoHash = await resNoHash.json();
+        assert.equal(bodyNoHash.motivo, "HASH_AUSENTE");
+        assert.ok(bodyNoHash.error.includes("Identificação do edital ausente"));
+        // Preservação do conteúdo parcial
+        assert.ok(bodyNoHash.conteudo_parcial, "Deve preservar o conteúdo parcial recebido");
+        assert.equal(bodyNoHash.conteudo_parcial.disciplinas[0].nome, "Língua Portuguesa");
+
+        // 4. Retomada com HASH INVÁLIDO (fora do padrão 64 hexadecimais) -> 400 de validação
+        const reqInvalidHash = new Request("http://localhost/api/ai/gerar-jornada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "TRF 2026",
+            text: editalOriginalText,
+            bloco_inicio: 2,
+            edital_hash: "hash-invalido-curto",
+            conteudo_parcial: savedPartialContent,
+          }),
+        });
+        const resInvalidHash = await POST(reqInvalidHash);
+        assert.equal(resInvalidHash.status, 400, "Hash malformado deve retornar 400 de validação");
+        const bodyInvalidHash = await resInvalidHash.json();
+        assert.ok(bodyInvalidHash.error, "Deve retornar mensagem de validação de campo inválido");
+
+        // 5. Retomada com CONFLITO entre edital_hash externo e conteudo_parcial.edital_hash -> 400 CONFLITO_HASH com preservação de conteúdo parcial
+        globalThis.__REG_COOKIES = { aivur_session: await createAuthCookie() };
+        const conflictingHash = "f".repeat(64);
+        const reqConflict = new Request("http://localhost/api/ai/gerar-jornada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "TRF 2026",
+            text: editalOriginalText,
+            bloco_inicio: 2,
+            edital_hash: conflictingHash,
+            conteudo_parcial: savedPartialContent, // contém hashOriginal
+          }),
+        });
+        const resConflict = await POST(reqConflict);
+        assert.equal(resConflict.status, 400, "Conflito de hashes deve retornar 400");
+        const bodyConflict = await resConflict.json();
+        assert.equal(bodyConflict.motivo, "CONFLITO_HASH");
+        assert.ok(bodyConflict.error.includes("Conflito"));
+        assert.equal(bodyConflict.edital_hash_externo, conflictingHash);
+        assert.equal(bodyConflict.edital_hash_conteudo_parcial, hashOriginal);
+        // Preservação do conteúdo parcial
+        assert.ok(bodyConflict.conteudo_parcial, "Deve preservar conteúdo parcial em caso de conflito de hash");
+        assert.equal(bodyConflict.conteudo_parcial.disciplinas.length, 1);
+
+        // 6. Retomada com hash não-hexadecimal dentro de conteudo_parcial (64 chars contendo 'Z') -> 400 validação Zod
+        globalThis.__REG_COOKIES = { aivur_session: await createAuthCookie() };
+        const nonHexHash = "Z".repeat(64);
+        const reqNonHex = new Request("http://localhost/api/ai/gerar-jornada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "TRF 2026",
+            text: editalOriginalText,
+            bloco_inicio: 2,
+            conteudo_parcial: {
+              ...savedPartialContent,
+              edital_hash: nonHexHash,
+            },
+          }),
+        });
+        const resNonHex = await POST(reqNonHex);
+        assert.equal(resNonHex.status, 400, "Hash não-hexadecimal dentro de conteudo_parcial deve ser rejeitado pelo Zod com 400");
+        const bodyNonHex = await resNonHex.json();
+        assert.ok(bodyNonHex.error, "Deve indicar erro de validação Zod");
+      } finally {
+        delete globalThis.__REG_COOKIES;
+      }
+    },
+  },
+  {
+    id: "REG-JORNADA-015",
+    title: "Contrato do frontend na retomada: preservação de edital_hash, bloco_inicio e conteudo_parcial em resposta 422",
+    needs: "api",
+    async run() {
+      const { POST } = await import("@/app/api/ai/gerar-jornada/route.ts");
+
+      // 1. Edital com 2 blocos seguros
+      const editalText =
+        "LÍNGUA PORTUGUESA:\n1. Compreensão e interpretação de textos.\n" +
+        "A".repeat(1600) +
+        "\nDIREITO CONSTITUCIONAL:\n1. Direitos e garantias fundamentais.\n" +
+        "B".repeat(1600);
+
+      // Simula 1ª tentativa: bloco 1 conclui com sucesso, mas bloco 2 falha por limite de tokens (HTTP 422)
+      let callCount = 0;
+      const netMockFirstAttempt = installFetch(() => {
+        callCount++;
+        if (callCount === 1) {
+          return ok({
+            disciplinas: [
+              {
+                nome: "Língua Portuguesa",
+                topicos: [{ titulo: "Compreensão de textos" }],
+              },
+            ],
+          });
+        }
+        // Bloco 2 falha por limite de tokens (finish_reason: length)
+        return new Response(
+          JSON.stringify({
+            choices: [{ message: { content: "{}" }, finish_reason: "length" }],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      });
+
+      let errJson422;
+      try {
+        globalThis.__REG_COOKIES = { aivur_session: await createAuthCookie() };
+        const reqInitial = new Request("http://localhost/api/ai/gerar-jornada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "Auditor 2026",
+            text: editalText,
+          }),
+        });
+
+        const resInitial = await POST(reqInitial);
+        assert.equal(resInitial.status, 422, "Falha parcial no bloco 2 deve retornar 422");
+        errJson422 = await resInitial.json();
+        assert.ok(errJson422.conteudo_parcial, "Deve conter conteudo_parcial");
+        assert.ok(errJson422.edital_hash, "Deve conter edital_hash");
+        assert.equal(errJson422.etapa_falha.bloco_indice, 2);
+        assert.equal(errJson422.etapa_falha.motivo, "LIMITE_TOKENS");
+        assert.equal(errJson422.conteudo_parcial.disciplinas.length, 1);
+        assert.equal(errJson422.conteudo_parcial.disciplinas[0].nome, "Língua Portuguesa");
+      } finally {
+        netMockFirstAttempt.restore();
+        delete globalThis.__REG_COOKIES;
+      }
+
+      // 2. Simula o frontend no clique de "Tentar novamente":
+      // Preserva edital_hash, bloco_inicio = 2, conteudo_parcial e o texto original
+      const resumePayload = {
+        title: "Auditor 2026",
+        text: editalText,
+        bloco_inicio: errJson422.etapa_falha.bloco_indice,
+        edital_hash: errJson422.edital_hash,
+        conteudo_parcial: errJson422.conteudo_parcial,
+      };
+
+      const netMockResume = installFetch(() => {
+        return ok({
+          disciplinas: [
+            {
+              nome: "Direito Constitucional",
+              topicos: [{ titulo: "Direitos e garantias fundamentais" }],
+            },
+          ],
+        });
+      });
+
+      try {
+        globalThis.__REG_COOKIES = { aivur_session: await createAuthCookie() };
+        const reqResume = new Request("http://localhost/api/ai/gerar-jornada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(resumePayload),
+        });
+
+        const resResume = await POST(reqResume);
+        assert.equal(resResume.status, 200, "Retomada com os parâmetros do frontend deve retornar 200");
+        const bodyResume = await resResume.json();
+        assert.equal(bodyResume.disciplinas.length, 2, "Ementa consolidada deve conter ambas as disciplinas");
+        assert.equal(bodyResume.disciplinas[0].nome, "Língua Portuguesa");
+        assert.equal(bodyResume.disciplinas[1].nome, "Direito Constitucional");
+        assert.equal(bodyResume.edital_hash, errJson422.edital_hash, "Hash retornado deve ser o mesmo");
+      } finally {
+        netMockResume.restore();
+        delete globalThis.__REG_COOKIES;
+      }
+
+      // 3. Simula tentativa de "Tentar novamente" com texto alterado pelo usuário -> servidor deve rejeitar com EDITAL_DIVERGENTE
+      try {
+        globalThis.__REG_COOKIES = { aivur_session: await createAuthCookie() };
+        const reqTampered = new Request("http://localhost/api/ai/gerar-jornada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...resumePayload,
+            text: editalText + "\nMATÉRIA ADICIONADA:",
+          }),
+        });
+
+        const resTampered = await POST(reqTampered);
+        assert.equal(resTampered.status, 400, "Texto de edital modificado deve ser rejeitado na retomada");
+        const bodyTampered = await resTampered.json();
+        assert.equal(bodyTampered.motivo, "EDITAL_DIVERGENTE");
+        assert.ok(bodyTampered.conteudo_parcial, "Deve preservar o conteúdo parcial recebido");
+      } finally {
+        delete globalThis.__REG_COOKIES;
+      }
+    },
+  },
 ];

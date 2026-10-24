@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AivuPageContextSchema } from "@/lib/aivu-brain";
 
 export const AivuChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -16,6 +17,7 @@ export const AivuChatRequestSchema = z.object({
     .max(8, "O histórico não pode exceder 8 mensagens recentes.")
     .optional()
     .default([]),
+  context: AivuPageContextSchema.optional(),
 });
 
 export const AivuChatResponseSchema = z.object({

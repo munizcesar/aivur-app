@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useTransition } from "react";
+import { useState, useRef, useTransition, useEffect } from "react";
 import styles from "./Material.module.css";
 import Header from "@/components/Header/Header";
+import { useAivoStore } from "@/store/useAivoStore";
 import {
   UploadCloud,
   FileText,
@@ -78,6 +79,38 @@ export default function MaterialPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isGeneratingRef = useRef(false);
   const [, startTransition] = useTransition();
+
+  // Sincroniza o contexto do Meu Material com o AIVU (Regra Estrita de Ancoragem)
+  useEffect(() => {
+    if (verifiedMaterial) {
+      const activeTabLabel =
+        activeStudyTab === "resumo"
+          ? "Resumo Estruturado"
+          : activeStudyTab === "flashcards"
+          ? "Revisão com Flashcards"
+          : "Caderno de Questões";
+
+      useAivoStore.getState().setActiveContext({
+        pathname: "/material",
+        modulo: "material",
+        atividade: "estudando_material",
+        titulo: verifiedMaterial.titulo,
+        disciplina: "Meu Material",
+        trecho_foco: verifiedMaterial.conteudo.slice(0, 1500),
+        metadados: {
+          origem: verifiedMaterial.origem,
+          abaAtiva: activeTabLabel,
+          totalCaracteres: String(verifiedMaterial.caracteres),
+        },
+      });
+    } else {
+      useAivoStore.getState().setActiveContext(null);
+    }
+
+    return () => {
+      useAivoStore.getState().setActiveContext(null);
+    };
+  }, [verifiedMaterial, activeStudyTab]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();

@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { message, history } = parseResult.data;
+  const { message, history, context } = parseResult.data;
 
   // 4. Resolução de credenciais do provedor de IA
   const env = resolveEnv();
@@ -88,19 +88,13 @@ export async function POST(req: Request) {
     );
   }
 
-  // 5. Construção do contexto e histórico para a Groq
-  const systemPrompt = `Você é o AIVU, assistente virtual inteligente da plataforma de estudos para concursos públicos AIVUR.
-Suas diretrizes:
-- Responda em português brasileiro de forma amigável, clara, encorajadora e altamente objetiva.
-- Auxilie o aluno com dúvidas gerais de estudo, organização, motivação e conceitos de concursos.
-- Seja conciso: forneça respostas em 1 a 3 parágrafos curtos ou listas com marcadores diretos.
-- Não invente legislações ou números de artigos caso não tenha absoluta certeza.`;
-
-  const messages = [
-    { role: "system", content: systemPrompt },
-    ...history.map((h) => ({ role: h.role, content: h.content })),
-    { role: "user", content: message },
-  ];
+  // 5. Construção do contexto inteligente e histórico via montador pedagógico
+  const { assembleAivuPromptMessages } = await import("@/lib/aivu-brain");
+  const messages = assembleAivuPromptMessages({
+    message,
+    history,
+    context,
+  });
 
   // 6. Invocação da Groq com suporte nativo a failover
   try {

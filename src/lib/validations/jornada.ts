@@ -40,6 +40,11 @@ export const JornadaEmentaSchema = z.object({
   banca: z.string().trim().max(80).optional(),
   ano: z.number().int().min(2020).max(2035).optional(),
   cargo: z.string().trim().max(100).optional(),
+  edital_hash: z
+    .string()
+    .trim()
+    .regex(/^[0-9a-f]{64}$/i, "Hash SHA-256 do edital deve conter 64 caracteres hexadecimais")
+    .optional(),
   disciplinas: z
     .array(DisciplinaDraftSchema)
     .min(1, "O edital deve conter pelo menos 1 disciplina")
@@ -64,6 +69,13 @@ export const GerarJornadaRequestSchema = z.object({
   banca: z.string().trim().max(80).optional(),
   ano: z.number().int().min(2020).max(2035).optional(),
   cargo: z.string().trim().max(100).optional(),
+  bloco_inicio: z.number().int().min(1).optional(),
+  edital_hash: z
+    .string()
+    .trim()
+    .regex(/^[0-9a-f]{64}$/i, "Hash SHA-256 do edital deve conter 64 caracteres hexadecimais")
+    .optional(),
+  conteudo_parcial: z.lazy(() => JornadaEmentaSchema).optional(),
 });
 
 export type GerarJornadaRequestType = z.infer<typeof GerarJornadaRequestSchema>;

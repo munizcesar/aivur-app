@@ -51,3 +51,37 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
   - REG-JORNADA-007: Concorrência e convergência determinística ao iniciar tópicos: múltiplas requisições simultâneas convergem atomicamente para a mesma trilha estável (`trilha_${topicoId}`) sem criar registros órfãos ou duplicatas em `trilhas`.
   - REG-JORNADA-008: Conclusão explícita de tópico e cálculo do próximo passo: tópico só é concluído mediante evento explícito persistido (`POST /concluir`), atualizando o progresso geral e recomendando o próximo tópico em ordem linear.
   - REG-JORNADA-009: Início de tópico resiliente contra perda de associação e tópicos órfãos: elimina fallback permissivo e responde HTTP 404 sem `success: true` ou `trilha_id` fantasma quando o tópico/vínculo não é consolidado; preserva integralmente `trilha_id` pré-existente sem sobrescrita.
+
+## 2026-10-22 — Jornadas (Prevenção de Truncamento de Editais Extensos)
+
+- ADD REG-JORNADA-010 … 013:
+  - REG-JORNADA-010: Segmentação e processamento de edital extenso com múltiplas disciplinas em blocos seguros (`jornada-chunking.ts`).
+  - REG-JORNADA-011: Tratamento defensivo de truncamento por limite de tokens e JSON incompleto com relatório de etapa.
+  - REG-JORNADA-012: Preservação de conteúdo parcial em falha de bloco posterior e retomada sem duplicação.
+  - REG-JORNADA-013: Consolidação determinística de ementas: deduplicação de disciplinas, tópicos repetidos e ordenação estável.
+
+## 2026-10-22 — AIVU (Evolução do Cérebro Central / Professor Particular Inteligente)
+
+- ADD REG-AIVU-008 … 011:
+  - REG-AIVU-008: Isolamento de contexto e retrocompatibilidade com contexto ausente ou geral (`assembleAivuPromptMessages` sem injeção espúria quando `context` não é fornecido ou `modulo === 'geral'`).
+  - REG-AIVU-009: Contexto tipado por módulo e troca dinâmica de contexto pedagógico (Trilhas com protocolo de domínio jurídico, Questões com diretrizes pedagógicas para descarte de distratores).
+  - REG-AIVU-010: Regra restritiva de ancoragem no Meu Material (`modulo === 'material'` restringe respostas à fonte e instrui declaração expressa: "Informação não encontrada no material fornecido.").
+  - REG-AIVU-011: Privacidade e orçamento de tokens (limite Zod de 1.500 caracteres em `trecho_foco`, contenção de metadados e poda automática de histórico recente respeitando `HISTORY_RESERVE` de 1.100 tokens).
+
+## 2026-10-23 — AIVU (Fase 2: Contexto Real das Telas — Questões, Trilhas, Jornadas e Meu Material)
+
+- ADD REG-AIVU-012 … 014:
+  - REG-AIVU-012: Transição dinâmica de contexto entre telas de estudo (Questões -> Meu Material -> Reset), validação de isolamento estrito sem vazamento de resíduos de telas anteriores e verificação de prompt limpo no dashboard.
+  - REG-AIVU-013: Preservação do histórico pedagógico da conversa durante a navegação entre telas de estudo (conversas no `useAivoStore` continuam íntegras enquanto o contexto da página é atualizado dinamicamente).
+  - REG-AIVU-014: Alternância dinâmica de seções em Trilhas (teoria/resumo -> flashcards -> questões), verificação da atualização de atividade e descarte de diretrizes da seção anterior.
+
+## 2026-10-23 — Jornadas (Fase 7: Blindagem da Retomada Parcial de Edital)
+
+- ADD REG-JORNADA-014:
+  - Blindagem da retomada parcial via hash SHA-256 determinístico (`computeEditalHash`).
+  - Validação de vinculação estrita entre o texto do edital e o conteúdo parcial acumulado (`edital_hash`).
+  - Rejeição controlada com HTTP 400 (`motivo: EDITAL_DIVERGENTE`) em caso de tentativa de retomada com texto modificado.
+  - Rejeição controlada com HTTP 400 (`motivo: HASH_AUSENTE`) quando a identificação do edital de origem é omitida.
+  - Preservação integral do `conteudo_parcial` no corpo da resposta rejeitada, evitando descarte involuntário do progresso anterior.
+- ADD REG-JORNADA-015:
+  - Contrato do frontend na retomada parcial (`CriarJornadaView.tsx`): interceptação de HTTP 422 com conteúdo parcial estruturado, preservação de `edital_hash`, `bloco_inicio` e `conteudo_parcial`, e reenvio no clique de "Tentar novamente" com o texto de edital original, garantindo conclusão sem recomeço forçado e rejeição imediata em caso de edital adulterado.

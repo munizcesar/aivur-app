@@ -386,4 +386,436 @@ export const cases = [
       }
     },
   },
+  {
+    id: "REG-AIVU-008",
+    title: "Isolamento de contexto e retrocompatibilidade com contexto ausente ou geral",
+    needs: "api",
+    async run() {
+      // 1. Requisição legada sem o campo 'context' deve funcionar normalmente (retrocompatibilidade)
+      const { res: noCtxRes, body: noCtxBody, calls: noCtxCalls } = await callAivuChat({
+        body: {
+          message: "Como funciona o concurso público pela CF/88?",
+          history: [],
+        },
+      });
+      assert.equal(noCtxRes.status, 200, "Requisição sem context deve retornar 200");
+      assert.ok(noCtxBody?.reply);
+      assert.equal(noCtxCalls.groq.length, 1);
+      const systemMsgNoCtx = noCtxCalls.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.ok(systemMsgNoCtx.includes("Professor Particular Inteligente"), "Deve conter a persona do AIVU");
+      assert.equal(
+        systemMsgNoCtx.includes("=== CONTEXTO DA PÁGINA ATUAL DO ALUNO ==="),
+        false,
+        "Não deve injetar bloco de contexto de página quando ausente"
+      );
+
+      // 2. Requisição com contexto 'geral' deve manter a persona sem poluição de contexto
+      const { res: generalRes, calls: generalCalls } = await callAivuChat({
+        body: {
+          message: "Qual a melhor técnica de estudos?",
+          history: [],
+          context: {
+            pathname: "/dashboard",
+            modulo: "geral",
+            atividade: "navegando",
+          },
+        },
+      });
+      assert.equal(generalRes.status, 200);
+      assert.equal(generalCalls.groq.length, 1);
+      const systemMsgGeneral = generalCalls.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.equal(
+        systemMsgGeneral.includes("=== CONTEXTO DA PÁGINA ATUAL DO ALUNO ==="),
+        false,
+        "Módulo 'geral' não deve poluir o system prompt"
+      );
+    },
+  },
+  {
+    id: "REG-AIVU-009",
+    title: "Contexto tipado por módulo e troca dinâmica de contexto pedagógico",
+    needs: "api",
+    async run() {
+      // 1. Contexto no módulo Trilhas com disciplina jurídica (injeta protocolo de domínio)
+      const { res: trilhaRes, calls: trilhaCalls } = await callAivuChat({
+        body: {
+          message: "O que é controle difuso de constitucionalidade?",
+          history: [],
+          context: {
+            pathname: "/dashboard/trilhas/direito-constitucional",
+            modulo: "trilhas",
+            atividade: "lendo_teoria",
+            disciplina: "Direito Constitucional",
+            titulo: "Controle de Constitucionalidade",
+            topico: "Controle Difuso no STF",
+          },
+        },
+      });
+      assert.equal(trilhaRes.status, 200);
+      assert.equal(trilhaCalls.groq.length, 1);
+      const trilhaSystem = trilhaCalls.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.ok(trilhaSystem.includes("Módulo Atual: TRILHAS"));
+      assert.ok(trilhaSystem.includes("Controle de Constitucionalidade"));
+      assert.ok(trilhaSystem.includes("PROTOCOLO DE CONFIABILIDADE DE DOMÍNIO"), "Deve carregar regras de Direito Constitucional");
+
+      // 2. Troca dinâmica para módulo Questões com foco em item de prova
+      const { res: questaoRes, calls: questaoCalls } = await callAivuChat({
+        body: {
+          message: "Por que a alternativa C está errada?",
+          history: [],
+          context: {
+            pathname: "/dashboard/questoes/q101",
+            modulo: "questoes",
+            atividade: "resolvendo_questao",
+            disciplina: "Direito Administrativo",
+            titulo: "Princípios da Administração Pública",
+            trecho_foco: "A autoexecutoriedade autoriza o Poder Público a compelir o administrado sem prévia autorização judicial.",
+          },
+        },
+      });
+      assert.equal(questaoRes.status, 200);
+      assert.equal(questaoCalls.groq.length, 1);
+      const questaoSystem = questaoCalls.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.ok(questaoSystem.includes("Módulo Atual: QUESTOES"));
+      assert.ok(questaoSystem.includes("DIRETRIZ PARA QUESTÕES DE CONCURSO"));
+      assert.ok(questaoSystem.includes("autoexecutoriedade"));
+    },
+  },
+  {
+    id: "REG-AIVU-010",
+    title: "Regra restritiva de ancoragem no Meu Material: base estrita na fonte e rejeição de extrapolações",
+    needs: "api",
+    async run() {
+      const { res, calls } = await callAivuChat({
+        body: {
+          message: "Qual o prazo estabelecido na apostila?",
+          history: [],
+          context: {
+            pathname: "/dashboard/material/caderno-1",
+            modulo: "material",
+            atividade: "estudando_material",
+            titulo: "Apostila de Licitações Lei 14.133",
+            trecho_foco: "O prazo mínimo para apresentação de propostas no pregão é de 8 dias úteis para bens comuns.",
+          },
+        },
+      });
+      assert.equal(res.status, 200);
+      assert.equal(calls.groq.length, 1);
+      const systemContent = calls.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.ok(systemContent.includes("DIRETRIZ RESTRITIVA DE FONTE (MEU MATERIAL)"));
+      assert.ok(systemContent.includes("ESTRITAMENTE no trecho"));
+      assert.ok(systemContent.includes("Informação não encontrada no material fornecido."));
+      assert.ok(systemContent.includes("pregão é de 8 dias úteis"));
+    },
+  },
+  {
+    id: "REG-AIVU-011",
+    title: "Privacidade e orçamento de tokens: limites Zod em trecho_foco e poda defensiva de histórico",
+    needs: "api",
+    async run() {
+      // 1. Zod rejeita trecho_foco > 1.500 caracteres com 400 sem chamar o Groq (privacidade / token budget)
+      const excessiveTrecho = "X".repeat(1501);
+      const { res: rejRes, body: rejBody, calls: rejCalls } = await callAivuChat({
+        body: {
+          message: "Explique esse trecho",
+          history: [],
+          context: {
+            pathname: "/dashboard/material/doc",
+            modulo: "material",
+            atividade: "estudando_material",
+            trecho_foco: excessiveTrecho,
+          },
+        },
+      });
+      assert.equal(rejRes.status, 400, "trecho_foco > 1500 chars deve retornar 400");
+      assert.ok(rejBody?.error);
+      assert.ok(JSON.stringify(rejBody).includes("1.500 caracteres"));
+      assert.equal(rejCalls.groq.length, 0, "Não deve consumir Groq");
+
+      // 2. trecho_foco no limite exato de 1.500 caracteres é aceito
+      const validBoundaryTrecho = "Y".repeat(1500);
+      const { res: boundRes, calls: boundCalls } = await callAivuChat({
+        body: {
+          message: "Trecho no limite de segurança",
+          history: [],
+          context: {
+            pathname: "/dashboard/material/doc",
+            modulo: "material",
+            atividade: "estudando_material",
+            trecho_foco: validBoundaryTrecho,
+          },
+        },
+      });
+      assert.equal(boundRes.status, 200, "trecho_foco com 1500 caracteres deve ser aceito");
+      assert.equal(boundCalls.groq.length, 1);
+
+      // 3. Orçamento de tokens e poda de histórico: mensagens que excedem o limite seguro são podadas
+      // Cada mensagem com 800 chars consome ~222 tokens. 6 mensagens = ~1332 tokens (> reserva de 1100).
+      const heavyHistory = Array.from({ length: 6 }, (_, idx) => ({
+        role: idx % 2 === 0 ? "user" : "assistant",
+        content: `MENSAGEM_${idx + 1}_` + "Z".repeat(780),
+      }));
+      const { res: histRes, calls: histCalls } = await callAivuChat({
+        body: {
+          message: "Pergunta com histórico pesado",
+          history: heavyHistory,
+        },
+      });
+      assert.equal(histRes.status, 200);
+      assert.equal(histCalls.groq.length, 1);
+      const sentMessages = histCalls.groq[0].messages;
+      // Não deve incluir todas as 6 mensagens históricas por causa da contenção de tokens
+      const historicRolesInCall = sentMessages.filter((m) => m.role === "user" || m.role === "assistant");
+      // A última é a mensagem atual, as anteriores são o histórico podado
+      const historyInCall = historicRolesInCall.slice(0, -1);
+      assert.ok(
+        historyInCall.length < heavyHistory.length,
+        `Histórico deve ser podado para respeitar reserva de tokens. Enviados: ${historyInCall.length}, Original: ${heavyHistory.length}`
+      );
+      // Deve preservar a mensagem mais recente do histórico
+      assert.ok(
+        historyInCall[historyInCall.length - 1].content.includes("MENSAGEM_6_"),
+        "Deve manter as mensagens mais recentes do histórico"
+      );
+    },
+  },
+  {
+    id: "REG-AIVU-012",
+    title: "Transição dinâmica de contexto entre telas (Questões -> Meu Material -> Reset): isolamento estrito sem resíduos",
+    needs: "api",
+    async run() {
+      const { useAivoStore } = await import("@/store/useAivoStore.ts");
+
+      // 1. Aluno na tela de Questões com questão ativa em foco
+      useAivoStore.getState().setActiveContext({
+        pathname: "/questoes",
+        modulo: "questoes",
+        atividade: "resolvendo_questao",
+        disciplina: "Direito Constitucional",
+        topico: "Direitos e Garantias Fundamentais",
+        titulo: "Questão 1 de 10",
+        trecho_foco: "Acerca dos direitos individuais na CF/88, assinale a correta.\nAlternativas:\n(A) A prisão legal...\n(B) É inviolável...",
+        metadados: {
+          banca: "CESPE",
+          indiceQuestao: "1",
+        },
+      });
+
+      const questoesCtx = useAivoStore.getState().activeContext;
+      assert.equal(questoesCtx?.modulo, "questoes");
+      assert.ok(questoesCtx?.trecho_foco?.includes("CF/88"));
+
+      const { res: qRes, calls: qCalls } = await callAivuChat({
+        body: {
+          message: "Qual o gabarito dessa questão?",
+          history: [],
+          context: questoesCtx,
+        },
+      });
+      assert.equal(qRes.status, 200);
+      assert.equal(qCalls.groq.length, 1);
+      const qSystem = qCalls.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.ok(qSystem.includes("Módulo Atual: QUESTOES"));
+      assert.ok(qSystem.includes("DIRETRIZ PARA QUESTÕES DE CONCURSO"));
+      assert.ok(qSystem.includes("CF/88"));
+
+      // 2. Aluno sai de Questões e entra em Meu Material: desmonta tela anterior
+      useAivoStore.getState().setActiveContext(null);
+      assert.equal(useAivoStore.getState().activeContext, null, "Contexto deve ser zerado ao sair da tela");
+
+      // Monta tela de Meu Material com documento próprio
+      useAivoStore.getState().setActiveContext({
+        pathname: "/material",
+        modulo: "material",
+        atividade: "estudando_material",
+        titulo: "Apostila de Licitações Lei 14.133",
+        disciplina: "Meu Material",
+        trecho_foco: "O pregão é modalidade de licitação obrigatória para aquisição de bens e serviços comuns.",
+        metadados: {
+          origem: "pdf",
+          abaAtiva: "Resumo Estruturado",
+        },
+      });
+
+      const materialCtx = useAivoStore.getState().activeContext;
+      assert.equal(materialCtx?.modulo, "material");
+
+      const { res: mRes, calls: mCalls } = await callAivuChat({
+        body: {
+          message: "O que diz a apostila sobre o pregão?",
+          history: [],
+          context: materialCtx,
+        },
+      });
+      assert.equal(mRes.status, 200);
+      assert.equal(mCalls.groq.length, 1);
+      const mSystem = mCalls.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.ok(mSystem.includes("Módulo Atual: MATERIAL"));
+      assert.ok(mSystem.includes("DIRETRIZ RESTRITIVA DE FONTE (MEU MATERIAL)"));
+      assert.ok(mSystem.includes("pregão é modalidade de licitação obrigatória"));
+      // Confirma que NÃO HÁ NENHUM RESÍDUO da questão anterior no prompt
+      assert.equal(mSystem.includes("CF/88"), false, "Não deve haver resíduo da questão anterior no Meu Material");
+      assert.equal(mSystem.includes("DIRETRIZ PARA QUESTÕES DE CONCURSO"), false);
+
+      // 3. Aluno reinicia material / navega para Dashboard
+      useAivoStore.getState().setActiveContext(null);
+      assert.equal(useAivoStore.getState().activeContext, null);
+
+      const { res: dashRes, calls: dashCalls } = await callAivuChat({
+        body: {
+          message: "O que devo estudar agora?",
+          history: [],
+          context: undefined,
+        },
+      });
+      assert.equal(dashRes.status, 200);
+      assert.equal(dashCalls.groq.length, 1);
+      const dashSystem = dashCalls.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.equal(dashSystem.includes("=== CONTEXTO DA PÁGINA ATUAL DO ALUNO ==="), false);
+      assert.equal(dashSystem.includes("pregão"), false);
+      assert.equal(dashSystem.includes("CF/88"), false);
+    },
+  },
+  {
+    id: "REG-AIVU-013",
+    title: "Preservação do histórico pedagógico da conversa durante a navegação entre telas de estudo",
+    needs: "api",
+    async run() {
+      const { useAivoStore } = await import("@/store/useAivoStore.ts");
+
+      // Inicia conversa na tela de Questões
+      useAivoStore.getState().clearMessages();
+      useAivoStore.getState().addMessage({ sender: "user", text: "Estou com dúvida nesta questão de Administrativo" });
+      useAivoStore.getState().addMessage({ sender: "aivo", text: "Claro! Vamos analisar os requisitos do ato administrativo." });
+
+      // Troca de tela para Jornadas (o contexto muda, mas as mensagens permanecem)
+      useAivoStore.getState().setActiveContext({
+        pathname: "/jornadas/j1",
+        modulo: "jornadas",
+        atividade: "analisando_edital",
+        titulo: "Jornada TRT",
+        disciplina: "Direito Administrativo",
+        topico: "Atos Administrativos",
+        trecho_foco: "Tópico atual da jornada: Direito Administrativo - Atos Administrativos.",
+      });
+
+      // Confirma que o histórico na store não foi apagado pela troca de contexto
+      const currentMessages = useAivoStore.getState().messages;
+      assert.equal(currentMessages.length, 2, "Histórico da conversa deve persistir após troca de tela");
+      assert.equal(currentMessages[0].text, "Estou com dúvida nesta questão de Administrativo");
+
+      // Monta payload com o histórico mantido e o novo contexto da Jornada
+      const historyPayload = currentMessages.map((m) => ({
+        role: m.sender === "user" ? "user" : "assistant",
+        content: m.text,
+      }));
+
+      const { res, calls } = await callAivuChat({
+        body: {
+          message: "Como esse tópico é cobrado no TRT?",
+          history: historyPayload,
+          context: useAivoStore.getState().activeContext,
+        },
+      });
+
+      assert.equal(res.status, 200);
+      assert.equal(calls.groq.length, 1);
+      const sentGroqMessages = calls.groq[0].messages;
+
+      // 1 system + 2 histórico + 1 nova pergunta = 4 mensagens
+      assert.equal(sentGroqMessages.length, 4, "Groq deve receber histórico anterior + novo contexto de página");
+      assert.ok(sentGroqMessages[0].content.includes("Módulo Atual: JORNADAS"));
+      assert.ok(sentGroqMessages[1].content.includes("dúvida nesta questão"));
+      assert.ok(sentGroqMessages[2].content.includes("ato administrativo"));
+      assert.ok(sentGroqMessages[3].content.includes("cobrado no TRT"));
+
+      // Limpa estado para não interferir em outros testes
+      useAivoStore.getState().setActiveContext(null);
+    },
+  },
+  {
+    id: "REG-AIVU-014",
+    title: "Trilhas: alternância dinâmica de contexto entre teoria, flashcards e questões sem retenção de estado anterior",
+    needs: "api",
+    async run() {
+      const { useAivoStore } = await import("@/store/useAivoStore.ts");
+
+      // 1. Aluno na Trilha lendo o resumo (teoria)
+      useAivoStore.getState().setActiveContext({
+        pathname: "/trilhas/trilha-123",
+        modulo: "trilhas",
+        atividade: "lendo_teoria",
+        titulo: "Controle de Constitucionalidade",
+        disciplina: "Direito Constitucional",
+        metadados: { secaoAtiva: "resumo" },
+      });
+
+      const { res: rTeoria, calls: cTeoria } = await callAivuChat({
+        body: {
+          message: "Como funciona a ADI genérica?",
+          history: [],
+          context: useAivoStore.getState().activeContext,
+        },
+      });
+      assert.equal(rTeoria.status, 200);
+      assert.equal(cTeoria.groq.length, 1);
+      const sysTeoria = cTeoria.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.ok(sysTeoria.includes("Atividade em Andamento: lendo_teoria"));
+      assert.ok(sysTeoria.includes("Módulo Atual: TRILHAS"));
+      assert.ok(sysTeoria.includes("Controle de Constitucionalidade"));
+      assert.ok(sysTeoria.includes("ATUE COMO JURISTA EXAMINADOR"));
+      assert.equal(sysTeoria.includes("DIRETRIZ PARA QUESTÕES DE CONCURSO"), false);
+
+      // 2. Aluno clica no gaveteiro de flashcards
+      useAivoStore.getState().setActiveContext({
+        pathname: "/trilhas/trilha-123",
+        modulo: "trilhas",
+        atividade: "revisando_flashcard",
+        titulo: "Controle de Constitucionalidade",
+        disciplina: "Direito Constitucional",
+        metadados: { secaoAtiva: "flashcards" },
+      });
+
+      const { res: rFlash, calls: cFlash } = await callAivuChat({
+        body: {
+          message: "Qual o mnemônico para os legitimados da ADI?",
+          history: [],
+          context: useAivoStore.getState().activeContext,
+        },
+      });
+      assert.equal(rFlash.status, 200);
+      assert.equal(cFlash.groq.length, 1);
+      const sysFlash = cFlash.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.ok(sysFlash.includes("Atividade em Andamento: revisando_flashcard"));
+      assert.equal(sysFlash.includes("lendo_teoria"), false, "Contexto anterior não deve persistir");
+
+      // 3. Aluno clica no gaveteiro de questões
+      useAivoStore.getState().setActiveContext({
+        pathname: "/trilhas/trilha-123",
+        modulo: "trilhas",
+        atividade: "resolvendo_questao",
+        titulo: "Controle de Constitucionalidade",
+        disciplina: "Direito Constitucional",
+        metadados: { secaoAtiva: "questoes" },
+      });
+
+      const { res: rQuest, calls: cQuest } = await callAivuChat({
+        body: {
+          message: "Qual a pegadinha clássica da banca sobre legitimados?",
+          history: [],
+          context: useAivoStore.getState().activeContext,
+        },
+      });
+      assert.equal(rQuest.status, 200);
+      assert.equal(cQuest.groq.length, 1);
+      const sysQuest = cQuest.groq[0].messages.find((m) => m.role === "system")?.content || "";
+      assert.ok(sysQuest.includes("Atividade em Andamento: resolvendo_questao"));
+      assert.ok(sysQuest.includes("DIRETRIZ PARA QUESTÕES DE CONCURSO"));
+      assert.equal(sysQuest.includes("revisando_flashcard"), false);
+
+      // 4. Cleanup ao sair da Trilha
+      useAivoStore.getState().setActiveContext(null);
+      assert.equal(useAivoStore.getState().activeContext, null);
+    },
+  },
 ];

@@ -62,11 +62,19 @@ export const truncated = (obj) => ({ kind: "ok", content: JSON.stringify(obj).sl
 export const fail = (status, message = "provider error") => ({ kind: "fail", status, message });
 
 function toResponse(step) {
-  if (step.kind === "ok") {
-    return Response.json({ choices: [{ message: { content: step.content } }] });
+  if (step instanceof Response) return step;
+  if (step?.kind === "ok") {
+    return Response.json({
+      choices: [
+        {
+          message: { content: step.content },
+          finish_reason: step.finish_reason || "stop",
+        },
+      ],
+    });
   }
-  return new Response(JSON.stringify({ error: { message: step.message } }), {
-    status: step.status,
+  return new Response(JSON.stringify({ error: { message: step?.message } }), {
+    status: step?.status ?? 500,
     headers: { "Content-Type": "application/json" },
   });
 }

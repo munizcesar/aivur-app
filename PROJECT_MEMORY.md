@@ -806,3 +806,24 @@ Antes de qualquer alteração futura em Trilhas:
   - `npx tsc --noEmit`: Exit 0.
   - `npm run regression`: **60/60 PASS** (52 API + 8 browser tests).
   - `npm run build`: Exit 0 (Turbopack production build compilou 13/13 rotas estáticas com sucesso).
+
+## 20. Auditoria Pós-Push e Integridade da Suíte de Regressão (2026-10-25)
+
+### 1. Estado do Repositório e Sincronização
+- **Commit auditado:** `7f6bde93d357dc869549f7432130c13d9f0f43dc` (`test(regression): reforça integridade do gate e estabiliza aquecimento do navegador`).
+- **Sincronização remota:** Branch `main` em perfeita paridade com `origin/main` (0 ahead, 0 behind).
+- **Proteção mantida:** Zero alterações em código de produção, testes, baseline, README ou CHANGELOG.
+
+### 2. Validação da Regression Gate
+- **Comando oficial:** `npm run regression`
+- **Resultado:** **60/60 PASS** (52 testes de API + 8 testes de navegador em Puppeteer).
+- **Código de saída:** `0` (Exit 0).
+
+### 3. Registro de Intermitência (REG-AIVU-007)
+- **Histórico da auditoria:**
+  - Em uma execução completa da suíte anterior ao fechamento da auditoria, o caso `REG-AIVU-007` falhou intermitentemente por timeout de espera do seletor `[class*='mascotWrap']`.
+  - Em execução subsequente isolada (`node tests/regression/run.mjs --only REG-AIVU-007`), o teste foi executado e aprovado com sucesso.
+  - Em nova execução da suíte completa (`npm run regression`), o caso passou normalmente junto a todos os demais testes, concluindo o gate em 60/60 PASS (código de saída 0).
+- **Diagnóstico da causa raiz:**
+  - A causa raiz da intermitência observada **não foi confirmada**. Hipóteses como concorrência de compilação assíncrona do Turbopack sob carga, tempo de resposta em rota fria ou comportamento transitório de soquetes de rede não foram conclusivamente comprovadas e não devem ser estabelecidas como causa definitiva.
+  - Comportamento permanece sob monitoramento sem alterações em código, seletores ou timeouts.

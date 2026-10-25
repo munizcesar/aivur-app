@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - infra/ci-github-actions
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Regression Gate & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: 1
+      AUTH_SECRET: ci-testing-auth-secret-minimum-32-chars-long
+      ADMIN_SECRET: ci-testing-admin-secret-minimum-32-chars-long
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Static Type Check (TypeScript)
+        run: npx tsc --noEmit
+
+      - name: Production Build (Next.js)
+        run: npm run build
+
+      - name: Regression Gate (60/60 Tests)
+        run: npm run regression

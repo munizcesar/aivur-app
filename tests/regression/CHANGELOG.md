@@ -92,3 +92,11 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
   - Validação no DOM real via Puppeteer dos estilos computados do widget (`AivoWidget.tsx` e `AivoWidget.module.css`).
   - Confirmação de renderização com classes e regras visuais idênticas para mensagens históricas (`sender: 'aivo'`) e modernas (`sender: 'aivu'`) com alinhamento à esquerda (`flex-start`), cor de fundo institucional, cor de texto e raio de borda do assistente (`borderBottomLeftRadius: 4px`).
   - Confirmação de estilização do usuário (`sender: 'user'`) preservando alinhamento à direita (`flex-end`), raio de borda invertido (`borderBottomRightRadius: 4px`) e contraste cromático diferenciado.
+
+## 2026-10-25 — AIVUR Fase 1 (Navegação Global e Correção do Drawer)
+
+- ADD REG-AIVU-016 (camada Navegador):
+  - Validação no Puppeteer da abertura e fechamento do `<SideDrawer />` centralizado no `RootLayout` nas rotas `/material` e `/redacao`.
+  - Validação de fechamento acessível via tecla `Escape` e clique no overlay escuro (`drawerOverlay`).
+  - Validação de indicação de rota ativa nos links de navegação (`aria-current="page"` e classe `activeAction` com tokens de design).
+  - Validação de harmonia com o widget AIVU: o mascote permanece estável em sua ancoragem padrão (`bottom: 24px; right: 24px`), sem teleportar para o canto superior direito (`inDrawer`) nem sobrepor o drawer aberto.

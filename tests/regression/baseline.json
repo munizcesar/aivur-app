@@ -46,6 +46,7 @@
     "REG-AIVU-013": { "domain": "aivu", "kind": "api", "title": "Preservação do histórico pedagógico da conversa durante a navegação entre telas de estudo", "validatedOn": "2026-10-23" },
     "REG-AIVU-014": { "domain": "aivu", "kind": "api", "title": "Trilhas: alternância dinâmica de contexto entre teoria, flashcards e questões sem retenção de estado anterior", "validatedOn": "2026-10-23" },
     "REG-AIVU-015": { "domain": "aivu", "kind": "browser", "title": "Widget AIVU no navegador: compatibilidade visual de estilos no DOM para sender 'aivu', 'aivo' e 'user'", "validatedOn": "2026-10-24" },
+    "REG-AIVU-016": { "domain": "aivu", "kind": "browser", "title": "Navegação e Drawer global (/material e /redacao): abertura, fechamento por overlay/Escape, indicação de rota ativa e harmonia com o widget AIVU", "validatedOn": "2026-10-25" },
     "REG-JORNADA-001": { "domain": "jornadas", "kind": "api", "title": "Validação Zod dos contratos da Jornada de Edital: aceita ementa válida e rejeita estruturas malformadas ou vazias", "validatedOn": "2026-10-18" },
     "REG-JORNADA-002": { "domain": "jornadas", "kind": "api", "title": "Autenticação e integridade de sessão: requisições sem sessão, adulteradas ou forjadas retornam 401 controlado", "validatedOn": "2026-10-18" },
     "REG-JORNADA-003": { "domain": "jornadas", "kind": "api", "title": "Extração de ementa com IA (/api/ai/gerar-jornada): validação de limites (50-15.000 chars) e orçamento de tokens", "validatedOn": "2026-10-18" },

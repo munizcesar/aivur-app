@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
-import SideDrawer from "@/components/SideDrawer/SideDrawer";
 import WizardStep2 from "@/components/Wizard/WizardStep2";
 import WizardStep3 from "@/components/Wizard/WizardStep3";
 import { useQuizStore } from "@/store/useQuizStore";
@@ -52,7 +51,6 @@ export default function QuestoesPage() {
         </div>
       </main>
       <Footer />
-      <SideDrawer />
     </>
   );
 }

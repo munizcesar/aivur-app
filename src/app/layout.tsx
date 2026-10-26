@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import SideDrawer from "@/components/SideDrawer/SideDrawer";
 import AivoWrapper from "@/components/Aivo/AivoWrapper";
 import GlobalSync from "@/components/Sync/GlobalSync";
 import "./globals.css";
@@ -58,6 +59,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false}>
           {children}
+          <SideDrawer />
           <AivoWrapper />
           <GlobalSync />
         </ThemeProvider>

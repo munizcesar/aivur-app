@@ -4,7 +4,6 @@ import { notFound, redirect } from "next/navigation";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
-import SideDrawer from "@/components/SideDrawer/SideDrawer";
 import JornadaView, { type JornadaFullData } from "@/components/Jornadas/JornadaView";
 import { verifySessionCookie } from "@/lib/session";
 import type { JornadaDB, JornadaTopicoDB } from "@/lib/validations/jornada";
@@ -50,7 +49,6 @@ export default async function JornadaDetalhePage({ params }: Props) {
           </p>
         </main>
         <Footer />
-        <SideDrawer />
       </div>
     );
   }
@@ -96,7 +94,6 @@ export default async function JornadaDetalhePage({ params }: Props) {
           <JornadaView initialJornada={fullJornada} />
         </main>
         <Footer />
-        <SideDrawer />
       </div>
     </Suspense>
   );

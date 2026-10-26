@@ -3,7 +3,6 @@ import { ArrowRight, Compass, Layers, ListChecks, Sparkles } from "lucide-react"
 import Link from "next/link";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
-import SideDrawer from "@/components/SideDrawer/SideDrawer";
 import { TRILHAS_MOCK } from "@/mocks/trilhasMock";
 import UserTrilhasGrid from '@/components/Trilhas/UserTrilhasGrid';
 import TrilhasErrorBoundary from '@/components/Trilhas/TrilhasErrorBoundary';
@@ -147,7 +146,6 @@ export default function TrilhasPage() {
         </div>
       </main>
       <Footer />
-      <SideDrawer />
     </div>
   );
 }

@@ -55,13 +55,10 @@ export default function AivoWidget() {
     };
   }, []);
 
-  // Sync anchor with drawer
+  // Sincroniza visibilidade: fecha a janela de chat quando o drawer abre, evitando conflito visual
   useEffect(() => {
     if (isDrawerOpen) {
-      useAivoStore.getState().setTargetAnchor('drawer');
       setIsOpen(false);
-    } else {
-      useAivoStore.getState().setTargetAnchor(null);
     }
   }, [isDrawerOpen, setIsOpen]);
 
@@ -191,7 +188,7 @@ export default function AivoWidget() {
   return (
     <div className={`${styles.widgetContainer} ${containerClass}`}>
       <AnimatePresence>
-        {isOpen && !targetAnchor && !quizModeActive && (
+        {isOpen && !isDrawerOpen && !targetAnchor && !quizModeActive && (
           <motion.div 
             className={styles.chatPanel}
             style={keyboardOffset > 0 ? { bottom: `${keyboardOffset + 12}px` } : undefined}
@@ -249,16 +246,17 @@ export default function AivoWidget() {
       <div 
         className={styles.mascotWrap} 
         role="button"
-        tabIndex={0}
+        tabIndex={isDrawerOpen ? -1 : 0}
+        aria-hidden={isDrawerOpen}
         aria-label="Assistente AIVU"
         onClick={() => {
-          if (!targetAnchor && !quizModeActive) {
+          if (!isDrawerOpen && !targetAnchor && !quizModeActive) {
             setIsOpen(!isOpen);
             if (!isOpen) setState('greeting');
           }
         }}
         onKeyDown={(e) => {
-          if ((e.key === 'Enter' || e.key === ' ') && !targetAnchor && !quizModeActive) {
+          if ((e.key === 'Enter' || e.key === ' ') && !isDrawerOpen && !targetAnchor && !quizModeActive) {
             e.preventDefault();
             setIsOpen(!isOpen);
             if (!isOpen) setState('greeting');

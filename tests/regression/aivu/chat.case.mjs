@@ -913,4 +913,114 @@ export const cases = [
       }
     },
   },
+  {
+    id: "REG-AIVU-016",
+    title: "Navegação e Drawer global (/material e /redacao): abertura, fechamento por overlay/Escape, indicação de rota ativa e harmonia com o widget AIVU",
+    needs: "browser",
+    async run({ base, newPage }) {
+      const page = await newPage();
+      try {
+        // 1. Rota /material: abertura do drawer, indicação de rota ativa e fechamento por Escape
+        await page.goto(`${base}/material`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+
+        const drawerToggleSelector = "button[aria-label*='painel']";
+        await page.waitForSelector(drawerToggleSelector, { timeout: 20_000 });
+        await waitHydrated(page, drawerToggleSelector);
+
+        // Abre o drawer pelo botão do Header
+        await page.click(drawerToggleSelector);
+
+        // Aguarda drawer e overlay abertos no DOM
+        const drawerSelector = "aside[class*='sideDrawer'][class*='open']";
+        await page.waitForSelector(drawerSelector, { timeout: 10_000 });
+
+        const overlaySelector = "div[class*='drawerOverlay'][class*='open']";
+        await page.waitForSelector(overlaySelector, { timeout: 10_000 });
+
+        // Muda para a aba "atalhos" via DOM
+        await page.waitForFunction(
+          () => document.querySelectorAll("button[class*='drawerTab']").length >= 3,
+          { timeout: 10_000 }
+        );
+        await page.evaluate(() => {
+          const tabs = Array.from(document.querySelectorAll("button[class*='drawerTab']"));
+          const tab = tabs.find((t) => t.textContent.includes("Atalhos"));
+          tab?.click();
+        });
+
+        // Aguarda os links do painel de atalhos
+        await page.waitForSelector("div[class*='drawerPanel'][class*='active'] a[href='/material']", { timeout: 10_000 });
+
+        // Valida que o link para /material possui indicação de rota ativa
+        const materialActiveLink = await page.$("a[href='/material'][aria-current='page']");
+        assert.ok(materialActiveLink, "Link para /material no drawer deve possuir aria-current='page'");
+
+        // Fecha o drawer pressionando a tecla Escape
+        await page.keyboard.press("Escape");
+        await page.waitForFunction(
+          () => !document.querySelector("aside[class*='sideDrawer']").classList.contains("open"),
+          { timeout: 10_000 }
+        );
+
+        // 2. Rota /redacao: abertura do drawer, indicação de rota ativa e fechamento por clique no overlay
+        await page.goto(`${base}/redacao`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+
+        await page.waitForSelector(drawerToggleSelector, { timeout: 20_000 });
+        await waitHydrated(page, drawerToggleSelector);
+
+        // Abre o drawer pelo botão do Header
+        await page.click(drawerToggleSelector);
+        await page.waitForSelector(drawerSelector, { timeout: 10_000 });
+
+        // Muda para a aba "atalhos"
+        await page.waitForFunction(
+          () => document.querySelectorAll("button[class*='drawerTab']").length >= 3,
+          { timeout: 10_000 }
+        );
+        await page.evaluate(() => {
+          const tabs = Array.from(document.querySelectorAll("button[class*='drawerTab']"));
+          const tab = tabs.find((t) => t.textContent.includes("Atalhos"));
+          tab?.click();
+        });
+        await page.waitForSelector("div[class*='drawerPanel'][class*='active'] a[href='/redacao']", { timeout: 10_000 });
+
+        // Valida que o link para /redacao possui indicação de rota ativa
+        const redacaoActiveLink = await page.$("a[href='/redacao'][aria-current='page']");
+        assert.ok(redacaoActiveLink, "Link para /redacao no drawer deve possuir aria-current='page'");
+
+        // Fecha o drawer clicando no overlay
+        await page.evaluate(() => {
+          const overlay = document.querySelector("div[class*='drawerOverlay']");
+          overlay?.click();
+        });
+        await page.waitForFunction(
+          () => !document.querySelector("aside[class*='sideDrawer']").classList.contains("open"),
+          { timeout: 10_000 }
+        );
+
+        // 3. Valida harmonia e posicionamento do mascote AIVU após fechamento do drawer
+        const mascotSelector = "[class*='mascotWrap']";
+        await page.waitForSelector(mascotSelector, { timeout: 15_000 });
+
+        const widgetStyles = await page.evaluate(() => {
+          const widget = document.querySelector("[class*='widgetContainer']");
+          if (!widget) return null;
+          const cs = window.getComputedStyle(widget);
+          return {
+            bottom: cs.bottom,
+            right: cs.right,
+            zIndex: cs.zIndex,
+            hasInDrawer: widget.className.includes("inDrawer"),
+          };
+        });
+
+        assert.ok(widgetStyles, "Widget AIVU deve estar presente no DOM");
+        assert.equal(widgetStyles.hasInDrawer, false, "Widget AIVU não deve possuir classe inDrawer com o drawer fechado");
+        assert.equal(widgetStyles.bottom, "24px", "Widget AIVU deve permanecer ancorado em bottom: 24px");
+        assert.equal(widgetStyles.right, "24px", "Widget AIVU deve permanecer ancorado em right: 24px");
+      } finally {
+        await page.close();
+      }
+    },
+  },
 ];

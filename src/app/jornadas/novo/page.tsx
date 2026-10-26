@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import CriarJornadaView from "@/components/Jornadas/CriarJornadaView";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
-import SideDrawer from "@/components/SideDrawer/SideDrawer";
 import { verifySessionCookie } from "@/lib/session";
 
 export const runtime = "edge";
@@ -26,7 +25,6 @@ export default async function NovaJornadaPage() {
           <CriarJornadaView />
         </main>
         <Footer />
-        <SideDrawer />
       </div>
     </Suspense>
   );

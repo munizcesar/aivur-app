@@ -827,3 +827,30 @@ Antes de qualquer alteração futura em Trilhas:
 - **Diagnóstico da causa raiz:**
   - A causa raiz da intermitência observada **não foi confirmada**. Hipóteses como concorrência de compilação assíncrona do Turbopack sob carga, tempo de resposta em rota fria ou comportamento transitório de soquetes de rede não foram conclusivamente comprovadas e não devem ser estabelecidas como causa definitiva.
   - Comportamento permanece sob monitoramento sem alterações em código, seletores ou timeouts.
+
+## 21. Fase 1 — Centralização Global do Drawer e Navegação (2026-10-25)
+
+### 1. Decisões Arquiteturais e Correções Funcionais
+- **Centralização do `SideDrawer` no `RootLayout` (`src/app/layout.tsx`):**
+  - O `<SideDrawer />` foi promovido ao layout raiz, logo após os filhos e antes do `<AivoWrapper />`.
+  - As montagens individuais e desiguais em 6 páginas (`src/app/page.tsx`, `trilhas/page.tsx`, `trilhas/novo/page.tsx`, `questoes/page.tsx`, `jornadas/novo/page.tsx` e `jornadas/[id]/page.tsx`) foram completamente removidas.
+  - Elimina duplicação de instâncias no DOM e assegura cobertura nativa em 100% das rotas, corrigindo a ausência do drawer em `/material` e `/redacao`.
+- **Desacoplamento e Resolução de Conflito com o AIVU (`src/components/Aivo/AivoWidget.tsx`):**
+  - A abertura do drawer (`isDrawerOpen === true`) agora apenas fecha a janela de chat (`setIsOpen(false)`), prevenindo conflito de modais concorrentes.
+  - O mascote do AIVU não recebe mais a classe legada `.inDrawer` nem é teleportado para `top: 16px; right: 64px` no topo direito. Ele permanece estável em sua ancoragem padrão (`bottom: 24px; right: 24px`), sendo coberto e esmaecido naturalmente pelo overlay do drawer (`z-index: 998`), retornando à interatividade normal imediatamente após o fechamento do menu.
+  - Adicionados `tabIndex={isDrawerOpen ? -1 : 0}` e `aria-hidden={isDrawerOpen}` no mascote durante a abertura do drawer para preservar acessibilidade por teclado/leitor de tela.
+- **Acessibilidade e Indicação de Rota Ativa (`src/components/SideDrawer/SideDrawer.tsx` e `.module.css`):**
+  - Implementado listener de teclado para fechamento acessível via tecla `Escape`.
+  - Implementado auto-fechamento do drawer em mudanças de rota (`pathname`).
+  - Remoção de cor hardcoded inline `#2B4C5F`, substituída por `var(--color-text)` para perfeito contraste em tema claro e escuro.
+  - Indicação da rota ativa com atributo `aria-current="page"` e classe `.activeAction` com borda e realce em tokens oficiais (`var(--color-primary)` e `var(--color-surface-offset)`).
+  - Preservação estrita das 4 abas originais ("Resumo", "Histórico", "Atalhos", "Mentor").
+
+### 2. Proteção Evolutiva (Regression Gate)
+- Adicionado caso `REG-AIVU-016` em `tests/regression/aivu/chat.case.mjs`, registrado em `tests/regression/baseline.json` e `CHANGELOG.md`:
+  - Validação no Puppeteer da abertura e fechamento do drawer em `/material` e `/redacao`.
+  - Validação de fechamento via tecla `Escape` e clique no overlay escuro.
+  - Validação de indicação de rota ativa (`aria-current="page"`).
+  - Validação de estabilidade visual e posicional do mascote AIVU.
+- **Placar oficial:** **61/61 PASS** (`npm run regression`: 52 testes de API + 9 testes de navegador em Puppeteer 100% aprovados).
+- **TypeScript & Build:** `npx tsc --noEmit` exit 0; `npm run build` exit 0 (13/13 páginas compiladas).

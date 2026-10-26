@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useQuizStore } from "@/store/useQuizStore";
 import { 
   GraduationCap, X, LayoutDashboard, History, Zap, Sparkles, 
   Flame, BarChart3, Clock, ClipboardList, FileText, Brain 
 } from "lucide-react";
 import styles from "./SideDrawer.module.css";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -18,12 +18,35 @@ export default function SideDrawer() {
   const setStep = useQuizStore((state) => state.setStep);
   const answered = useQuizStore((state) => state.answered);
   const router = useRouter();
+  const pathname = usePathname();
 
   const [activeTab, setActiveTab] = useState<"resumo" | "historico" | "atalhos" | "mentor">("resumo");
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
   const closeDrawer = () => setDrawerOpen(false);
+
+  // Fecha o drawer com a tecla Escape (acessibilidade WCAG)
+  useEffect(() => {
+    if (!isDrawerOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeDrawer();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isDrawerOpen]);
+
+  // Fecha o drawer em transições de rota
+  useEffect(() => {
+    closeDrawer();
+  }, [pathname]);
+
+  const isTrilhasActive = pathname === "/trilhas" || Boolean(pathname?.startsWith("/trilhas/"));
+  const isQuestoesActive = pathname === "/questoes";
+  const isMaterialActive = pathname === "/material";
+  const isRedacaoActive = pathname === "/redacao";
 
   const startShortcut = (mode: "concurso" | "livre" | "redacao") => {
     setMode(mode);
@@ -178,42 +201,66 @@ export default function SideDrawer() {
               <div className={styles.rsSectionTitle}><Zap width={14} height={14} /> Ações Rápidas</div>
             </div>
             <div className={styles.drawerActionsList}>
-              <Link href="/trilhas" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
+              <Link
+                href="/trilhas"
+                onClick={closeDrawer}
+                aria-current={isTrilhasActive ? "page" : undefined}
+                className={`${styles.drawerActionBtn} ${isTrilhasActive ? styles.activeAction : ""} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}
+                style={{ minHeight: '60px', background: 'var(--color-surface)' }}
+              >
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(217, 107, 84, 0.1)', color: '#D96B54' }}>
                   <GraduationCap width={22} height={22} />
                 </span>
                 <span className={styles.drawerActionText}>
-                  <strong style={{ color: '#2B4C5F' }} className="font-semibold tracking-tight">Trilhas de Estudo</strong>
+                  <strong style={{ color: 'var(--color-text)' }} className="font-semibold tracking-tight">Trilhas de Estudo</strong>
                   <span>Cronograma via edital</span>
                 </span>
               </Link>
               
-              <Link href="/questoes" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
+              <Link
+                href="/questoes"
+                onClick={closeDrawer}
+                aria-current={isQuestoesActive ? "page" : undefined}
+                className={`${styles.drawerActionBtn} ${isQuestoesActive ? styles.activeAction : ""} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}
+                style={{ minHeight: '60px', background: 'var(--color-surface)' }}
+              >
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(122, 154, 140, 0.1)', color: '#7A9A8C' }}>
                   <ClipboardList width={22} height={22} />
                 </span>
                 <span className={styles.drawerActionText}>
-                  <strong style={{ color: '#2B4C5F' }} className="font-semibold tracking-tight">Caderno de Questões</strong>
+                  <strong style={{ color: 'var(--color-text)' }} className="font-semibold tracking-tight">Caderno de Questões</strong>
                   <span>Filtre por banca e cargo</span>
                 </span>
               </Link>
 
-              <Link href="/material" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
+              <Link
+                href="/material"
+                onClick={closeDrawer}
+                aria-current={isMaterialActive ? "page" : undefined}
+                className={`${styles.drawerActionBtn} ${isMaterialActive ? styles.activeAction : ""} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}
+                style={{ minHeight: '60px', background: 'var(--color-surface)' }}
+              >
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(217, 107, 84, 0.1)', color: '#D96B54' }}>
                   <FileText width={22} height={22} />
                 </span>
                 <span className={styles.drawerActionText}>
-                  <strong style={{ color: '#2B4C5F' }} className="font-semibold tracking-tight">Meu Material</strong>
+                  <strong style={{ color: 'var(--color-text)' }} className="font-semibold tracking-tight">Meu Material</strong>
                   <span>Transforme material em questões</span>
                 </span>
               </Link>
 
-              <Link href="/redacao" onClick={closeDrawer} className={`${styles.drawerActionBtn} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`} style={{ minHeight: '60px', background: 'var(--color-surface)' }}>
+              <Link
+                href="/redacao"
+                onClick={closeDrawer}
+                aria-current={isRedacaoActive ? "page" : undefined}
+                className={`${styles.drawerActionBtn} ${isRedacaoActive ? styles.activeAction : ""} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}
+                style={{ minHeight: '60px', background: 'var(--color-surface)' }}
+              >
                 <span className={styles.drawerActionIcon} style={{ background: 'rgba(122, 154, 140, 0.1)', color: '#7A9A8C' }}>
                   <Brain width={22} height={22} />
                 </span>
                 <span className={styles.drawerActionText}>
-                  <strong style={{ color: '#2B4C5F' }} className="font-semibold tracking-tight">Redação Coach</strong>
+                  <strong style={{ color: 'var(--color-text)' }} className="font-semibold tracking-tight">Redação Coach</strong>
                   <span>Correção completa C1 a C5</span>
                 </span>
               </Link>

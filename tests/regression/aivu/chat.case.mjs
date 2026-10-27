@@ -1023,4 +1023,188 @@ export const cases = [
       }
     },
   },
+  {
+    id: "REG-AIVU-017",
+    title: "Chat mobile AIVU (360px e 390px): limites horizontais, densidade de mensagens e visibilidade sob viewport reduzido",
+    needs: "browser",
+    async run({ base, newPage }) {
+      const page = await newPage();
+      try {
+        // Pré-carrega conversa demonstrativa no sessionStorage
+        await page.evaluateOnNewDocument(() => {
+          sessionStorage.setItem(
+            "aivo-storage",
+            JSON.stringify({
+              state: {
+                isOpen: false,
+                messages: [
+                  { id: "msg-user-1", sender: "user", text: "Qual a diferença entre dolo eventual e culpa consciente no Direito Penal?", timestamp: 1000 },
+                  { id: "msg-aivu-1", sender: "aivu", text: "No dolo eventual, o agente assume o risco de produzir o resultado lesivo ('se acontecer, tudo bem'). Na culpa consciente, o agente prevê o resultado, mas acredita sinceramente que ele não ocorrerá com base em sua habilidade.", timestamp: 2000 },
+                ],
+              },
+              version: 0,
+            })
+          );
+        });
+
+        // 1. Validação em viewport compacto 360x740 (Android baseline)
+        await page.setViewport({ width: 360, height: 740 });
+        await page.goto(`${base}/material`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+
+        const mascotSelector = "[class*='mascotWrap']";
+        await page.waitForSelector(mascotSelector, { timeout: 20_000 });
+        await waitHydrated(page, mascotSelector);
+
+        // Abre o chat pelo mascote
+        await page.click(mascotSelector);
+
+        const chatPanelSelector = "[class*='chatPanel']";
+        await page.waitForSelector(chatPanelSelector, { timeout: 10_000 });
+
+        // Valida limites horizontais e ausência de overflow na viewport de 360px
+        const metrics360 = await page.evaluate(() => {
+          const panel = document.querySelector("[class*='chatPanel']");
+          const header = document.querySelector("[class*='chatHeader']");
+          const inputWrap = document.querySelector("[class*='chatInputWrap']");
+          const closeBtn = document.querySelector("[class*='chatHeader'] button[aria-label*='Fechar']");
+          const sendBtn = document.querySelector("button[aria-label*='Enviar']");
+          const aivuMsg = Array.from(document.querySelectorAll("[class*='message']")).find(el => el.textContent.includes("dolo eventual"));
+
+          const panelRect = panel.getBoundingClientRect();
+          const headerRect = header.getBoundingClientRect();
+          const inputWrapRect = inputWrap.getBoundingClientRect();
+          const aivuMsgRect = aivuMsg ? aivuMsg.getBoundingClientRect() : null;
+
+          return {
+            hasHorizontalScroll: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+            panelLeft: panelRect.left,
+            panelRight: panelRect.right,
+            panelWidth: panelRect.width,
+            headerTop: headerRect.top,
+            headerBottom: headerRect.bottom,
+            inputWrapTop: inputWrapRect.top,
+            inputWrapBottom: inputWrapRect.bottom,
+            hasCloseBtn: Boolean(closeBtn),
+            hasSendBtn: Boolean(sendBtn),
+            aivuMsgWidth: aivuMsgRect ? aivuMsgRect.width : 0,
+          };
+        });
+
+        assert.equal(metrics360.hasHorizontalScroll, false, "Não deve haver overflow horizontal no documento em 360px");
+        assert.ok(metrics360.panelLeft >= 0, "Painel não deve vazar pela borda esquerda em 360px");
+        assert.ok(metrics360.panelRight <= 360, "Painel não deve vazar pela borda direita em 360px");
+        assert.ok(metrics360.headerTop >= 0, "Cabeçalho deve estar visível e dentro da tela");
+        assert.ok(metrics360.inputWrapBottom <= 740, "Campo de envio deve estar visível e dentro da tela");
+        assert.ok(metrics360.aivuMsgWidth >= 250, `Largura da mensagem deve ter boa densidade (>= 250px), obtido: ${metrics360.aivuMsgWidth}px`);
+        assert.ok(metrics360.hasCloseBtn, "Botão de fechar deve estar presente");
+        assert.ok(metrics360.hasSendBtn, "Botão de envio deve estar presente");
+
+        // 2. Simulação de viewport reduzido por teclado virtual (360x440)
+        await page.setViewport({ width: 360, height: 440 });
+        await new Promise((r) => setTimeout(r, 400));
+
+        const metricsReduced = await page.evaluate(() => {
+          const header = document.querySelector("[class*='chatHeader']");
+          const inputWrap = document.querySelector("[class*='chatInputWrap']");
+          const headerRect = header.getBoundingClientRect();
+          const inputWrapRect = inputWrap.getBoundingClientRect();
+
+          return {
+            headerTop: headerRect.top,
+            headerVisible: headerRect.top >= 0 && headerRect.bottom <= 440,
+            inputVisible: inputWrapRect.bottom <= 440,
+          };
+        });
+
+        assert.ok(metricsReduced.headerTop >= 0, "Cabeçalho não pode ser ejetado para fora do topo sob viewport reduzido");
+        assert.ok(metricsReduced.inputVisible, "Campo de envio deve permanecer visível sob viewport reduzido");
+
+        // 3. Cenário extremo de pouca altura (< 284px: 360x260)
+        await page.setViewport({ width: 360, height: 260 });
+        await new Promise((r) => setTimeout(r, 400));
+
+        const metricsExtreme = await page.evaluate(() => {
+          const panel = document.querySelector("[class*='chatPanel']");
+          const header = document.querySelector("[class*='chatHeader']");
+          const inputWrap = document.querySelector("[class*='chatInputWrap']");
+          const panelRect = panel.getBoundingClientRect();
+          const headerRect = header.getBoundingClientRect();
+          const inputWrapRect = inputWrap.getBoundingClientRect();
+
+          return {
+            panelHeight: panelRect.height,
+            panelTop: panelRect.top,
+            panelBottom: panelRect.bottom,
+            headerTop: headerRect.top,
+            inputBottom: inputWrapRect.bottom,
+          };
+        });
+
+        assert.ok(metricsExtreme.panelHeight <= 260, `Painel não pode ultrapassar a altura da viewport (260px), obtido: ${metricsExtreme.panelHeight}px`);
+        assert.ok(metricsExtreme.headerTop >= 0, "Cabeçalho não pode ser ejetado acima do topo da tela em altura extrema");
+        assert.ok(metricsExtreme.inputBottom <= 260, "Campo de envio deve permanecer contido dentro da viewport em altura extrema");
+
+        // 4. Validação em viewport moderno 390x844 (iPhone baseline)
+        await page.setViewport({ width: 390, height: 844 });
+        await new Promise((r) => setTimeout(r, 400));
+
+        const metrics390 = await page.evaluate(() => {
+          const panel = document.querySelector("[class*='chatPanel']");
+          const header = document.querySelector("[class*='chatHeader']");
+          const inputWrap = document.querySelector("[class*='chatInputWrap']");
+          const aivuMsg = Array.from(document.querySelectorAll("[class*='message']")).find(el => el.textContent.includes("dolo eventual"));
+
+          const panelRect = panel.getBoundingClientRect();
+          const headerRect = header.getBoundingClientRect();
+          const inputWrapRect = inputWrap.getBoundingClientRect();
+          const aivuMsgRect = aivuMsg ? aivuMsg.getBoundingClientRect() : null;
+
+          return {
+            hasHorizontalScroll: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+            panelLeft: panelRect.left,
+            panelRight: panelRect.right,
+            headerTop: headerRect.top,
+            inputWrapBottom: inputWrapRect.bottom,
+            aivuMsgWidth: aivuMsgRect ? aivuMsgRect.width : 0,
+          };
+        });
+
+        assert.equal(metrics390.hasHorizontalScroll, false, "Não deve haver overflow horizontal no documento em 390px");
+        assert.ok(metrics390.panelLeft >= 0 && metrics390.panelRight <= 390, "Painel deve respeitar limites horizontais de 390px");
+        assert.ok(metrics390.headerTop >= 0, "Cabeçalho deve estar visível em 390px");
+        assert.ok(metrics390.inputWrapBottom <= 844, "Campo de envio deve estar visível em 390px");
+        assert.ok(metrics390.aivuMsgWidth >= 270, `Largura da mensagem deve ter boa densidade (>= 270px), obtido: ${metrics390.aivuMsgWidth}px`);
+
+        // 5. Preservação do comportamento desktop (1280x900)
+        await page.setViewport({ width: 1280, height: 900 });
+        await new Promise((r) => setTimeout(r, 400));
+
+        const desktopMetrics = await page.evaluate(() => {
+          const panel = document.querySelector("[class*='chatPanel']");
+          if (!panel) return null;
+          const cs = window.getComputedStyle(panel);
+          const panelRect = panel.getBoundingClientRect();
+          return {
+            position: cs.position,
+            width: Math.round(panelRect.width),
+            hasInlineBottom: Boolean(panel.style.bottom),
+            hasInlineMaxHeight: Boolean(panel.style.maxHeight),
+          };
+        });
+
+        assert.ok(desktopMetrics, "Painel deve estar presente no desktop");
+        assert.equal(desktopMetrics.position, "absolute", "No desktop o painel deve usar position: absolute");
+        assert.equal(desktopMetrics.width, 340, "No desktop o painel deve ter largura exata de 340px");
+        assert.equal(desktopMetrics.hasInlineBottom, false, "No desktop não deve haver estilo inline de bottom");
+        assert.equal(desktopMetrics.hasInlineMaxHeight, false, "No desktop não deve haver estilo inline de maxHeight");
+
+        // Fecha o chat pelo botão de fechar do cabeçalho
+        const closeBtnSelector = "[class*='chatHeader'] button[aria-label*='Fechar']";
+        await page.click(closeBtnSelector);
+        await page.waitForFunction(() => !document.querySelector("[class*='chatPanel']"), { timeout: 5000 });
+      } finally {
+        await page.close();
+      }
+    },
+  },
 ];

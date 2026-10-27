@@ -100,3 +100,14 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
   - Validação de fechamento acessível via tecla `Escape` e clique no overlay escuro (`drawerOverlay`).
   - Validação de indicação de rota ativa nos links de navegação (`aria-current="page"` e classe `activeAction` com tokens de design).
   - Validação de harmonia com o widget AIVU: o mascote permanece estável em sua ancoragem padrão (`bottom: 24px; right: 24px`), sem teleportar para o canto superior direito (`inDrawer`) nem sobrepor o drawer aberto.
+
+## 2026-10-25 — AIVUR Fase 2 (Responsividade e Teclado Mobile do Chat AIVU)
+
+- ADD REG-AIVU-017 (camada Navegador):
+  - Validação em viewports mobile (360x740 e 390x844) do painel de chat do AIVU.
+  - Verificação de limites horizontais estritos e ausência de overflow horizontal na viewport.
+  - Verificação de taxa de densidade e aproveitamento de largura útil das mensagens no mobile (>= 250px em 360px e >= 270px em 390px).
+  - Verificação de visibilidade simultânea do cabeçalho, botão de fechar e campo de envio no viewport.
+  - Simulação de redução de viewport por teclado virtual (360x440), comprovando que o cabeçalho e os controles de envio permanecem visíveis e acessíveis sem ejeção do topo.
+  - Validação de cenário extremo com altura visual inferior a 284px (360x260), assegurando que o teto dinâmico encolhe sem extrapolar o topo.
+  - Validação de preservação do layout desktop flutuante (1280x900, largura 340px, position: absolute, sem estilos inline).

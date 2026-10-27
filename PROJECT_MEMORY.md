@@ -854,3 +854,31 @@ Antes de qualquer alteração futura em Trilhas:
   - Validação de estabilidade visual e posicional do mascote AIVU.
 - **Placar oficial:** **61/61 PASS** (`npm run regression`: 52 testes de API + 9 testes de navegador em Puppeteer 100% aprovados).
 - **TypeScript & Build:** `npx tsc --noEmit` exit 0; `npm run build` exit 0 (13/13 páginas compiladas).
+
+## 22. Fase 2 — Responsividade e Adaptação de Teclado Mobile do Chat AIVU (2026-10-25)
+
+### 1. Decisões Arquiteturais e Correções Implementadas
+- **Aproveitamento de Largura Útil Mobile (`AivoWidget.module.css`):**
+  - Ajuste de margens externas do painel no mobile para `left: 12px; right: 12px; bottom: 12px` (liberando espaço para a tela).
+  - Otimização do padding interno de `.chatBody` para `12px 10px` e `.chatInputWrap` para `8px 10px`.
+  - Expansão de `max-width` das mensagens de 86% para 92% com `padding: 9px 12px`, elevando a largura útil contínua de texto em +26% em telas de 360px e 390px, sem quebras artificiais de linha e sem overflow horizontal.
+  - Preservação estrita das dimensões de acessibilidade WCAG 2.2 (`min-height: 44px; min-width: 44px` para botão de envio e botão de fechar).
+- **Proteção do Viewport sob Teclado Virtual Mobile (`AivoWidget.tsx`):**
+  - O listener `handleViewportChange` baseado em `window.visualViewport` foi isolado para telas mobile (`window.innerWidth <= 768`), eliminando qualquer risco de sobreposição inline no layout flutuante desktop.
+  - Implementado cálculo conjunto de ancoragem inferior e teto de altura dinâmico estritamente vinculado à área disponível:
+    - `bottom: keyboardOffset + 12px`
+    - `maxHeight: Math.max(0, Math.min(520, visualHeight - 24))px`
+  - Elimina qualquer piso forçado artificial (como 260px), permitindo que o painel encolha perfeitamente em telas de pouca altura (< 284px e modo paisagem com teclado), garantindo que o topo nunca seja ejetado (`top >= 12px`).
+  - Ao fechar o teclado, as regras inline são limpas sem saltos ou deformidades visuais, com fallback integral para regras CSS.
+
+### 2. Proteção Evolutiva (Regression Gate)
+- Adicionado caso `REG-AIVU-017` em `tests/regression/aivu/chat.case.mjs`, registrado em `tests/regression/baseline.json` e `CHANGELOG.md`:
+  - Validação em viewports mobile (360x740 e 390x844).
+  - Verificação de limites horizontais e ausência de overflow horizontal na página.
+  - Verificação de densidade e largura das mensagens (>= 250px em 360px e >= 270px em 390px).
+  - Verificação de visibilidade simultânea de cabeçalho, botão de fechar e campo de envio.
+  - Simulação de redução de viewport por teclado virtual (360x440).
+  - Validação de cenário extremo de pouca altura (< 284px: 360x260), comprovando contenção da altura máxima e ausência de ejeção do cabeçalho.
+  - Validação da preservação integral do layout desktop flutuante (1280x900, largura 340px, position: absolute, sem estilos inline).
+- **Placar oficial:** **62/62 PASS** (`npm run regression`: 52 testes de API + 10 testes de navegador em Puppeteer 100% aprovados).
+- **TypeScript & Build:** `npx tsc --noEmit` exit 0; `npm run build` exit 0.

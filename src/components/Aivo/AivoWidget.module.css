@@ -285,22 +285,51 @@
 
 @media (max-width: 768px) {
   .widgetContainer.defaultPos {
-    bottom: 16px;
-    right: 16px;
+    bottom: 12px;
+    right: 12px;
   }
 
   .chatPanel {
     position: fixed;
-    right: 16px;
-    left: 16px;
-    bottom: 16px;
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
     width: auto;
-    max-width: calc(100vw - 32px);
-    max-height: min(520px, calc(100dvh - 32px));
+    max-width: calc(100vw - 24px);
+    max-height: min(520px, calc(100dvh - 24px));
     margin-bottom: 0;
     z-index: 950;
-    border-radius: 18px;
+    border-radius: 16px;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+
+  .chatBody {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+
+  .message {
+    padding: 9px 12px;
+    font-size: 0.9rem;
+    line-height: 1.42;
+    max-width: 92%;
+  }
+
+  .chatInputWrap {
+    padding: 8px 10px;
+  }
+
+  .chatInput {
+    height: 44px;
+    font-size: 0.925rem;
+    padding: 0 12px;
+  }
+
+  .sendBtn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 

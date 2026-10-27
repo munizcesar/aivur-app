@@ -17,20 +17,32 @@ export default function AivoWidget() {
   const quizModeActive = useQuizStore(s => s.step === 3 && s.mode !== 'redacao' && s.mode !== 'aivos360'); 
 
   const [inputValue, setInputValue] = useState("");
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [viewportAdjustment, setViewportAdjustment] = useState<{
+    keyboardOffset: number;
+    visualHeight: number | null;
+  }>({ keyboardOffset: 0, visualHeight: null });
   const chatEndRef = useRef<HTMLDivElement>(null);
   const isSendingRef = useRef(false);
   const recoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Acompanha a abertura do teclado virtual no mobile para ajustar a ancoragem
+  // Acompanha a abertura do teclado virtual no mobile para ajustar ancoragem e altura máxima disponível
   useEffect(() => {
     if (typeof window === "undefined" || !window.visualViewport) return;
     const vv = window.visualViewport;
 
     const handleViewportChange = () => {
       if (!vv) return;
+      // Aplica ajustes de teclado virtual exclusivamente a dispositivos mobile (largura <= 768px)
+      const isMobile = window.innerWidth <= 768;
+      if (!isMobile) {
+        setViewportAdjustment({ keyboardOffset: 0, visualHeight: null });
+        return;
+      }
       const offset = Math.max(0, window.innerHeight - (vv.offsetTop + vv.height));
-      setKeyboardOffset(offset);
+      setViewportAdjustment({
+        keyboardOffset: offset,
+        visualHeight: vv.height,
+      });
     };
 
     vv.addEventListener("resize", handleViewportChange);
@@ -185,13 +197,24 @@ export default function AivoWidget() {
     mascotState = 'sleepy'; // Doesn't distract
   }
 
+  // Estilo dinâmico para teclado virtual mobile (evita extrapolação de altura e protege o desktop)
+  const mobileKeyboardStyle: React.CSSProperties | undefined =
+    viewportAdjustment.keyboardOffset > 0 && typeof window !== "undefined" && window.innerWidth <= 768
+      ? {
+          bottom: `${viewportAdjustment.keyboardOffset + 12}px`,
+          maxHeight: viewportAdjustment.visualHeight
+            ? `${Math.max(0, Math.min(520, viewportAdjustment.visualHeight - 24))}px`
+            : undefined,
+        }
+      : undefined;
+
   return (
     <div className={`${styles.widgetContainer} ${containerClass}`}>
       <AnimatePresence>
         {isOpen && !isDrawerOpen && !targetAnchor && !quizModeActive && (
           <motion.div 
             className={styles.chatPanel}
-            style={keyboardOffset > 0 ? { bottom: `${keyboardOffset + 12}px` } : undefined}
+            style={mobileKeyboardStyle}
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}

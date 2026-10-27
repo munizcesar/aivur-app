@@ -1060,6 +1060,7 @@ export const cases = [
 
         const chatPanelSelector = "[class*='chatPanel']";
         await page.waitForSelector(chatPanelSelector, { timeout: 10_000 });
+        await new Promise((r) => setTimeout(r, 400));
 
         // Valida limites horizontais e ausência de overflow na viewport de 360px
         const metrics360 = await page.evaluate(() => {
@@ -1094,7 +1095,10 @@ export const cases = [
         assert.ok(metrics360.panelLeft >= 0, "Painel não deve vazar pela borda esquerda em 360px");
         assert.ok(metrics360.panelRight <= 360, "Painel não deve vazar pela borda direita em 360px");
         assert.ok(metrics360.headerTop >= 0, "Cabeçalho deve estar visível e dentro da tela");
-        assert.ok(metrics360.inputWrapBottom <= 740, "Campo de envio deve estar visível e dentro da tela");
+        assert.ok(
+          metrics360.inputWrapBottom <= 740,
+          `Campo de envio deve estar visível e dentro da tela (esperado <= 740px, obtido: ${metrics360.inputWrapBottom}px)`
+        );
         assert.ok(metrics360.aivuMsgWidth >= 250, `Largura da mensagem deve ter boa densidade (>= 250px), obtido: ${metrics360.aivuMsgWidth}px`);
         assert.ok(metrics360.hasCloseBtn, "Botão de fechar deve estar presente");
         assert.ok(metrics360.hasSendBtn, "Botão de envio deve estar presente");

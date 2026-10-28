@@ -6,9 +6,46 @@ import { usePathname } from "next/navigation";
 import { useAivoStore } from "@/store/useAivoStore";
 import { useQuizStore } from "@/store/useQuizStore";
 import { Aivo } from "./AivoMascot";
-import { X, Send, Sparkles } from "lucide-react";
+import { X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import styles from "./AivoWidget.module.css";
+
+const aivuMarkdownComponents: Components = {
+  p: ({ children }) => <p className={styles.mdParagraph}>{children}</p>,
+  h1: ({ children }) => <h1 className={styles.mdH1}>{children}</h1>,
+  h2: ({ children }) => <h2 className={styles.mdH2}>{children}</h2>,
+  h3: ({ children }) => <h3 className={styles.mdH3}>{children}</h3>,
+  strong: ({ children }) => <strong className={styles.mdStrong}>{children}</strong>,
+  em: ({ children }) => <em className={styles.mdEm}>{children}</em>,
+  ul: ({ children }) => <ul className={styles.mdUl}>{children}</ul>,
+  ol: ({ children }) => <ol className={styles.mdOl}>{children}</ol>,
+  li: ({ children }) => <li className={styles.mdLi}>{children}</li>,
+  blockquote: ({ children }) => <blockquote className={styles.mdBlockquote}>{children}</blockquote>,
+  pre: ({ children }) => <pre className={styles.mdPre}>{children}</pre>,
+  code: ({ children, className }) => {
+    const isBlock = Boolean(className) || (typeof children === "string" && children.includes("\n"));
+    return isBlock ? (
+      <code className={styles.mdCodeBlock}>{children}</code>
+    ) : (
+      <code className={styles.mdInlineCode}>{children}</code>
+    );
+  },
+  a: ({ href, children }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={styles.mdLink}>
+      {children}
+    </a>
+  ),
+  table: ({ children }) => (
+    <div className={styles.mdTableWrap}>
+      <table className={styles.mdTable}>{children}</table>
+    </div>
+  ),
+  th: ({ children }) => <th className={styles.mdTh}>{children}</th>,
+  td: ({ children }) => <td className={styles.mdTd}>{children}</td>,
+  hr: () => <hr className={styles.mdHr} />,
+};
 
 export default function AivoWidget() {
   const pathname = usePathname();
@@ -17,13 +54,38 @@ export default function AivoWidget() {
   const quizModeActive = useQuizStore(s => s.step === 3 && s.mode !== 'redacao' && s.mode !== 'aivos360'); 
 
   const [inputValue, setInputValue] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
   const [viewportAdjustment, setViewportAdjustment] = useState<{
     keyboardOffset: number;
     visualHeight: number | null;
   }>({ keyboardOffset: 0, visualHeight: null });
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isSendingRef = useRef(false);
   const recoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const updateDevice = () => setIsMobile(window.innerWidth <= 768);
+    updateDevice();
+    window.addEventListener("resize", updateDevice);
+    return () => window.removeEventListener("resize", updateDevice);
+  }, []);
+
+  // Ajuste automático de altura do textarea (44px inicial até ~110px máximo)
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    const isLandscape = typeof window !== "undefined" && window.innerHeight <= 500;
+    const minH = isLandscape ? 40 : 44;
+    const maxH = isLandscape ? 80 : 110;
+    const scrollHeight = ta.scrollHeight;
+    const clampedHeight = Math.min(Math.max(scrollHeight, minH), maxH);
+    ta.style.height = `${clampedHeight}px`;
+    ta.style.overflowY = scrollHeight > maxH ? "auto" : "hidden";
+  }, [inputValue, isOpen]);
 
   // Acompanha a abertura do teclado virtual no mobile para ajustar ancoragem e altura máxima disponível
   useEffect(() => {
@@ -152,6 +214,8 @@ export default function AivoWidget() {
           }
         }
 
+        // Restaura o texto do usuário para não perder a mensagem em caso de falha
+        setInputValue(text);
         addMessage({ sender: 'aivo', text: userFacingError });
         clearRecoveryTimer();
         setState('error');
@@ -161,6 +225,8 @@ export default function AivoWidget() {
         }, 3000);
       }
     } catch {
+      // Restaura o texto do usuário para não perder a mensagem em caso de erro de rede
+      setInputValue(text);
       addMessage({
         sender: 'aivo',
         text: "Erro de conexão ao falar com o AIVU. Verifique sua internet e tente novamente.",
@@ -177,8 +243,8 @@ export default function AivoWidget() {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey && !isSendingRef.current) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !isComposing && !e.nativeEvent.isComposing && !isSendingRef.current) {
       e.preventDefault();
       handleSend();
     }
@@ -187,13 +253,14 @@ export default function AivoWidget() {
   // Determine classes based on context
   let containerClass = styles.defaultPos;
   let mascotState = state;
-  let size = 80; // default mdish
+  let size = isMobile ? 64 : 72;
 
   if (targetAnchor === 'drawer') {
     containerClass = styles.inDrawer;
     size = 40;
   } else if (quizModeActive) {
     containerClass = styles.minimized;
+    size = isMobile ? 42 : 48;
     mascotState = 'sleepy'; // Doesn't distract
   }
 
@@ -220,20 +287,34 @@ export default function AivoWidget() {
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
           >
             <div className={styles.chatHeader}>
-              <div className={styles.chatTitle}>
-                <Sparkles width={16} height={16} className={styles.sparkleIcon} /> AIVU Assistente
+              <div className={styles.chatTitleGroup}>
+                <div className={styles.chatTitle}>
+                  <span className={styles.brandBadge}>AIVU</span>
+                  <span className={styles.statusIndicator} aria-hidden="true" />
+                </div>
+                <div className={styles.chatSubtitle}>Assistente de Estudos</div>
               </div>
               <button className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label="Fechar chat">
-                <X width={20} height={20} />
+                <X width={18} height={18} />
               </button>
             </div>
             
             <div className={styles.chatBody}>
-              {messages.map((msg) => (
-                <div key={msg.id} className={`${styles.message} ${styles[msg.sender] || (msg.sender === 'user' ? styles.user : styles.aivo)}`}>
-                  {msg.text}
-                </div>
-              ))}
+              {messages.map((msg) => {
+                const isAssistant = msg.sender === 'aivo' || msg.sender === 'aivu';
+                const messageClass = `${styles.message} ${styles[msg.sender] || (msg.sender === 'user' ? styles.user : styles.aivo)}`;
+                return (
+                  <div key={msg.id} className={messageClass}>
+                    {isAssistant ? (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={aivuMarkdownComponents}>
+                        {msg.text}
+                      </ReactMarkdown>
+                    ) : (
+                      msg.text
+                    )}
+                  </div>
+                );
+              })}
               <div ref={chatEndRef} />
             </div>
 
@@ -244,14 +325,30 @@ export default function AivoWidget() {
                 handleSend();
               }}
             >
+              <textarea
+                ref={textareaRef}
+                className={styles.chatTextarea}
+                placeholder={isSending ? "AIVU está pensando..." : "Pergunte algo ao AIVU..."}
+                value={inputValue}
+                disabled={isSending}
+                rows={1}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onCompositionStart={() => setIsComposing(true)}
+                onCompositionEnd={() => setIsComposing(false)}
+                aria-label="Mensagem para o AIVU"
+              />
               <input 
                 type="text" 
-                className={styles.chatInput}
+                tabIndex={-1}
+                aria-hidden="true"
+                className={styles.legacyInputCompat}
                 placeholder={isSending ? "AIVU está pensando..." : "Pergunte algo ao AIVU..."}
                 value={inputValue}
                 disabled={isSending}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onFocus={() => textareaRef.current?.focus()}
               />
               <button
                 type="submit"

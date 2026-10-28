@@ -355,7 +355,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
       className={className}
       style={{
         width: size, height: size, flexShrink: 0,
-        filter: themeMode === "light" ? "drop-shadow(0 14px 22px rgba(24,24,27,0.16))" : "drop-shadow(0 14px 24px rgba(0,0,0,0.55))",
+        filter: themeMode === "light" ? "drop-shadow(0 6px 12px rgba(10,46,69,0.1))" : "drop-shadow(0 6px 14px rgba(0,0,0,0.35))",
         transition: "filter 0.3s ease",
         ...style,
       }}

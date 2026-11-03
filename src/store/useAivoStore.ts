@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { AivuPageContext } from '@/lib/aivu-brain';
+import type { AivuActionProposal } from '@/lib/validations/aivu-chat';
 
 export type AivoState = 'idle' | 'greeting' | 'speaking' | 'thinking' | 'loading' | 'success' | 'error' | 'sleepy' | 'hidden' | 'minimized';
 
@@ -9,6 +10,7 @@ export interface Message {
   sender: 'user' | 'aivo' | 'aivu';
   text: string;
   timestamp: number;
+  actionProposal?: AivuActionProposal;
 }
 
 interface AivoStore {
@@ -21,6 +23,7 @@ interface AivoStore {
   
   setState: (state: AivoState) => void;
   addMessage: (msg: Omit<Message, 'id' | 'timestamp'>) => void;
+  updateMessageProposal: (messageId: string, updatedProposal: Partial<AivuActionProposal>) => void;
   clearMessages: () => void;
   setTargetAnchor: (anchor: string | null) => void;
   setIsOpen: (isOpen: boolean) => void;
@@ -43,6 +46,13 @@ export const useAivoStore = create<AivoStore>()(
       setState: (state) => set({ state }),
       addMessage: (msg) => set((prev) => ({
         messages: [...prev.messages, { ...msg, id: Math.random().toString(36).substr(2, 9), timestamp: Date.now() }]
+      })),
+      updateMessageProposal: (messageId, updatedProposal) => set((prev) => ({
+        messages: prev.messages.map((m) =>
+          m.id === messageId && m.actionProposal
+            ? { ...m, actionProposal: { ...m.actionProposal, ...updatedProposal } }
+            : m
+        ),
       })),
       clearMessages: () => set({ messages: [] }),
       setTargetAnchor: (targetAnchor) => set({ targetAnchor }),

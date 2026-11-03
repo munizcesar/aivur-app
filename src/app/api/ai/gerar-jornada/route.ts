@@ -19,13 +19,18 @@ const jornadaRateLimiter = new InMemoryRateLimiter({
 });
 
 function resolveEnv(): any {
+  let cfEnv: Record<string, any> = {};
   try {
     const ctx = getRequestContext();
-    if (ctx?.env) return ctx.env;
+    if (ctx?.env) cfEnv = ctx.env as any;
   } catch (_) {}
+
+  if (cfEnv.GROQ_API_KEY) return cfEnv;
+
   const g = globalThis as any;
-  if (g.GROQ_API_KEY) return g;
-  return process.env;
+  if (g.GROQ_API_KEY) return { ...cfEnv, ...g };
+
+  return { ...cfEnv, ...(process.env as any) };
 }
 
 export async function POST(req: Request) {

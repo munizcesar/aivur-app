@@ -47,9 +47,25 @@ const aivuMarkdownComponents: Components = {
   hr: () => <hr className={styles.mdHr} />,
 };
 
+import ActionProposalCard from "./ActionProposalCard";
+import { CopyMessageButton } from "./CopyMessageButton";
+import { prepareAivuChatPayload, type AivuActionProposal } from "@/lib/validations/aivu-chat";
+
 export default function AivoWidget() {
   const pathname = usePathname();
-  const { state, messages, isOpen, targetAnchor, isSending, activeContext, setIsOpen, addMessage, setState, setIsSending } = useAivoStore();
+  const {
+    state,
+    messages,
+    isOpen,
+    targetAnchor,
+    isSending,
+    activeContext,
+    setIsOpen,
+    addMessage,
+    updateMessageProposal,
+    setState,
+    setIsSending,
+  } = useAivoStore();
   const isDrawerOpen = useQuizStore(s => s.isDrawerOpen);
   const quizModeActive = useQuizStore(s => s.step === 3 && s.mode !== 'redacao' && s.mode !== 'aivos360'); 
 
@@ -154,47 +170,24 @@ export default function AivoWidget() {
     setInputValue("");
     setState('thinking');
 
-    // Monta o histórico recente para contexto (máximo 8 mensagens)
-    const historyPayload = messages
-      .slice(-8)
-      .map((m) => ({
-        role: m.sender === 'user' ? ('user' as const) : ('assistant' as const),
-        content: m.text,
-      }));
-
-    // Determina o contexto da página: prioriza activeContext explícito ou infere da rota atual
-    let effectiveContext = activeContext;
-    if (!effectiveContext && pathname) {
-      let derivedModulo: "home" | "jornadas" | "trilhas" | "questoes" | "material" | "redacao" | "auth" | "geral" = "geral";
-      if (pathname === "/" || pathname === "/dashboard") derivedModulo = "home";
-      else if (pathname.includes("jornada")) derivedModulo = "jornadas";
-      else if (pathname.includes("trilha")) derivedModulo = "trilhas";
-      else if (pathname.includes("questao") || pathname.includes("questoes")) derivedModulo = "questoes";
-      else if (pathname.includes("material")) derivedModulo = "material";
-      else if (pathname.includes("redacao")) derivedModulo = "redacao";
-      else if (pathname.includes("login") || pathname.includes("register")) derivedModulo = "auth";
-
-      effectiveContext = {
-        pathname: pathname.slice(0, 200),
-        modulo: derivedModulo,
-        atividade: "navegando",
-      };
-    }
+    // Prepara o payload defensivo separando message, material_text e history sumarizado
+    const payload = prepareAivuChatPayload({
+      text,
+      messages,
+      activeContext,
+      pathname,
+    });
 
     try {
       const response = await fetch("/api/ai/aivu/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: text,
-          history: historyPayload,
-          context: effectiveContext || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
-        const data = await response.json() as { reply: string; state?: string };
-        addMessage({ sender: 'aivo', text: data.reply });
+        const data = await response.json() as { reply: string; state?: string; actionProposal?: AivuActionProposal };
+        addMessage({ sender: 'aivo', text: data.reply, actionProposal: data.actionProposal });
         clearRecoveryTimer();
         setState('speaking');
         recoveryTimerRef.current = setTimeout(() => {
@@ -306,9 +299,22 @@ export default function AivoWidget() {
                 return (
                   <div key={msg.id} className={messageClass}>
                     {isAssistant ? (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={aivuMarkdownComponents}>
-                        {msg.text}
-                      </ReactMarkdown>
+                      <>
+                        <div className={styles.messageContent}>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} components={aivuMarkdownComponents}>
+                            {msg.text}
+                          </ReactMarkdown>
+                        </div>
+                        {isAssistant && msg.actionProposal && (
+                          <ActionProposalCard
+                            proposal={msg.actionProposal}
+                            onUpdate={(updated) => updateMessageProposal(msg.id, updated)}
+                          />
+                        )}
+                        <div className={styles.messageFooter}>
+                          <CopyMessageButton text={msg.text} />
+                        </div>
+                      </>
                     ) : (
                       msg.text
                     )}

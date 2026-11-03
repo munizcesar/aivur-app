@@ -20,13 +20,18 @@ export const aivuChatRateLimiter = new InMemoryRateLimiter({
 });
 
 function resolveEnv(): Record<string, string | undefined> {
+  let cfEnv: Record<string, any> = {};
   try {
     const ctx = getRequestContext();
-    if (ctx?.env) return ctx.env as any;
+    if (ctx?.env) cfEnv = ctx.env as any;
   } catch (_) {}
+
+  if (cfEnv.GROQ_API_KEY) return cfEnv;
+
   const g = globalThis as any;
-  if (g.GROQ_API_KEY) return g;
-  return process.env as any;
+  if (g.GROQ_API_KEY) return { ...cfEnv, ...g };
+
+  return { ...cfEnv, ...(process.env as any) };
 }
 
 export async function POST(req: Request) {
@@ -75,7 +80,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { message, history, context } = parseResult.data;
+  const { message, material_text, history, context } = parseResult.data;
 
   // 4. Resolução de credenciais do provedor de IA
   const env = resolveEnv();
@@ -88,7 +93,30 @@ export async function POST(req: Request) {
     );
   }
 
-  // 5. Construção do contexto inteligente e histórico via montador pedagógico
+  // 5. Roteamento Inteligente: Detecção de Edital e Geração de Proposta de Jornada
+  const { isEditalPattern, parseEditalToProposal } = await import("@/lib/aivu-edital");
+  const candidateEdital = material_text || (isEditalPattern(message) ? message : undefined);
+
+  if (candidateEdital) {
+    try {
+      const editalResult = await parseEditalToProposal({
+        editalText: candidateEdital,
+        groqApiKeys,
+      });
+
+      if (editalResult.success && editalResult.actionProposal && editalResult.reply) {
+        return NextResponse.json({
+          reply: editalResult.reply,
+          state: "speaking",
+          actionProposal: editalResult.actionProposal,
+        });
+      }
+    } catch (editalErr: any) {
+      console.warn("[aivu/chat] Falha na extração de edital, caindo para conversa padrão:", editalErr);
+    }
+  }
+
+  // 6. Construção do contexto inteligente e histórico via montador pedagógico
   const { assembleAivuPromptMessages } = await import("@/lib/aivu-brain");
   const messages = assembleAivuPromptMessages({
     message,

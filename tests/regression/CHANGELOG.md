@@ -111,3 +111,37 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
   - Simulação de redução de viewport por teclado virtual (360x440), comprovando que o cabeçalho e os controles de envio permanecem visíveis e acessíveis sem ejeção do topo.
   - Validação de cenário extremo com altura visual inferior a 284px (360x260), assegurando que o teto dinâmico encolhe sem extrapolar o topo.
   - Validação de preservação do layout desktop flutuante (1280x900, largura 340px, position: absolute, sem estilos inline).
+
+## 2026-10-28 — AIVU Autonomia (Etapa 1: Ingestão de Edital e Criação Confirmada de Jornada)
+
+- ADD REG-AIVU-018 (camada API):
+  - Ingestão de edital e conteúdo programático completo no chat do AIVU via `POST /api/ai/aivu/chat` com suporte a `material_text` de até 15.000 caracteres.
+  - Roteamento inteligente agêntico para estruturação de ementa (disciplinas e tópicos sequenciais) validada contra `JornadaEmentaSchema`.
+  - Preparação autoritativa no servidor do objeto `actionProposal` com payload transacional compatível com `CriarJornadaRequestSchema` e cálculo determinístico dos hashes criptográficos `doc_original_hash` e `ementa_hash`.
+  - Garantia de resposta estruturada com status 200, sem persistência prematura ou mutação automática no banco D1 antes do consentimento do usuário.
+- ADD REG-AIVU-019 (camada API / Persistência D1):
+  - Confirmação explícita e persistência da proposta de jornada no D1 através de `POST /api/jornadas` com transação atômica em lote (`jornadas` e `jornada_topicos`).
+  - Proteção e idempotência contra cliques repetidos ou reenvios com mesmo `ementa_hash`, retornando HTTP 200 com flag `reused: true` sem criar registros duplicados.
+  - Validação rigorosa no servidor barrando payloads com hashes ou disciplinas adulteradas com HTTP 400 antes de qualquer operação no banco.
+
+## 2026-10-29 — AIVU Autonomia (Etapa 1: Hardening e Teste de Navegador)
+
+- ADD REG-AIVU-020 (camada Navegador):
+  - Validação no Puppeteer do fluxo visual de proposta e confirmação do edital no widget AIVU.
+  - Abertura do chat, digitação no composer e envio da solicitação com mock controlado de IA.
+  - Renderização visual do `ActionProposalCard` com título, contadores de disciplinas/tópicos e prévia formatada das matérias.
+  - Confirmação explícita pelo aluno através de clique no botão de ação.
+  - Interceptação da chamada `POST /api/jornadas`, transição visual de estado e exibição do link direto de navegação à jornada criada (`/jornadas/{id}`).
+
+## 2026-11-02 — AIVU (Separação Defensiva de Material, Mensagem e Histórico Conversacional)
+
+- ADD REG-AIVU-021 … 024 (camada API):
+  - REG-AIVU-021: Edital extenso colado pelo usuário (4.987 chars) recuperado e transmitido integralmente em `material_text` na mensagem subsequente de análise, enquanto o histórico converte a mensagem para o marcador seguro `[Edital enviado anteriormente]`, retornando HTTP 200 com `actionProposal`.
+  - REG-AIVU-022: Histórico extenso contendo mensagens densas ou múltiplos blocos é devidamente podado/sumarizado (cada item <= 1800 chars), satisfazendo o schema Zod (max 2000) e eliminando erros HTTP 400.
+  - REG-AIVU-023: Preservação do material bruto integral enviado em `material_text` para o parser de IA (`parseEditalToProposal`), assegurando que a sumarização do histórico não degrade o conteúdo ou os hashes criptográficos da ementa gerada.
+  - REG-AIVU-024: Conversas comuns continuam operando normalmente com histórico sem material_text, sem acionamento espúrio da extração de edital e com preservação total das respostas pedagógicas.
+
+## 2026-11-02 — AIVU (Ação de Cópia Acessível nas Respostas do Assistente)
+
+- ADD REG-AIVU-025 (camada API): Utilitário seguro `copyToClipboard` copia respostas simples, múltiplos parágrafos, listas e textos densos (>5.000 chars) com preservação total de estrutura, isolamento contra controles de interface e resiliência via fallback `document.execCommand('copy')` em caso de erro de permissão.
+- ADD REG-AIVU-026 (camada Browser): Botão de copiar acessível no widget AIVU no chat, feedback visual 'Copiado!', atributos acessíveis para leitores de tela (`aria-label`, `role="status"`, `aria-live="polite"`) e operação adequada em viewport mobile (390px).

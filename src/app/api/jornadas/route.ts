@@ -212,7 +212,39 @@ export async function POST(req: Request) {
       }
     }
 
-    const batchResults = await db.batch(statements);
+    let batchResults: any[];
+    try {
+      batchResults = await db.batch(statements);
+    } catch (batchErr: any) {
+      const errorMsg = String(batchErr?.message || batchErr || "");
+      const isUniqueConstraint =
+        errorMsg.includes("UNIQUE constraint failed") &&
+        (errorMsg.includes("ementa_hash") ||
+          errorMsg.includes("idx_jornadas_user_hash") ||
+          errorMsg.includes("jornadas.user_id"));
+
+      if (isUniqueConstraint) {
+        const fallbackExisting = await db
+          .prepare("SELECT id FROM jornadas WHERE user_id = ? AND ementa_hash = ?")
+          .bind(userId, data.ementa_hash)
+          .first<{ id: string }>();
+
+        if (fallbackExisting?.id) {
+          return NextResponse.json(
+            {
+              id: fallbackExisting.id,
+              message: "Jornada já existente para esta ementa. Redirecionando.",
+              is_existing: true,
+              reused: true,
+            },
+            { status: 200 }
+          );
+        }
+      }
+
+      throw batchErr;
+    }
+
     for (const res of batchResults) {
       if (!res.success) {
         throw new Error("Falha na transação batch de persistência da jornada.");

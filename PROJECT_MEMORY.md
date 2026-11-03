@@ -882,3 +882,123 @@ Antes de qualquer alteração futura em Trilhas:
   - Validação da preservação integral do layout desktop flutuante (1280x900, largura 340px, position: absolute, sem estilos inline).
 - **Placar oficial:** **62/62 PASS** (`npm run regression`: 52 testes de API + 10 testes de navegador em Puppeteer 100% aprovados).
 - **TypeScript & Build:** `npx tsc --noEmit` exit 0; `npm run build` exit 0.
+
+## 23. AIVU Autonomia — Etapa 1: Ingestão de Edital e Criação Confirmada de Jornada (2026-10-28)
+
+### 1. Decisões Arquiteturais e Implementação
+- **Validação e Contratos Zod (`src/lib/validations/aivu-chat.ts`):**
+  - Adicionado campo opcional `material_text: z.string().trim().min(50).max(15000).optional()` no `AivuChatRequestSchema`, permitindo envio de editais longos enquanto o campo `message` permanece protegido com teto defensivo de 1.000 caracteres (preservando o teste `REG-AIVU-002`).
+  - Criado o contrato estruturado `AivuActionProposalSchema` vinculado ao `CriarJornadaRequestSchema`, integrando hashes criptográficos SHA-256 (`doc_original_hash` e `ementa_hash`).
+  - Adicionado `actionProposal?: AivuActionProposalSchema.optional()` no `AivuChatResponseSchema`.
+- **Módulo de Extração e Roteamento de Editais (`src/lib/aivu-edital.ts`):**
+  - Implementado helper isolado com função heurística `isEditalPattern(text)` para identificação de termos e estruturas programáticas de editais.
+  - Implementada extração estruturada assíncrona `parseEditalToProposal` consumindo Groq com failover (`openai/gpt-oss-120b`), cálculo de hashes criptográficos e validação contra `JornadaEmentaSchema`.
+- **Roteador no Chat do AIVU (`src/app/api/ai/aivu/chat/route.ts`):**
+  - Interceptação de mensagens contendo `material_text` ou padrão de edital, delegando para `parseEditalToProposal`.
+  - Retorno HTTP 200 com a resposta pedagógica explicativa + objeto `actionProposal` preparado.
+  - Princípio de Menor Privilégio: zero mutações ou gravações automáticas no banco D1 antes do consentimento do usuário.
+- **Componente e Interface de Ação (`src/components/Aivo/ActionProposalCard.tsx` e `.module.css`):**
+  - Renderização do card dentro da bolha de mensagem do assistente com design institucional sóbrio.
+  - Exibição de resumo com contagem de disciplinas e tópicos, lista de prévia de matérias e botão de CTA "Confirmar e Criar Jornada".
+  - Bloqueio contra cliques duplicados (`disabled={isSubmitting}`) e estado de loading durante persistência.
+  - Chamada autenticada a `POST /api/jornadas` persistindo no D1 de forma transacional. Idempotência garantida pelo índice único `(user_id, ementa_hash)` — se já existir, redireciona sem duplicar registros.
+  - Transição para estado de sucesso com link direto para `/jornadas/[id]`.
+- **Gerenciador de Estado Global (`src/store/useAivoStore.ts`):**
+  - Estendida a interface `Message` com `actionProposal?: AivuActionProposal`.
+  - Adicionada a mutação `updateMessageProposal(id, partialProposal)`.
+
+### 2. Proteção Evolutiva (Regression Gate)
+- Adicionados os casos `REG-AIVU-018` e `REG-AIVU-019` em `tests/regression/aivu/chat.case.mjs`, registrados em `tests/regression/baseline.json` e `CHANGELOG.md`:
+  - `REG-AIVU-018`: Ingestão de edital via chat, extração de ementa, preparação do payload Zod e garantia de zero persistência no D1 antes da confirmação.
+  - `REG-AIVU-019`: Confirmação da proposta pelo aluno persistindo no D1 com integridade referencial via SQLite in-memory mock, idempotência por `ementa_hash` contra cliques repetidos e rejeição de payloads adulterados com 400.
+- **Placar oficial:** **64/64 PASS** (`npm run regression`: 54 testes de API + 10 testes de navegador em Puppeteer 100% aprovados).
+- **TypeScript & Build:** `npx tsc --noEmit` exit 0; `npm run build` exit 0 (13/13 páginas compiladas).
+- **Git Check:** `git diff --check` exit 0 (zero erros de whitespace).
+
+## 24. AIVU Autonomia — Hardening Final da Etapa 1 (2026-10-29)
+
+### 1. Hardening e Correções Preventivas
+- **Idempotência Concorrente (`src/app/api/jornadas/route.ts`):**
+  - Tratamento específico de violação de unicidade da constraint `(user_id, ementa_hash)` durante o `db.batch(statements)`.
+  - Em caso de colisão concorrente (`UNIQUE constraint failed`), o endpoint consulta a jornada existente do usuário e retorna HTTP 200 com flag `reused: true`, sem mascarar erros não relacionados de banco.
+- **Proteção contra Prompt Injection (`src/lib/aivu-edital.ts`):**
+  - Prompt de sistema reforçado tratando o edital estritamente como dados brutos externos não confiáveis (`DIRETRIZES DE SEGURANÇA E CONTEÚDO NÃO CONFIÁVEL (INVIOLÁVEIS)`).
+  - Sanitização de aspas triplas para neutralizar escape de delimitadores.
+  - Saída validada imperativamente pelos schemas Zod `JornadaEmentaSchema` e `CriarJornadaRequestSchema`.
+- **Editais Densos (`src/lib/aivu-edital.ts` e `@/lib/jornada-chunking`):**
+  - Reutilização segura de `splitEditalIntoBlocks` e `consolidateDisciplinas`, processando blocos sem truncamento silencioso de JSON.
+- **Teste Visual de Navegador (`tests/regression/aivu/chat.case.mjs` - `REG-AIVU-020`):**
+  - Teste automatizado em Puppeteer cobrindo abertura do chat, submissão de edital, renderização do `ActionProposalCard`, confirmação de criação e transição de estado visual com link direto para `/jornadas/[id]`.
+  - Interceptação mockada sem credenciais reais nem persistência em produção.
+
+### 2. Validação Oficial
+- **Placar oficial:** **65/65 PASS** (`npm run regression`: 54 testes de API + 11 testes de navegador em Puppeteer 100% aprovados).
+- **TypeScript:** `npx tsc --noEmit` exit 0.
+- **Build de Produção:** `npm run build` exit 0 (13/13 páginas compiladas).
+- **Git Check:** `git diff --check` exit 0.
+
+## 25. AIVU Autonomia — Separação Defensiva de Material, Mensagem e Histórico Conversacional (2026-11-02)
+
+### 1. Diagnóstico e Causa Raiz
+- O envio de editais extensos (> 2.000 caracteres) diretamente no corpo de chat fazia com que a mensagem original ficasse preservada no array `messages` do frontend.
+- Ao enviar a mensagem subsequente solicitando a análise (ex: "Analise o conteúdo programático e prepare minha Jornada"), o frontend transmitia o edital integral no array `history`.
+- O schema Zod `AivuChatMessageSchema` limita mensagens históricas a 2.000 caracteres, disparando HTTP 400 antes de alcançar a Groq ou o parser.
+
+### 2. Solução Arquitetural
+- **`src/lib/validations/aivu-chat.ts`:**
+  - Exportadas as funções `isEditalPattern(text)` (heurística refinada para detecção de editais sem confundir com comandos curtos), `isAnalysisRequest(text)` (detecção de intenção de análise e criação de jornada), `findPreviousEdital(messages)` (busca reversa pelo edital prévio íntegro colado no chat) e `prepareAivuChatPayload({ text, messages })`.
+  - Separação estrita de contratos:
+    1. `message`: instrução atual do usuário (<= 1.000 caracteres).
+    2. `material_text`: texto integral do edital recuperado sem truncamento (<= 15.000 caracteres).
+    3. `history`: mensagens anteriores seguras, com editais prévios sumarizados para o marcador `[Edital enviado anteriormente]` e teto de 1.800 caracteres por item.
+  - Preservados os limites Zod existentes (`max(2000)` para mensagens históricas e `max(15000)` para `material_text`).
+- **`src/components/Aivo/AivoWidget.tsx`:**
+  - Utilização de `prepareAivuChatPayload` no `handleSend`.
+  - O estado local do chat `messages` permanece com o texto integral não truncado para leitura do aluno; apenas o payload de rede transmite o `history` sumarizado e o `material_text` íntegro.
+- **`src/app/api/ai/aivu/chat/route.ts`:**
+  - Priorização de `material_text` sobre `message` para seleção de `candidateEdital` encaminhado ao `parseEditalToProposal`.
+  - Zero persistência no D1 antes da confirmação explícita do aluno pelo card `actionProposal`.
+
+### 3. Proteção Evolutiva (Regression Gate)
+- Adicionados os casos `REG-AIVU-021` a `REG-AIVU-024` em `tests/regression/aivu/chat.case.mjs`, registrados na baseline (`tests/regression/baseline.json`) e `CHANGELOG.md`:
+  - `REG-AIVU-021`: Edital extenso (4.987 chars) seguido de solicitação curta recupera o material em `material_text` com histórico sumarizado, retornando HTTP 200 e `actionProposal`.
+  - `REG-AIVU-022`: Histórico extenso com múltiplas mensagens densas é podado com segurança sem violar `max(2000)` e sem retornar HTTP 400.
+  - `REG-AIVU-023`: Preservação total do material: o texto original do edital permanece integralmente disponível para o parser/chunker e a sumarização do histórico não afeta a análise.
+  - `REG-AIVU-024`: Conversas normais operam sem `material_text` espúrio e sem geração indevida de proposta.
+- **Placar oficial:** **69/69 PASS** (`npm run regression`: 58 testes de API + 11 testes de navegador em Puppeteer 100% aprovados).
+- **TypeScript:** `npx tsc --noEmit` exit 0.
+- **Build de Produção:** `npm run build` exit 0 (13/13 páginas compiladas).
+- **Git Check:** `git diff --check` exit 0.
+
+## 26. AIVU — Ação de Cópia em Mensagens do Assistente (2026-11-02)
+
+### 1. Decisões Arquiteturais e Implementação
+- **Utilitário Resiliente de Cópia (`src/lib/clipboard.ts`):**
+  - Função assíncrona `copyToClipboard(text: string): Promise<boolean>`.
+  - Prioriza a moderna Clipboard API (`navigator.clipboard.writeText`).
+  - Fallback universal compatível: cria elemento `<textarea>` off-screen (`position: fixed; opacity: 0; pointer-events: none`), preserva a seleção e foco prévios do usuário no DOM, executa `document.execCommand('copy')` e remove o elemento com segurança no bloco `finally`.
+  - Tratamento defensivo: captura rejeições de permissão ou restrições de sandbox sem propagar exceções e sem interromper o fluxo do chat.
+- **Componente Dedicado (`src/components/Aivo/CopyMessageButton.tsx`):**
+  - Renderiza o botão de cópia associado exclusivamente ao texto integral da resposta do assistente (`msg.text`).
+  - Isolamento estrito: copia exclusivamente o conteúdo textual, ignorando controles de interface, cards de proposta (`ActionProposalCard`), botões ou ícones.
+  - Preserva integralmente quebras de linha, parágrafos, listas numeradas e bullets markdown.
+  - Feedback visual dinâmico: transição do ícone `Copy` para `Check` e do texto "Copiar" para "Copiado!" com realce esmeralda durante 2.000ms.
+  - Temporizador limpo: cancelamento automático de `setTimeout` pendente via `useEffect` no unmount do componente.
+  - Acessibilidade WCAG 2.2: `aria-label` descritivo atualizado no estado de cópia, `role="status"` e `aria-live="polite"` com container `.srOnly` para leitores de tela.
+  - Conformidade com a Regra de Titânio: ícones com `size={13}` e classes `shrink-0 flex-none`, sem classes `w-N h-N` conflitantes.
+- **Estilos Modulares e Responsividade (`src/components/Aivo/AivoWidget.module.css`):**
+  - Container `.messageFooter` posicionado no final da bolha da mensagem.
+  - Desktop: botão discreto integrado ao fluxo com opacidade sutil (`0.65`), realçado para `1` sob hover (`@media (hover: hover)`).
+  - Mobile: `@media (hover: none), (max-width: 768px)` mantém o botão permanentemente visível com opacidade `0.9` e área de toque otimizada (`min-height: 28px`), acessível sem depender de hover.
+- **Integração no Widget (`src/components/Aivo/AivoWidget.tsx`):**
+  - Renderizado cirurgicamente dentro de `<div className={styles.messageFooter}>` apenas para mensagens do assistente (`isAssistant`).
+  - Zero alteração no fluxo de envio, histórico, criação de jornadas ou conexões de API.
+
+### 2. Proteção Evolutiva (Regression Gate)
+- Adicionados os casos `REG-AIVU-025` (API/Unit) e `REG-AIVU-026` (Navegador/E2E) em `tests/regression/aivu/chat.case.mjs`, registrados na baseline (`tests/regression/baseline.json`) e `CHANGELOG.md`:
+  - `REG-AIVU-025`: Utilitário seguro copia respostas simples, múltiplos parágrafos, listas, textos extensos (>5.000 chars), isola controles da interface e resiste a falhas/rejeições de permissão da Clipboard API.
+  - `REG-AIVU-026`: Teste de navegador (Puppeteer) confirmando renderização do botão no chat, transição para "Copiado!", atributos de acessibilidade (`aria-label`, `aria-live="polite"`) e visibilidade/operação em viewport mobile (390px).
+- **Placar oficial:** **71/71 PASS** (`npm run regression`: 59 testes de API + 12 testes de navegador em Puppeteer 100% aprovados).
+- **TypeScript:** `npx tsc --noEmit` exit 0.
+- **Build de Produção:** `npm run build` exit 0 (13/13 páginas compiladas).
+- **Git Check:** `git diff --check` exit 0.

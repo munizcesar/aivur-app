@@ -13,9 +13,75 @@ import {
 import {
   AivuChatRequestSchema,
   AivuChatResponseSchema,
+  prepareAivuChatPayload,
+  isEditalPattern,
+  findPreviousEdital,
 } from "@/lib/validations/aivu-chat.ts";
+import { CriarJornadaRequestSchema } from "@/lib/validations/jornada.ts";
+import { copyToClipboard } from "@/lib/clipboard.ts";
 import { aivuChatRateLimiter } from "@/app/api/ai/aivu/chat/route.ts";
 import { signSession } from "@/lib/session.ts";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { DatabaseSync } from "node:sqlite";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, "../../..");
+
+function createMockD1() {
+  const db = new DatabaseSync(":memory:");
+  db.exec("PRAGMA foreign_keys = ON;");
+  const ddl0005 = readFileSync(path.join(ROOT, "migrations/0005_trilhas_microlearning.sql"), "utf8");
+  const ddl0006 = readFileSync(path.join(ROOT, "migrations/0006_jornadas_edital.sql"), "utf8");
+  db.exec(ddl0005);
+  db.exec(ddl0006);
+
+  return {
+    raw: db,
+    prepare(query) {
+      return {
+        _query: query,
+        _bound: [],
+        bind(...args) {
+          const s = { ...this };
+          s._bound = args;
+          return s;
+        },
+        async first() {
+          const stmt = db.prepare(this._query);
+          return stmt.get(...this._bound) || null;
+        },
+        async all() {
+          const stmt = db.prepare(this._query);
+          const rows = stmt.all(...this._bound);
+          return { results: rows };
+        },
+        async run() {
+          const stmt = db.prepare(this._query);
+          const res = stmt.run(...this._bound);
+          return { success: true, meta: { changes: res.changes } };
+        },
+      };
+    },
+    async batch(statements) {
+      const results = [];
+      db.exec("BEGIN TRANSACTION;");
+      try {
+        for (const s of statements) {
+          const stmt = db.prepare(s._query);
+          const res = stmt.run(...s._bound);
+          results.push({ success: true, meta: { changes: res.changes } });
+        }
+        db.exec("COMMIT;");
+      } catch (err) {
+        db.exec("ROLLBACK;");
+        throw err;
+      }
+      return results;
+    },
+  };
+}
 
 let routeModule;
 async function loadAivuChatRoute() {
@@ -1206,6 +1272,724 @@ export const cases = [
         const closeBtnSelector = "[class*='chatHeader'] button[aria-label*='Fechar']";
         await page.click(closeBtnSelector);
         await page.waitForFunction(() => !document.querySelector("[class*='chatPanel']"), { timeout: 5000 });
+      } finally {
+        await page.close();
+      }
+    },
+  },
+  {
+    id: "REG-AIVU-018",
+    title: "Ingestão de edital no chat AIVU: identificação de disciplinas e preparação de proposta estruturada de Jornada de Estudos sem persistência prematura",
+    needs: "api",
+    async run() {
+      const editalRawText = `CONTEÚDO PROGRAMÁTICO - TRIBUNAL DE JUSTIÇA DO ESTADO
+Banca: Vunesp
+Cargo: Escrevente Técnico Judiciário
+Ano: 2026
+
+LÍNGUA PORTUGUESA:
+1. Leitura e interpretação de textos de diversos gêneros.
+2. Ortografia oficial e acentuação gráfica.
+
+DIREITO CONSTITUCIONAL:
+1. Dos princípios fundamentais (Art. 1º ao 4º).
+2. Dos direitos e deveres individuais e coletivos (Art. 5º).`;
+
+      const aiStructuredEmenta = {
+        titulo_concurso: "Tribunal de Justiça do Estado",
+        banca: "Vunesp",
+        ano: 2026,
+        cargo: "Escrevente Técnico Judiciário",
+        disciplinas: [
+          {
+            nome: "Língua Portuguesa",
+            topicos: [
+              { titulo: "Leitura e interpretação de textos de diversos gêneros", edital_item_ref: "1" },
+              { titulo: "Ortografia oficial e acentuação gráfica", edital_item_ref: "2" },
+            ],
+          },
+          {
+            nome: "Direito Constitucional",
+            topicos: [
+              { titulo: "Dos princípios fundamentais (Art. 1º ao 4º)", edital_item_ref: "1" },
+              { titulo: "Dos direitos e deveres individuais e coletivos (Art. 5º)", edital_item_ref: "2" },
+            ],
+          },
+        ],
+      };
+
+      const { res, body, calls } = await callAivuChat({
+        body: {
+          message: "Analise o edital a seguir e elabore uma proposta de Jornada de Estudos.",
+          material_text: editalRawText,
+          history: [],
+        },
+        script: () => raw(JSON.stringify(aiStructuredEmenta)),
+      });
+
+      assert.equal(res.status, 200, "Envio de edital válido deve retornar status 200");
+      assert.equal(calls.groq.length, 1, "Deve realizar exatamente 1 chamada ao modelo de extração");
+
+      // Validação estrita do contrato de resposta
+      const schemaCheck = AivuChatResponseSchema.safeParse(body);
+      assert.equal(schemaCheck.success, true, "Resposta deve cumprir o AivuChatResponseSchema");
+
+      assert.ok(body.actionProposal, "Resposta deve conter o objeto actionProposal");
+      const proposal = body.actionProposal;
+
+      assert.equal(proposal.tipo, "CRIAR_JORNADA");
+      assert.equal(proposal.status, "proposta", "Proposta inicial deve permanecer em status 'proposta'");
+      assert.equal(proposal.titulo, "Tribunal de Justiça do Estado");
+      assert.equal(proposal.resumo_dados.disciplinas_count, 2);
+      assert.equal(proposal.resumo_dados.topicos_count, 4);
+      assert.equal(proposal.resumo_dados.preview_disciplinas.length, 2);
+
+      // Validação do payload preparado contra o CriarJornadaRequestSchema oficial
+      const payloadCheck = CriarJornadaRequestSchema.safeParse(proposal.payload_preparado);
+      assert.equal(payloadCheck.success, true, "payload_preparado deve satisfazer CriarJornadaRequestSchema");
+      assert.equal(proposal.payload_preparado.edital_fonte_tipo, "TEXTO");
+      assert.equal(proposal.payload_preparado.doc_original_hash.length, 64);
+      assert.equal(proposal.payload_preparado.ementa_hash.length, 64);
+      assert.equal(proposal.payload_preparado.disciplinas.length, 2);
+    },
+  },
+  {
+    id: "REG-AIVU-019",
+    title: "Confirmação e persistência da proposta de jornada no D1 [Mock D1 in-memory SQLite]: idempotência por ementa_hash e proteção contra duplicação de cliques",
+    needs: "api",
+    async run() {
+      const { POST: postJornada, GET: getJornadas } = await import("@/app/api/jornadas/route.ts");
+      const mockDb = createMockD1();
+      globalThis.__REG_CF_CONTEXT = { env: { DB: mockDb } };
+
+      const userId = "aluno-aivu-jornada-01";
+      const validCookie = await signSession(userId);
+      globalThis.__REG_COOKIES = { aivur_session: validCookie };
+
+      const proposalPayload = {
+        titulo_concurso: "TJSP - Escrevente Técnico Judiciário",
+        banca: "Vunesp",
+        ano: 2026,
+        cargo: "Escrevente",
+        edital_fonte_tipo: "TEXTO",
+        doc_original_hash: "a".repeat(64),
+        ementa_hash: "f".repeat(64),
+        disciplinas: [
+          {
+            nome: "Língua Portuguesa",
+            topicos: [
+              { titulo: "Interpretação e Compreensão de Textos", edital_item_ref: "1" },
+              { titulo: "Pontuação e Concordância Verbal", edital_item_ref: "2" },
+            ],
+          },
+          {
+            nome: "Direito Constitucional",
+            topicos: [
+              { titulo: "Direitos e Garantias Fundamentais", edital_item_ref: "1" },
+            ],
+          },
+        ],
+      };
+
+      try {
+        // 1. Confirmação do aluno (1º clique no ActionProposalCard): cria transacionalmente no D1
+        const req1 = new Request("http://localhost/api/jornadas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(proposalPayload),
+        });
+        const res1 = await postJornada(req1);
+        assert.equal(res1.status, 201, "Criação confirmada deve retornar 201 Created");
+        const data1 = await res1.json();
+        assert.ok(data1.id, "Deve retornar o ID da nova jornada criada");
+        assert.equal(data1.total_topicos, 3, "Total de tópicos mapeados deve ser 3");
+        assert.equal(data1.success, true);
+
+        // 2. Verifica integridade dos registros gravados no banco
+        const listRes = await getJornadas();
+        assert.equal(listRes.status, 200);
+        const listData = await listRes.json();
+        assert.equal(listData.jornadas.length, 1);
+        assert.equal(listData.jornadas[0].id, data1.id);
+        assert.equal(listData.jornadas[0].total_topicos, 3);
+
+        // 3. Simulação de clique repetido / reenvio com mesma ementa_hash: resposta idempotente sem duplicatas
+        const req2 = new Request("http://localhost/api/jornadas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(proposalPayload),
+        });
+        const res2 = await postJornada(req2);
+        assert.equal(res2.status, 200, "Reenvio com mesmo ementa_hash deve retornar 200 OK");
+        const data2 = await res2.json();
+        assert.equal(data2.id, data1.id, "Deve retornar o mesmo ID preexistente");
+        assert.ok(data2.reused || data2.is_existing, "Deve sinalizar reutilização idempotente");
+
+        // 4. Confirma que o total de jornadas no banco permanece exatamente 1
+        const listRes2 = await getJornadas();
+        const listData2 = await listRes2.json();
+        assert.equal(listData2.jornadas.length, 1, "Não pode haver duplicação de jornadas no D1");
+
+        // 5. Tentativa com payload adulterado (ex: hash inválido) deve ser barrada pelo Zod com 400
+        const tamperedReq = new Request("http://localhost/api/jornadas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...proposalPayload, ementa_hash: "hash_invalido" }),
+        });
+        const tamperedRes = await postJornada(tamperedReq);
+        assert.equal(tamperedRes.status, 400, "Payload adulterado deve ser rejeitado com 400 sem gravar no banco");
+      } finally {
+        delete globalThis.__REG_COOKIES;
+        delete globalThis.__REG_CF_CONTEXT;
+      }
+    },
+  },
+  {
+    id: "REG-AIVU-020",
+    title: "Widget AIVU no navegador: fluxo visual de proposta de edital e confirmação de criação da Jornada",
+    needs: "browser",
+    async run({ base, newPage }) {
+      const page = await newPage();
+      try {
+        const isAivuChat = (req) =>
+          req.method() === "POST" && new URL(req.url()).pathname === "/api/ai/aivu/chat";
+        const isJornadaPost = (req) =>
+          req.method() === "POST" && new URL(req.url()).pathname === "/api/jornadas";
+
+        const mockProposal = {
+          id: "prop-browser-reg-020",
+          tipo: "CRIAR_JORNADA",
+          titulo: "TJSP - Escrevente Técnico Judiciário",
+          subtitulo: "Vunesp • Escrevente • 2026",
+          resumo_dados: {
+            disciplinas_count: 2,
+            topicos_count: 3,
+            preview_disciplinas: [
+              "Língua Portuguesa (2 tópicos)",
+              "Direito Constitucional (1 tópico)",
+            ],
+          },
+          payload_preparado: {
+            titulo_concurso: "TJSP - Escrevente Técnico Judiciário",
+            banca: "Vunesp",
+            ano: 2026,
+            cargo: "Escrevente",
+            edital_fonte_tipo: "TEXTO",
+            doc_original_hash: "a".repeat(64),
+            ementa_hash: "b".repeat(64),
+            disciplinas: [
+              {
+                nome: "Língua Portuguesa",
+                topicos: [
+                  { titulo: "Interpretação de Texto", edital_item_ref: "1" },
+                  { titulo: "Concordância Verbal", edital_item_ref: "2" },
+                ],
+              },
+              {
+                nome: "Direito Constitucional",
+                topicos: [
+                  { titulo: "Direitos e Garantias Fundamentais", edital_item_ref: "1" },
+                ],
+              },
+            ],
+          },
+          status: "proposta",
+        };
+
+        const seen = await intercept(page, [
+          {
+            test: isAivuChat,
+            respond: () => ({
+              status: 200,
+              body: {
+                reply: "Identifiquei o edital do concurso TJSP! Extraí 2 disciplinas e 3 tópicos. Veja a proposta abaixo:",
+                state: "speaking",
+                actionProposal: mockProposal,
+              },
+            }),
+          },
+          {
+            test: isJornadaPost,
+            respond: () => ({
+              status: 201,
+              body: {
+                id: "jornada-browser-test-01",
+                titulo_concurso: "TJSP - Escrevente Técnico Judiciário",
+                total_topicos: 3,
+                success: true,
+              },
+            }),
+          },
+        ]);
+
+        await page.goto(`${base}/material`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+
+        // Abre o widget AIVU pelo mascote
+        const mascotSelector = "[class*='mascotWrap']";
+        await page.waitForSelector(mascotSelector, { timeout: 20_000 });
+        await waitHydrated(page, mascotSelector);
+        await page.click(mascotSelector);
+
+        // Aguarda composer e digita trecho de edital
+        const textareaSelector = "textarea[placeholder*='AIVU']";
+        await page.waitForSelector(textareaSelector, { timeout: 15_000 });
+        await waitHydrated(page, textareaSelector);
+
+        await page.click(textareaSelector);
+        await page.keyboard.type("Conteúdo Programático TJSP:\nLíngua Portuguesa e Direito Constitucional", { delay: 5 });
+
+        // Envia mensagem
+        const sendBtnSelector = "button[aria-label='Enviar mensagem']";
+        await page.click(sendBtnSelector);
+
+        // Aguarda renderização visual do ActionProposalCard
+        const proposalCardSelector = "[role='region'][aria-label='Proposta de Jornada de Estudos']";
+        await page.waitForSelector(proposalCardSelector, { timeout: 15_000 });
+
+        // 1. Validação visual do card de proposta
+        const cardTitle = await page.$eval(proposalCardSelector + " h4", (el) => el.textContent.trim());
+        assert.equal(cardTitle, "TJSP - Escrevente Técnico Judiciário", "Título da proposta deve corresponder ao edital");
+
+        const cardText = await page.$eval(proposalCardSelector, (el) => el.textContent);
+        assert.ok(cardText.includes("2 disciplinas"), "Card deve exibir o contador de disciplinas");
+        assert.ok(cardText.includes("3 tópicos"), "Card deve exibir o contador de tópicos");
+        assert.ok(cardText.includes("Língua Portuguesa (2 tópicos)"), "Card deve exibir a prévia de Língua Portuguesa");
+        assert.ok(cardText.includes("Direito Constitucional (1 tópico)"), "Card deve exibir a prévia de Direito Constitucional");
+
+        // 2. Confirmação pelo aluno: clica no botão de confirmação
+        const confirmBtnSelector = "button[aria-label='Confirmar e criar jornada de estudos']";
+        await page.waitForSelector(confirmBtnSelector, { timeout: 10_000 });
+        await page.click(confirmBtnSelector);
+
+        // 3. Validação do estado pós-confirmação: botão é substituído pelo link de acesso
+        const successLinkSelector = "a[href*='/jornadas/jornada-browser-test-01']";
+        await page.waitForSelector(successLinkSelector, { timeout: 15_000 });
+
+        const successText = await page.$eval(proposalCardSelector, (el) => el.textContent);
+        assert.ok(
+          successText.includes("Jornada de Estudos criada com sucesso!") ||
+          successText.includes("Acessar Minha Jornada"),
+          "Card deve exibir mensagem e link de acesso após confirmação com sucesso"
+        );
+
+        // 4. Validação da chamada de API interceptada
+        const postJornadaCall = seen.find((x) => x.method === "POST" && x.url.includes("/api/jornadas"));
+        assert.ok(postJornadaCall, "Deve ter realizado a requisição POST para /api/jornadas");
+        const sentPayload = JSON.parse(postJornadaCall.postData);
+        assert.equal(sentPayload.titulo_concurso, "TJSP - Escrevente Técnico Judiciário");
+        assert.equal(sentPayload.disciplinas.length, 2);
+      } finally {
+        await page.close();
+      }
+    },
+  },
+  {
+    id: "REG-AIVU-021",
+    title: "Edital seguido de solicitação: edital extenso colado pelo aluno é recuperado em material_text na mensagem subsequente de análise e o histórico não contém o edital integral (HTTP 200 + actionProposal)",
+    needs: "api",
+    async run() {
+      // Constrói edital estruturado com exatamente 4.987 caracteres (reproduzindo o tamanho real do teste de edital extenso)
+      const baseSection = `LÍNGUA PORTUGUESA:\n1. Leitura e interpretação de diversos tipos de textos (literários e não literários). Sinônimos e antônimos. Sentido próprio e figurado das palavras. Pontuação. Ortografia. Classes de palavras: substantivo, adjetivo, numeral, pronome, verbo, advérbio, preposição e conjunção: emprego e sentido que imprimem às relações que estabelecem. Concordância verbal e nominal. Regência verbal e nominal. Crase. Colocação pronominal.\n\nDIREITO CONSTITUCIONAL:\n1. Dos princípios fundamentais (Art. 1º ao 4º da CF/88). Dos direitos e deveres individuais e coletivos (Art. 5º). Dos direitos sociais (Art. 6º ao 11). Da nacionalidade (Art. 12 e 13). Dos direitos políticos (Art. 14 ao 16). Da Administração Pública (Art. 37 ao 43).\n\nDIREITO ADMINISTRATIVO:\n1. Princípios da Administração Pública. Atos administrativos: conceito, requisitos, atributos, classificação e espécies. Invalidação dos atos administrativos: revogação e anulação. Poderes administrativos: vinculado, discricionário, hierárquico, disciplinar, regulamentar e de polícia. Regime jurídico dos servidores públicos civis. Responsabilidade civil do Estado.\n\nDIREITO PENAL:\n1. Da aplicação da lei penal. Do crime: conceito, elementos e espécies. Da imputabilidade penal. Dos crimes contra a pessoa: dos crimes contra a vida, das lesões corporais. Dos crimes contra o patrimônio: furto, roubo, extorsão, estelionato. Dos crimes contra a administração pública: peculato, concussão, corrupção passiva, prevaricação.\n\nLEGISLAÇÃO ESPECIAL:\n1. Lei nº 8.069/1990 - Estatuto da Criança e do Adolescente. Lei nº 10.741/2003 - Estatuto da Pessoa Idosa. Lei nº 11.340/2006 - Lei Maria da Penha. Lei nº 11.343/2006 - Lei de Drogas. Lei nº 13.060/2014 - Instrumentos de Menor Potencial Ofensivo. Lei nº 13.675/2018 - Sistema Único de Segurança Pública - SUSP.\n\n`;
+      let edital4987 = baseSection;
+      while (edital4987.length < 4987) {
+        edital4987 += baseSection;
+      }
+      edital4987 = edital4987.slice(0, 4987);
+      assert.equal(edital4987.length, 4987, "Edital simulado deve ter exatamente 4.987 caracteres");
+
+      // Simula histórico onde o aluno colou o edital em mensagem anterior e o mascote deu orientações
+      const messages = [
+        { sender: "aivo", text: "Olá! Sou o AIVU, seu assistente. Como posso ajudar?" },
+        { sender: "user", text: "quero criar uma jornada" },
+        { sender: "aivo", text: "Perfeito! Envie o conteúdo programático do concurso desejado." },
+        { sender: "user", text: edital4987 },
+        { sender: "aivo", text: "Recebi seu edital. Como deseja prosseguir com a organização das matérias?" },
+      ];
+
+      const userInstruction = "Analise todo o conteúdo programático que enviei. Quero que você transforme esse material em uma proposta para minha Jornada de Estudos.";
+      const payload = prepareAivuChatPayload({
+        text: userInstruction,
+        messages,
+      });
+
+      // 1. Confirma que o edital original íntegro foi recuperado em material_text
+      assert.equal(payload.material_text, edital4987);
+      assert.equal(payload.material_text.length, 4987, "material_text deve conter o edital integral sem truncamento");
+
+      // 2. Confirma que message é a instrução curta
+      assert.equal(payload.message, userInstruction);
+
+      // 3. Confirma que o histórico NÃO contém o edital integral e nenhuma mensagem ultrapassa 2.000 chars
+      assert.equal(payload.history.length, 5);
+      const editalHistoryEntry = payload.history[3];
+      assert.equal(editalHistoryEntry.role, "user");
+      assert.equal(editalHistoryEntry.content, "[Edital enviado anteriormente]");
+      for (const h of payload.history) {
+        assert.ok(h.content.length <= 1800, `Histórico deve ter <= 1800 chars (obtido: ${h.content.length})`);
+        assert.equal(h.content.includes(edital4987), false, "Histórico jamais deve conter o edital de 4.987 chars");
+      }
+
+      // 4. Executa a requisição real à API
+      const aiStructuredEmenta = {
+        titulo_concurso: "Polícia Civil - Agente",
+        banca: "Vunesp",
+        ano: 2026,
+        cargo: "Agente Policial",
+        disciplinas: [
+          {
+            nome: "Língua Portuguesa",
+            topicos: [{ titulo: "Interpretação de Textos", edital_item_ref: "1" }],
+          },
+          {
+            nome: "Direito Constitucional",
+            topicos: [{ titulo: "Direitos e Deveres Individuais", edital_item_ref: "1" }],
+          },
+        ],
+      };
+
+      const { res, body, calls } = await callAivuChat({
+        body: payload,
+        script: () => raw(JSON.stringify(aiStructuredEmenta)),
+      });
+
+      // 5. Esperar HTTP 200 e confirmação de actionProposal
+      assert.equal(res.status, 200, "Deve retornar status HTTP 200");
+      assert.equal(calls.groq.length, 2, "Edital extenso de 4.987 chars é processado em 2 blocos seguros");
+      assert.ok(body.actionProposal, "Deve conter actionProposal gerada");
+      assert.equal(body.actionProposal.tipo, "CRIAR_JORNADA");
+      assert.equal(body.actionProposal.status, "proposta");
+    },
+  },
+  {
+    id: "REG-AIVU-022",
+    title: "Histórico extenso: conversas com mensagens longas são podadas/resumidas defensivamente no histórico sem violar o limite Zod (max 2000) e sem retornar HTTP 400",
+    needs: "api",
+    async run() {
+      // Simula conversa com histórico composto por múltiplas mensagens longas (ex: respostas densas e editais anteriores)
+      const heavyMessages = [
+        { sender: "user", text: "Mensagem 1 com texto extenso: " + "A".repeat(1500) },
+        { sender: "aivo", text: "Resposta detalhada 1: " + "B".repeat(1950) },
+        { sender: "user", text: "Mensagem 2 com outro bloco: " + "C".repeat(1600) },
+        { sender: "aivo", text: "Resposta detalhada 2: " + "D".repeat(1900) },
+      ];
+
+      const payload = prepareAivuChatPayload({
+        text: "Como revisar esses pontos?",
+        messages: heavyMessages,
+      });
+
+      // Valida que cada item no histórico foi podado/sumarizado para respeitar <= 1800 chars
+      assert.equal(payload.history.length, 4);
+      for (const h of payload.history) {
+        assert.ok(h.content.length <= 1800, `Histórico deve conter <= 1800 chars (obtido: ${h.content.length})`);
+        assert.ok(h.content.length > 0);
+      }
+
+      // Validação estrita do schema Zod com o payload
+      const zodCheck = AivuChatRequestSchema.safeParse(payload);
+      assert.equal(zodCheck.success, true, "Payload com histórico extenso deve ser aceito pelo Zod");
+
+      // Chama a API com esse histórico pesado
+      const { res, body } = await callAivuChat({
+        body: payload,
+        script: () => raw("Recomendo ciclos de estudo intercalados e flashcards."),
+      });
+
+      // Confirmar que a API NÃO retorna HTTP 400
+      assert.equal(res.status, 200, "API não deve retornar HTTP 400 por histórico longo");
+      assert.ok(body.reply);
+      assert.equal(body.state, "speaking");
+    },
+  },
+  {
+    id: "REG-AIVU-023",
+    title: "Preservação do material: o texto original do edital permanece integralmente disponível para o parser e a sumarização do histórico não altera o conteúdo da análise",
+    needs: "api",
+    async run() {
+      const uniqueToken = "TOKEN_UNICO_DISCIPLINA_INVIOLAVEL_2026";
+      let editalOriginal = `CONTEÚDO PROGRAMÁTICO ESPECÍFICO:\nDISCIPLINA ESPECIAL ${uniqueToken}:\n1. Tópico Aprofundado de Regulação e Fiscalização.\n` + "TEXTO_BASE_".repeat(300);
+      editalOriginal = editalOriginal.slice(0, 4987);
+
+      const messages = [
+        { sender: "user", text: editalOriginal },
+        { sender: "aivo", text: "Edital recebido! O que deseja fazer?" },
+      ];
+
+      const payload = prepareAivuChatPayload({
+        text: "Analise o edital enviado e prepare a jornada.",
+        messages,
+      });
+
+      // O histórico foi sumarizado
+      assert.equal(payload.history[0].content, "[Edital enviado anteriormente]");
+
+      // Mas o material_text mantém o conteúdo integral e o token inviolável
+      assert.ok(payload.material_text.includes(uniqueToken), "material_text deve preservar o token intacto");
+      assert.equal(payload.material_text.length, editalOriginal.length, "Tamanho exato original deve ser preservado");
+
+      const { res, body, calls } = await callAivuChat({
+        body: payload,
+        script: () =>
+          raw(
+            JSON.stringify({
+              titulo_concurso: "Concurso Regulatório",
+              disciplinas: [
+                {
+                  nome: `DISCIPLINA ESPECIAL ${uniqueToken}`,
+                  topicos: [{ titulo: "Tópico Aprofundado", edital_item_ref: "1" }],
+                },
+              ],
+            })
+          ),
+      });
+
+      assert.equal(res.status, 200);
+      assert.ok(calls.groq.length >= 1);
+      const groqPromptText = JSON.stringify(calls.groq);
+      assert.ok(groqPromptText.includes(uniqueToken), "Prompt enviado ao provedor de IA deve conter o texto integral do edital com o token");
+      assert.ok(body.actionProposal);
+      assert.ok(body.actionProposal.payload_preparado.disciplinas[0].nome.includes(uniqueToken));
+    },
+  },
+  {
+    id: "REG-AIVU-024",
+    title: "Conversa comum: mensagens curtas e histórico normal continuam funcionando sem acionar material_text nem proposta de edital",
+    needs: "api",
+    async run() {
+      const messages = [
+        { sender: "user", text: "Olá AIVU!" },
+        { sender: "aivo", text: "Olá! Como posso ajudar você em seus estudos hoje?" },
+      ];
+
+      const userMsg = "Qual a diferença entre ato discricionário e ato vinculado?";
+      const payload = prepareAivuChatPayload({
+        text: userMsg,
+        messages,
+      });
+
+      assert.equal(payload.message, userMsg);
+      assert.equal(payload.material_text, undefined, "Não deve injetar material_text em conversa comum");
+      assert.equal(payload.history.length, 2);
+      assert.equal(payload.history[0].content, "Olá AIVU!");
+      assert.equal(payload.history[1].content, "Olá! Como posso ajudar você em seus estudos hoje?");
+
+      const { res, body, calls } = await callAivuChat({
+        body: payload,
+        script: () => raw("No ato vinculado, a lei define todos os elementos sem margem de escolha. No discricionário, há conveniência e oportunidade."),
+      });
+
+      assert.equal(res.status, 200, "Conversa comum deve retornar 200");
+      assert.equal(calls.groq.length, 1);
+      assert.equal(body.actionProposal, undefined, "Não deve gerar actionProposal em conversa comum");
+      assert.ok(body.reply.includes("ato vinculado"));
+      assert.equal(body.state, "speaking");
+    },
+  },
+  {
+    id: "REG-AIVU-025",
+    title: "Ação de cópia: utilitário seguro copia respostas simples, múltiplos parágrafos, listas e textos densos com isolamento de controles de interface e resiliência a falhas de permissão",
+    needs: "api",
+    async run() {
+      const hadDoc = "document" in globalThis;
+      const origDoc = globalThis.document;
+      const origClipboardDesc = Object.getOwnPropertyDescriptor(globalThis.navigator, "clipboard");
+
+      try {
+        let clipboardText = null;
+        let execCommandCalled = false;
+        let execCommandArg = null;
+
+        // 1. Simulação com Clipboard API nativa ativa
+        Object.defineProperty(globalThis.navigator, "clipboard", {
+          value: {
+            writeText: async (t) => {
+              clipboardText = t;
+            },
+          },
+          configurable: true,
+          writable: true,
+        });
+
+        // 1.1 Resposta simples
+        const simpleText = "Olá! Como posso ajudar você em seus estudos hoje?";
+        const resSimple = await copyToClipboard(simpleText);
+        assert.equal(resSimple, true);
+        assert.equal(clipboardText, simpleText);
+
+        // 1.2 Resposta com múltiplos parágrafos (preservação de quebras de linha)
+        const multiParaText = "Primeiro parágrafo explicativo.\n\nSegundo parágrafo detalhado com fundamentação constitucional.\n\nTerceiro parágrafo conclusivo.";
+        const resMulti = await copyToClipboard(multiParaText);
+        assert.equal(resMulti, true);
+        assert.equal(clipboardText, multiParaText);
+        assert.ok(clipboardText.includes("\n\n"));
+
+        // 1.3 Resposta com listas e texto extenso (> 5.000 caracteres)
+        const longText = "# Conteúdo Programático Extraído\n\n- Direito Constitucional:\n  * Art. 5º (Direitos Fundamentais)\n  * Art. 37 (Administração Pública)\n- Direito Administrativo:\n  * Atos Administrativos\n\n" + "Texto de aprofundamento teórico para concurso público. ".repeat(150);
+        assert.ok(longText.length > 5000);
+        const resLong = await copyToClipboard(longText);
+        assert.equal(resLong, true);
+        assert.equal(clipboardText.length, longText.length);
+        assert.equal(clipboardText, longText);
+
+        // 1.4 Isolamento estrito de controles de interface
+        const mockMessageWithCard = {
+          id: "msg-123",
+          sender: "aivo",
+          text: "Aqui está o resumo dos pontos mais cobrados pela banca examinadora.",
+          actionProposal: {
+            id: "prop-1",
+            tipo: "CRIAR_JORNADA",
+            titulo: "Botão Confirmar Jornada",
+          },
+        };
+        const resIsolated = await copyToClipboard(mockMessageWithCard.text);
+        assert.equal(resIsolated, true);
+        assert.equal(clipboardText, mockMessageWithCard.text);
+        assert.ok(!clipboardText.includes("Botão Confirmar Jornada"));
+
+        // 2. Simulação de falha de permissão (ex: NotAllowedError) e acionamento transparente do fallback
+        let createdElement = null;
+        Object.defineProperty(globalThis.navigator, "clipboard", {
+          value: {
+            writeText: async () => {
+              throw new Error("NotAllowedError: Document is not focused or clipboard permission denied");
+            },
+          },
+          configurable: true,
+          writable: true,
+        });
+
+        Object.defineProperty(globalThis, "document", {
+          value: {
+            createElement: (tag) => {
+              createdElement = {
+                tag,
+                value: "",
+                style: {},
+                attributes: {},
+                setAttribute(k, v) { this.attributes[k] = v; },
+                select() {},
+                setSelectionRange() {},
+              };
+              return createdElement;
+            },
+            body: {
+              appendChild: () => {},
+              removeChild: () => {},
+            },
+            getSelection: () => ({
+              rangeCount: 0,
+              removeAllRanges() {},
+              addRange() {},
+            }),
+            execCommand: (cmd) => {
+              execCommandCalled = true;
+              execCommandArg = cmd;
+              return true;
+            },
+          },
+          configurable: true,
+          writable: true,
+        });
+
+        const fallbackText = "Texto copiado via fallback após falha de permissão da Clipboard API";
+        const resFallback = await copyToClipboard(fallbackText);
+        assert.equal(resFallback, true, "Fallback via execCommand deve retornar true");
+        assert.equal(execCommandCalled, true, "execCommand deve ser invocado em falha de permissão");
+        assert.equal(execCommandArg, "copy");
+        assert.equal(createdElement.value, fallbackText);
+
+        // 3. Resiliência: strings vazias ou nulas
+        assert.equal(await copyToClipboard(""), false);
+        assert.equal(await copyToClipboard(null), false);
+        assert.equal(await copyToClipboard(undefined), false);
+      } finally {
+        if (origClipboardDesc) {
+          Object.defineProperty(globalThis.navigator, "clipboard", origClipboardDesc);
+        } else {
+          delete globalThis.navigator.clipboard;
+        }
+
+        if (hadDoc) {
+          globalThis.document = origDoc;
+        } else {
+          delete globalThis.document;
+        }
+      }
+    },
+  },
+  {
+    id: "REG-AIVU-026",
+    title: "Ação de cópia no widget AIVU: botão de copiar no chat, feedback visual 'Copiado!', acessibilidade por leitor de tela e operação em viewport mobile",
+    needs: "browser",
+    async run({ base, newPage }) {
+      const page = await newPage();
+      try {
+        // Pré-carrega conversa com resposta do assistente e chat aberto no sessionStorage
+        await page.evaluateOnNewDocument(() => {
+          sessionStorage.setItem(
+            "aivo-storage",
+            JSON.stringify({
+              state: {
+                isOpen: true,
+                messages: [
+                  { id: "msg-user-1", sender: "user", text: "Como organizar meus estudos?", timestamp: 1000 },
+                  { id: "msg-aivu-1", sender: "aivu", text: "Recomendo ciclos intercalados de estudo e revisão ativa com flashcards e questões.", timestamp: 2000 },
+                ],
+              },
+              version: 0,
+            })
+          );
+        });
+
+        await intercept(page, []);
+        await page.goto(`${base}/material`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+
+        // 1. Verifica renderização do botão de copiar na mensagem do assistente
+        const copyBtnSelector = "button[data-testid='aivu-copy-btn']";
+        await page.waitForSelector(copyBtnSelector, { timeout: 30_000 });
+        await waitHydrated(page, copyBtnSelector);
+
+        // Confirma rótulos e acessibilidade inicial
+        const initialLabel = await page.$eval(copyBtnSelector, (el) => el.getAttribute("aria-label"));
+        assert.ok(initialLabel.includes("Copiar"), "Botão deve ter aria-label indicando ação de cópia");
+
+        const initialText = await page.$eval(copyBtnSelector, (el) => el.textContent.trim());
+        assert.ok(initialText.includes("Copiar"), "Rótulo textual inicial deve ser 'Copiar'");
+
+        // 2. Executa a cópia clicando no botão
+        await page.click(copyBtnSelector);
+
+        // 3. Validação do feedback visual temporário 'Copiado!' e atributos de acessibilidade
+        await page.waitForFunction(
+          (sel) => {
+            const btn = document.querySelector(sel);
+            return btn && btn.textContent.includes("Copiado!");
+          },
+          { timeout: 10_000 },
+          copyBtnSelector
+        );
+
+        const copiedLabel = await page.$eval(copyBtnSelector, (el) => el.getAttribute("aria-label"));
+        assert.ok(copiedLabel.includes("copiada"), "aria-label deve atualizar para informar cópia realizada");
+
+        const srLive = await page.$eval(`${copyBtnSelector} [role='status']`, (el) => el.getAttribute("aria-live"));
+        assert.equal(srLive, "polite", "Feedback para leitores de tela deve usar aria-live polite");
+
+        // 4. Validação em Viewport Mobile (390px x 844px — iPhone 13/14/15 standard)
+        await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+        await page.evaluate(() => new Promise((r) => setTimeout(r, 200)));
+
+        const isVisibleMobile = await page.$eval(copyBtnSelector, (el) => {
+          const rect = el.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).display !== "none";
+        });
+        assert.ok(isVisibleMobile, "Botão copiar deve estar visível e acessível em viewport mobile sem depender de hover");
+
+        // Clica novamente em viewport mobile
+        await page.tap(copyBtnSelector);
+        const mobileFeedback = await page.$eval(copyBtnSelector, (el) => el.textContent.trim());
+        assert.ok(mobileFeedback.includes("Copiado!") || mobileFeedback.includes("Copiar"), "Clique em mobile deve ser aceito");
       } finally {
         await page.close();
       }

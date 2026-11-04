@@ -83,6 +83,10 @@ function inferEditalMetadata(text: string): {
 export interface ParseEditalOptions {
   editalText: string;
   groqApiKeys: string[];
+  fonteTipo?: "TEXTO" | "PDF";
+  nomeArquivo?: string;
+  targetCargo?: string;
+  detectedCargos?: string[];
 }
 
 export interface ParseEditalResult {
@@ -100,7 +104,21 @@ export async function parseEditalToProposal(
   options: ParseEditalOptions
 ): Promise<ParseEditalResult> {
   const { editalText, groqApiKeys } = options;
+
+  // Se foram detectados múltiplos cargos e o usuário não especificou um cargo alvo,
+  // solicita esclarecimento pedagógico antes de gerar a proposta
+  if (options.detectedCargos && options.detectedCargos.length > 1 && !options.targetCargo) {
+    const cargosList = options.detectedCargos.map((c) => `• **${c}**`).join("\n");
+    return {
+      success: true,
+      reply: `Identifiquei que este edital apresenta **múltiplos cargos**:\n\n${cargosList}\n\nPara qual cargo você deseja direcionar sua preparação? Digite o cargo desejado para que eu prepare a proposta exata de matérias e tópicos.`,
+    };
+  }
+
   const metadata = inferEditalMetadata(editalText);
+  if (options.targetCargo) {
+    metadata.cargo = options.targetCargo;
+  }
 
   // Calcula hashes criptográficos determinísticos para rastreabilidade e idempotência
   const docHash = await computeSha256Hex(editalText);
@@ -234,8 +252,9 @@ Retorne APENAS um JSON no seguinte formato:
       titulo_concurso: ementa.titulo_concurso,
       banca: ementa.banca,
       ano: ementa.ano,
-      cargo: ementa.cargo,
-      edital_fonte_tipo: "TEXTO",
+      cargo: options.targetCargo || ementa.cargo,
+      edital_fonte_tipo: options.fonteTipo || "TEXTO",
+      edital_nome_arquivo: options.nomeArquivo,
       doc_original_hash: docHash,
       ementa_hash: ementaHash,
       disciplinas: ementa.disciplinas,
@@ -251,13 +270,17 @@ Retorne APENAS um JSON no seguinte formato:
       (d) => `${d.nome} (${d.topicos.length} ${d.topicos.length === 1 ? "tópico" : "tópicos"})`
     );
 
+    const subtituloPartes = [
+      ementa.banca,
+      options.targetCargo || ementa.cargo,
+      options.nomeArquivo ? `PDF: ${options.nomeArquivo}` : (ementa.ano ? String(ementa.ano) : null),
+    ].filter(Boolean);
+
     const actionProposal: AivuActionProposal = {
       id: crypto.randomUUID(),
       tipo: "CRIAR_JORNADA",
       titulo: ementa.titulo_concurso,
-      subtitulo: [ementa.banca, ementa.cargo, ementa.ano ? String(ementa.ano) : null]
-        .filter(Boolean)
-        .join(" • ") || undefined,
+      subtitulo: subtituloPartes.length > 0 ? subtituloPartes.join(" • ") : undefined,
       resumo_dados: {
         disciplinas_count: ementa.disciplinas.length,
         topicos_count: totalTopicos,
@@ -267,7 +290,8 @@ Retorne APENAS um JSON no seguinte formato:
       status: "proposta",
     };
 
-    let reply = `Identifiquei o edital do concurso **${ementa.titulo_concurso}**! Extraí com sucesso **${ementa.disciplinas.length} disciplinas** e um total de **${totalTopicos} tópicos de estudo**.\n\nPreparei a proposta de **Jornada de Estudos** personalizada abaixo. Revise as matérias e confirme para iniciar sua preparação guiada!`;
+    const docIdentificador = options.nomeArquivo || ementa.titulo_concurso;
+    let reply = `Identifiquei o edital do concurso **${docIdentificador}**! Extraí com sucesso **${ementa.disciplinas.length} disciplinas** e um total de **${totalTopicos} tópicos de estudo**.\n\nPreparei a proposta de **Jornada de Estudos** personalizada abaixo. Revise as matérias e confirme para iniciar sua preparação guiada!`;
     if (blocks.length > 2) {
       reply += `\n\n*(Nota: O edital possui volume extenso; consolidei as seções essenciais para o seu cronograma inicial.)*`;
     }

@@ -11,6 +11,11 @@ export interface Message {
   text: string;
   timestamp: number;
   actionProposal?: AivuActionProposal;
+  fileAttachment?: {
+    name: string;
+    size: number;
+    pageCount?: number;
+  };
 }
 
 interface AivoStore {

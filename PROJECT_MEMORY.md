@@ -1002,3 +1002,60 @@ Antes de qualquer alteração futura em Trilhas:
 - **TypeScript:** `npx tsc --noEmit` exit 0.
 - **Build de Produção:** `npm run build` exit 0 (13/13 páginas compiladas).
 - **Git Check:** `git diff --check` exit 0.
+
+## 27. AIVU — Ingestão e Análise de Editais em PDF Diretamente no Chat (2026-11-02)
+
+### 1. Decisões Arquiteturais e Pipeline de Ingestão
+- **Módulo Dedicado Server-Side (`src/lib/aivu-pdf.ts`):**
+  - Isolamento estrito: nenhum parsing pesado de PDF roda no cliente.
+  - Extração de texto página a página via `pdfjs-dist/legacy/build/pdf.mjs` sem dependências do Node no Edge runtime.
+  - Preservação da ordem sequencial das páginas com marcadores estruturais (`--- Página X ---`).
+  - Normalização de espaços e quebras de linha preservando a hierarquia do edital.
+  - Detecção de documentos digitalizados sem camada de texto (`NO_TEXT`): emite mensagem explícita de necessidade de OCR, sem alucinação de conteúdo.
+  - Tratamento defensivo de PDFs protegidos por senha (`PASSWORD_PROTECTED`), corrompidos (`CORRUPTED_PDF`) e inválidos (`INVALID_SIGNATURE`).
+  - Detecção de múltiplos cargos via `detectMultipleCargosInText`: quando múltiplos cargos são identificados e o usuário não especificou um cargo-alvo, o AIVU formula pergunta pedagógica antes de emitir a proposta de Jornada.
+- **Validações de Segurança em Camada Dupla (Cliente e Servidor):**
+  - Teto rígido de 15 MB (`15 * 1024 * 1024` bytes) formatado amigavelmente (`formatPdfFileSize`).
+  - Verificação de MIME types permitidos (`application/pdf`, `application/x-pdf`, `binary/octet-stream`).
+  - Verificação de Magic Bytes reais: assinatura `%PDF-` (`0x25, 0x50, 0x44, 0x46, 0x2D`) nos primeiros 1.024 bytes. Não confia apenas na extensão ou cabeçalho HTTP.
+  - Sanitização de nome de arquivo (`sanitizeFileName`) contra path traversal e injeção de caracteres perigosos.
+  - Zero logging do conteúdo integral do documento nos logs da aplicação.
+- **Integração no Endpoint (`src/app/api/ai/aivu/chat/route.ts`):**
+  - Suporte híbrido transparente: aceita `multipart/form-data` para envio de arquivo + histórico/contexto e `application/json` convencional para conversas textuais puras.
+  - O texto extraído do PDF é encaminhado ao pipeline existente (`parseEditalToProposal`), alimentando o particionamento em blocos e consolidação de disciplinas.
+  - Metadados do documento (`fileInfo: { name, size, pageCount }`) e proposta estruturada (`actionProposal`) com `edital_fonte_tipo: "PDF"` e `edital_nome_arquivo` propagados no `payload_preparado`.
+  - **Regra Inegociável:** anexar ou analisar um PDF JAMAIS cria uma Jornada automaticamente no banco. A persistência exige confirmação explícita do usuário via `POST /api/jornadas`.
+- **Experiência de Usuário e Identidade Visual (`src/components/Aivo/AivoWidget.tsx`):**
+  - Ícone de anexo/clipe `<Paperclip size={18} className="shrink-0 flex-none" />` integrado ao composer de mensagem.
+  - Input oculto de arquivo (`accept="application/pdf,.pdf"`).
+  - Chip visual de arquivo selecionado com nome truncado responsivamente, tamanho formatado e botão de remoção (`X`) antes do envio.
+  - Banner de alerta com feedback contextual para arquivos que excedem 15 MB ou sem assinatura `%PDF-`.
+  - Mensagem do usuário no chat exibe card visual do documento anexado (`.attachedDocCard`).
+  - Placeholder do composer atualiza dinamicamente durante processamento: *"AIVU está lendo e analisando o edital..."*.
+  - Totalmente responsivo para desktop e celular (viewports de 390px e 360px sem overflow horizontal).
+
+### 2. Proteção Evolutiva (Regression Gate)
+- Adicionados 18 novos testes em `tests/regression/aivu/pdf.case.mjs` (`REG-AIVU-PDF-001` a `REG-AIVU-PDF-018`), atualizados na baseline (`tests/regression/baseline.json`) e `CHANGELOG.md`:
+  - `REG-AIVU-PDF-001`: Seleção de PDF válido com metadados corretos.
+  - `REG-AIVU-PDF-002`: Rejeição de arquivo com extensão que não seja PDF.
+  - `REG-AIVU-PDF-003`: Rejeição de arquivo acima do teto de 15 MB no cliente e no servidor.
+  - `REG-AIVU-PDF-004`: Rejeição de arquivo mascarado (extensão `.pdf` sem assinatura mágica `%PDF-`).
+  - `REG-AIVU-PDF-005`: Extração sequencial de PDF multipáginas com contagem exata.
+  - `REG-AIVU-PDF-006`: Preservação da ordem das páginas e marcadores estruturais.
+  - `REG-AIVU-PDF-007`: Rejeição de documento digitalizado/scan sem camada de texto com orientação clara de OCR.
+  - `REG-AIVU-PDF-008`: Tratamento defensivo de PDF corrompido ou protegido por senha.
+  - `REG-AIVU-PDF-009`: Sanitização de nome de arquivo e resiliência a falhas de leitura.
+  - `REG-AIVU-PDF-010`: Análise e estruturação pedagógica via endpoint `/api/ai/aivu/chat` com `multipart/form-data`.
+  - `REG-AIVU-PDF-011`: Detecção de múltiplos cargos com formulação de pergunta pedagógica ao usuário.
+  - `REG-AIVU-PDF-012`: Edital extenso particionado em múltiplos blocos sem truncamento silencioso.
+  - `REG-AIVU-PDF-013`: Proposta estruturada (`ActionProposalCard`) com fonte 'PDF' e nome do arquivo no payload.
+  - `REG-AIVU-PDF-014`: Bloqueio de persistência automática: anexar/analisar não grava no D1.
+  - `REG-AIVU-PDF-015`: Criação persistente no D1 exclusivamente após confirmação explícita no endpoint `POST /api/jornadas`.
+  - `REG-AIVU-PDF-016`: Preservação total do fluxo de chat textual existente via JSON e fallback.
+  - `REG-AIVU-PDF-017`: Operação do botão Copiar na resposta gerada pela análise de PDF.
+  - `REG-AIVU-PDF-018`: Responsividade mobile (390px) do anexo e chip de arquivo sem overflow horizontal.
+- **Placar oficial:** **89/89 PASS** (`npm run regression`: 77 testes de API/Unit + 12 testes de navegador em Puppeteer 100% aprovados).
+- **TypeScript:** `npx tsc --noEmit` exit 0.
+- **Build de Produção:** `npm run build` exit 0 (13/13 páginas compiladas).
+- **Git Check:** `git diff --check` exit 0.
+- **Validação Real no Chrome:** 6/6 cenários aprovados com evidências visuais capturadas em artefatos PNG.

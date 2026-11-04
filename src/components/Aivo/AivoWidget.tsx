@@ -6,11 +6,12 @@ import { usePathname } from "next/navigation";
 import { useAivoStore } from "@/store/useAivoStore";
 import { useQuizStore } from "@/store/useQuizStore";
 import { Aivo } from "./AivoMascot";
-import { X, Send } from "lucide-react";
+import { X, Send, Paperclip, FileText, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import styles from "./AivoWidget.module.css";
+import { formatPdfFileSize, validatePdfMetadata, validatePdfSignature } from "@/lib/aivu-pdf";
 
 const aivuMarkdownComponents: Components = {
   p: ({ children }) => <p className={styles.mdParagraph}>{children}</p>,
@@ -70,6 +71,9 @@ export default function AivoWidget() {
   const quizModeActive = useQuizStore(s => s.step === 3 && s.mode !== 'redacao' && s.mode !== 'aivos360'); 
 
   const [inputValue, setInputValue] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileValidationWarning, setFileValidationWarning] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const [viewportAdjustment, setViewportAdjustment] = useState<{
@@ -80,6 +84,45 @@ export default function AivoWidget() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isSendingRef = useRef(false);
   const recoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileValidationWarning(null);
+
+    const metaError = validatePdfMetadata({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
+    if (metaError) {
+      setFileValidationWarning(metaError.message);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    try {
+      const slice = await file.slice(0, 1024).arrayBuffer();
+      if (!validatePdfSignature(slice)) {
+        setFileValidationWarning("O arquivo selecionado não é um documento PDF válido ou sua assinatura está corrompida.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
+    } catch {
+      setFileValidationWarning("Falha ao ler os dados do arquivo selecionado.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setSelectedFile(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setFileValidationWarning(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -161,14 +204,103 @@ export default function AivoWidget() {
 
   const handleSend = async () => {
     const text = inputValue.trim();
-    if (!text || isSendingRef.current) return;
+    if ((!text && !selectedFile) || isSendingRef.current) return;
     
     clearRecoveryTimer();
     isSendingRef.current = true;
     setIsSending(true);
-    addMessage({ sender: 'user', text });
+
+    const fileToUpload = selectedFile;
+    setSelectedFile(null);
+    setFileValidationWarning(null);
     setInputValue("");
     setState('thinking');
+
+    if (fileToUpload) {
+      const displayText = text || "Analise o edital em anexo e elabore uma proposta de Jornada de Estudos.";
+      addMessage({
+        sender: 'user',
+        text: displayText,
+        fileAttachment: {
+          name: fileToUpload.name,
+          size: fileToUpload.size,
+        },
+      });
+
+      const formData = new FormData();
+      formData.append("file", fileToUpload);
+      formData.append("message", displayText);
+
+      const preparedPayload = prepareAivuChatPayload({
+        text: displayText,
+        messages,
+        activeContext,
+        pathname,
+      });
+      formData.append("history", JSON.stringify(preparedPayload.history));
+      if (preparedPayload.context) {
+        formData.append("context", JSON.stringify(preparedPayload.context));
+      }
+
+      try {
+        const response = await fetch("/api/ai/aivu/chat", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = (await response.json()) as {
+            reply: string;
+            state?: string;
+            actionProposal?: AivuActionProposal;
+          };
+          addMessage({ sender: 'aivo', text: data.reply, actionProposal: data.actionProposal });
+          clearRecoveryTimer();
+          setState('speaking');
+          recoveryTimerRef.current = setTimeout(() => {
+            setState('idle');
+            recoveryTimerRef.current = null;
+          }, 3500);
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          let userFacingError = errData.error;
+          if (!userFacingError) {
+            if (response.status === 401) {
+              userFacingError = "Por favor, faça login para conversar com o AIVU.";
+            } else if (response.status === 429) {
+              userFacingError = "Limite de mensagens atingido. Por favor, aguarde alguns instantes.";
+            } else {
+              userFacingError = "Instabilidade temporária no processamento do edital. Tente novamente.";
+            }
+          }
+          addMessage({ sender: 'aivo', text: userFacingError });
+          clearRecoveryTimer();
+          setState('error');
+          recoveryTimerRef.current = setTimeout(() => {
+            setState('idle');
+            recoveryTimerRef.current = null;
+          }, 3000);
+        }
+      } catch {
+        addMessage({
+          sender: 'aivo',
+          text: "Erro de conexão ao enviar o PDF para o AIVU. Verifique sua internet e tente novamente.",
+        });
+        clearRecoveryTimer();
+        setState('error');
+        recoveryTimerRef.current = setTimeout(() => {
+          setState('idle');
+          recoveryTimerRef.current = null;
+        }, 3000);
+      } finally {
+        isSendingRef.current = false;
+        setIsSending(false);
+      }
+      return;
+    }
+
+    // Fluxo convencional de texto
+    addMessage({ sender: 'user', text });
 
     // Prepara o payload defensivo separando message, material_text e history sumarizado
     const payload = prepareAivuChatPayload({
@@ -316,13 +448,62 @@ export default function AivoWidget() {
                         </div>
                       </>
                     ) : (
-                      msg.text
+                      <>
+                        {msg.fileAttachment && (
+                          <div className={styles.attachedDocCard}>
+                            <FileText size={16} className="shrink-0 flex-none text-[#F8FAFC]" />
+                            <div className={styles.attachedDocInfo}>
+                              <span className={styles.attachedDocName}>{msg.fileAttachment.name}</span>
+                              <span className={styles.attachedDocMeta}>
+                                {formatPdfFileSize(msg.fileAttachment.size)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        {msg.text}
+                      </>
                     )}
                   </div>
                 );
               })}
               <div ref={chatEndRef} />
             </div>
+
+            {fileValidationWarning && (
+              <div className={styles.fileWarningBar} role="alert">
+                <AlertCircle size={14} className="shrink-0 flex-none" />
+                <span className={styles.fileWarningText}>{fileValidationWarning}</span>
+                <button
+                  type="button"
+                  className={styles.fileWarningClose}
+                  onClick={() => setFileValidationWarning(null)}
+                  aria-label="Fechar aviso de arquivo"
+                >
+                  <X size={12} className="shrink-0 flex-none" />
+                </button>
+              </div>
+            )}
+
+            {selectedFile && (
+              <div className={styles.selectedFileBar}>
+                <FileText size={15} className="shrink-0 flex-none text-[var(--aivu-header-sparkle)]" />
+                <span className={styles.selectedFileName} title={selectedFile.name}>
+                  {selectedFile.name}
+                </span>
+                <span className={styles.selectedFileSize}>
+                  ({formatPdfFileSize(selectedFile.size)})
+                </span>
+                <button
+                  type="button"
+                  className={styles.removeFileBtn}
+                  onClick={handleRemoveFile}
+                  aria-label="Remover edital anexado"
+                  disabled={isSending}
+                >
+                  <X size={13} className="shrink-0 flex-none" />
+                </button>
+              </div>
+            )}
 
             <form
               className={styles.chatInputWrap}
@@ -331,10 +512,34 @@ export default function AivoWidget() {
                 handleSend();
               }}
             >
+              <button
+                type="button"
+                className={styles.attachBtn}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isSending}
+                aria-label="Anexar edital em PDF"
+                title="Anexar edital em PDF (até 15 MB)"
+              >
+                <Paperclip size={18} className="shrink-0 flex-none" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf,.pdf"
+                tabIndex={-1}
+                className={styles.hiddenFileInput}
+                onChange={handleFileSelect}
+                aria-hidden="true"
+              />
+
               <textarea
                 ref={textareaRef}
                 className={styles.chatTextarea}
-                placeholder={isSending ? "AIVU está pensando..." : "Pergunte algo ao AIVU..."}
+                placeholder={
+                  isSending
+                    ? (selectedFile ? "AIVU está lendo e analisando o edital..." : "AIVU está pensando...")
+                    : (selectedFile ? "Instruções adicionais (opcional)..." : "Pergunte algo ao AIVU...")
+                }
                 value={inputValue}
                 disabled={isSending}
                 rows={1}
@@ -359,10 +564,10 @@ export default function AivoWidget() {
               <button
                 type="submit"
                 className={styles.sendBtn}
-                disabled={!inputValue.trim() || isSending}
+                disabled={(!inputValue.trim() && !selectedFile) || isSending}
                 aria-label="Enviar mensagem"
               >
-                <Send width={18} height={18} />
+                <Send size={18} className="shrink-0 flex-none" />
               </button>
             </form>
           </motion.div>

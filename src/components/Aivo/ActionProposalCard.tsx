@@ -102,7 +102,7 @@ export default function ActionProposalCard({
       </div>
 
       <div className={styles.previewList}>
-        {proposal.resumo_dados.preview_disciplinas.map((disc, idx) => (
+        {(proposal.resumo_dados.preview_disciplinas || []).map((disc, idx) => (
           <div key={idx} className={styles.previewItem}>
             <span className={styles.previewBullet} />
             <span>{disc}</span>

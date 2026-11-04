@@ -145,3 +145,26 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
 
 - ADD REG-AIVU-025 (camada API): Utilitário seguro `copyToClipboard` copia respostas simples, múltiplos parágrafos, listas e textos densos (>5.000 chars) com preservação total de estrutura, isolamento contra controles de interface e resiliência via fallback `document.execCommand('copy')` em caso de erro de permissão.
 - ADD REG-AIVU-026 (camada Browser): Botão de copiar acessível no widget AIVU no chat, feedback visual 'Copiado!', atributos acessíveis para leitores de tela (`aria-label`, `role="status"`, `aria-live="polite"`) e operação adequada em viewport mobile (390px).
+
+## 2026-11-02 — AIVU (Upload e Extração de PDF para Jornadas de Estudos)
+
+- ADD REG-AIVU-PDF-001 … 015 (camada API):
+  - REG-AIVU-PDF-001: Validação de metadados de PDF válido (extensão .pdf, MIME type `application/pdf`, tamanho <= 15 MB) aprovada sem erros.
+  - REG-AIVU-PDF-002: Rejeição rigorosa de extensões ou MIME types não permitidos (.docx, .exe, etc.) retornando erro INVALID_TYPE.
+  - REG-AIVU-PDF-003: Rejeição estrita de arquivo excedendo o limite de 15 MB retornando FILE_TOO_LARGE.
+  - REG-AIVU-PDF-004: Validação de assinatura mágica real (`%PDF-`), rejeitando arquivos de texto ou binários arbitrários renomeados para .pdf.
+  - REG-AIVU-PDF-005: Extração multipágina de PDF via `pdfjs-dist/legacy/build/pdf.mjs` no servidor, reportando contagem exata de páginas e caracteres sem carregar bibliotecas no cliente.
+  - REG-AIVU-PDF-006: Preservação estrita da ordem sequencial das páginas com marcadores estruturais (`--- Página X ---`) e normalização limpa de quebras e espaços.
+  - REG-AIVU-PDF-007: Tratamento defensivo de PDF vazio (0 bytes) ou escaneado exclusivamente como imagem (sem texto legível), reportando código NO_TEXT com orientação explícita sobre necessidade de OCR sem inventar conteúdo.
+  - REG-AIVU-PDF-008: Tratamento defensivo de PDF com stream corrompido ou malformado retornando erro amigável sem quebra ou crash do servidor.
+  - REG-AIVU-PDF-009: Rota de chat `/api/ai/aivu/chat` com suporte a `multipart/form-data`, rejeitando arquivos com assinatura inválida com HTTP 400 controlado.
+  - REG-AIVU-PDF-010: Rota `/api/ai/aivu/chat` processando upload de PDF válido de edital, extraindo disciplinas e retornando proposta de Jornada (`actionProposal`) com fonte "PDF" e nome do arquivo original.
+  - REG-AIVU-PDF-011: Detecção pedagógica de editais com múltiplos cargos quando o usuário não especificar a vaga pretendida, orientando-o a definir o cargo antes de montar a ementa.
+  - REG-AIVU-PDF-012: Suporte a editais extensos com processamento em blocos e consolidação determinística de ementas sem truncamento silencioso de matérias.
+  - REG-AIVU-PDF-013: Payload preparado na proposta de Jornada contendo `edital_fonte_tipo: "PDF"` e `edital_nome_arquivo`, validado 100% pelo `CriarJornadaRequestSchema`.
+  - REG-AIVU-PDF-014: Garantia inegociável de NÃO persistência automática: anexar ou analisar edital em PDF não grava registro no banco de dados D1.
+  - REG-AIVU-PDF-015: Confirmação e persistência da jornada apenas mediante consentimento explícito do usuário (`POST /api/jornadas`), gravando corretamente os metadados do PDF no D1.
+- ADD REG-AIVU-PDF-016 … 018 (camada Navegador):
+  - REG-AIVU-PDF-016: Preservação do chat textual: mensagens sem anexo continuam com envio normal e botão de clipe/anexo visível no composer.
+  - REG-AIVU-PDF-017: Botão Copiar nas respostas geradas a partir de upload de PDF permanece funcional, acessível e isolado do card de proposta.
+  - REG-AIVU-PDF-018: Responsividade mobile do composer com botão de anexo e chip de documento em viewport de 390px, sem estouro horizontal (scrollWidth <= clientWidth).

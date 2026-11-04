@@ -1925,6 +1925,9 @@ DIREITO CONSTITUCIONAL:
     async run({ base, newPage }) {
       const page = await newPage();
       try {
+        const context = page.browserContext();
+        await context.overridePermissions(base, ["clipboard-read", "clipboard-write"]);
+
         // Pré-carrega conversa com resposta do assistente e chat aberto no sessionStorage
         await page.evaluateOnNewDocument(() => {
           sessionStorage.setItem(
@@ -1944,6 +1947,10 @@ DIREITO CONSTITUCIONAL:
 
         await intercept(page, []);
         await page.goto(`${base}/material`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+
+        const mascotSelector = "[class*='mascotWrap']";
+        await page.waitForSelector(mascotSelector, { timeout: 20_000 });
+        await waitHydrated(page, mascotSelector);
 
         // 1. Verifica renderização do botão de copiar na mensagem do assistente
         const copyBtnSelector = "button[data-testid='aivu-copy-btn']";
@@ -1978,7 +1985,7 @@ DIREITO CONSTITUCIONAL:
 
         // 4. Validação em Viewport Mobile (390px x 844px — iPhone 13/14/15 standard)
         await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
-        await page.evaluate(() => new Promise((r) => setTimeout(r, 200)));
+        await page.waitForSelector(copyBtnSelector, { timeout: 15_000 });
 
         const isVisibleMobile = await page.$eval(copyBtnSelector, (el) => {
           const rect = el.getBoundingClientRect();

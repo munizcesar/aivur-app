@@ -11,7 +11,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import styles from "./AivoWidget.module.css";
-import { formatPdfFileSize, validatePdfMetadata, validatePdfSignature } from "@/lib/aivu-pdf";
+import {
+  formatPdfFileSize,
+  validatePdfMetadata,
+  validatePdfSignature,
+  extractPdfTextInBrowser,
+} from "@/lib/aivu-pdf";
 
 const aivuMarkdownComponents: Components = {
   p: ({ children }) => <p className={styles.mdParagraph}>{children}</p>,
@@ -210,42 +215,65 @@ export default function AivoWidget() {
     isSendingRef.current = true;
     setIsSending(true);
 
-    const fileToUpload = selectedFile;
-    setSelectedFile(null);
-    setFileValidationWarning(null);
-    setInputValue("");
-    setState('thinking');
-
-    if (fileToUpload) {
+    if (selectedFile) {
+      const fileToUpload = selectedFile;
       const displayText = text || "Analise o edital em anexo e elabore uma proposta de Jornada de Estudos.";
+      setState('thinking');
+
+      // 1. Extração no navegador via PDF.js e Web Worker local (/pdf.worker.min.mjs)
+      const extraction = await extractPdfTextInBrowser(fileToUpload);
+
+      if (!extraction.success) {
+        // Falha recuperável: preserva o arquivo selecionado para nova tentativa sem perda de estado
+        isSendingRef.current = false;
+        setIsSending(false);
+        clearRecoveryTimer();
+        setState('error');
+        addMessage({
+          sender: 'aivo',
+          text: extraction.error.message,
+        });
+        recoveryTimerRef.current = setTimeout(() => {
+          setState('idle');
+          recoveryTimerRef.current = null;
+        }, 4000);
+        return;
+      }
+
+      // Extração com sucesso: desanexa o arquivo do chip e limpa input
+      setSelectedFile(null);
+      setFileValidationWarning(null);
+      setInputValue("");
+
       addMessage({
         sender: 'user',
         text: displayText,
         fileAttachment: {
-          name: fileToUpload.name,
-          size: fileToUpload.size,
+          name: extraction.data.fileName,
+          size: extraction.data.fileSizeBytes,
         },
       });
 
-      const formData = new FormData();
-      formData.append("file", fileToUpload);
-      formData.append("message", displayText);
-
+      // 2. Prepara o payload JSON com o material extraído e metadados informativos
       const preparedPayload = prepareAivuChatPayload({
         text: displayText,
+        material_text: extraction.data.text,
+        file_info: {
+          name: extraction.data.fileName,
+          size: extraction.data.fileSizeBytes,
+          pageCount: extraction.data.pageCount,
+          fonte: "PDF",
+        },
         messages,
         activeContext,
         pathname,
       });
-      formData.append("history", JSON.stringify(preparedPayload.history));
-      if (preparedPayload.context) {
-        formData.append("context", JSON.stringify(preparedPayload.context));
-      }
 
       try {
         const response = await fetch("/api/ai/aivu/chat", {
           method: "POST",
-          body: formData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(preparedPayload),
         });
 
         if (response.ok) {
@@ -284,7 +312,7 @@ export default function AivoWidget() {
       } catch {
         addMessage({
           sender: 'aivo',
-          text: "Erro de conexão ao enviar o PDF para o AIVU. Verifique sua internet e tente novamente.",
+          text: "Erro de conexão ao enviar os dados para o AIVU. Verifique sua internet e tente novamente.",
         });
         clearRecoveryTimer();
         setState('error');

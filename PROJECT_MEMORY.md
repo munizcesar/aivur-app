@@ -1059,3 +1059,64 @@ Antes de qualquer alteração futura em Trilhas:
 - **Build de Produção:** `npm run build` exit 0 (13/13 páginas compiladas).
 - **Git Check:** `git diff --check` exit 0.
 - **Validação Real no Chrome:** 6/6 cenários aprovados com evidências visuais capturadas em artefatos PNG.
+
+## 28. AIVU — Migração da Extração de PDF para o Navegador (Client-Side com Web Worker) (2026-11-03)
+
+### 1. Motivação e Decisão Arquitetural
+- **Blindagem do Cloudflare Pages Edge Runtime:**
+  - Cloudflare Pages Functions em V8 isolates impõem limite estrito de memória (128 MB) e tempo de CPU (50 ms).
+  - A extração de editais em PDF no servidor gerava picos de memória e risco de timeout/500 em PDFs com muitas páginas ou fontes embutidas complexas.
+  - **Decisão:** Migrar a extração de texto integralmente para o navegador (client-side) utilizando `pdfjs-dist` e Web Worker empacotado localmente, enviando ao servidor exclusivamente JSON limpo estruturado (`material_text` e `file_info`).
+  - Remoção de qualquer dependência ou import de `pdfjs-dist` e `pdf.worker.mjs` no runtime da rota `/api/ai/aivu/chat`.
+
+### 2. Implementação e Garantias de Segurança
+- **Web Worker Local Empacotado (`public/pdf.worker.min.mjs`):**
+  - Worker oficial do `pdfjs-dist@6.3.289` empacotado no diretório público do projeto.
+  - Servido com same-origin `/pdf.worker.min.mjs`, garantindo zero dependência externa de CDN e imunidade a bloqueios por adblockers/firewalls corporativos.
+  - Não utiliza fallback automático para thread principal em documentos pesados: caso o worker falhe, emite erro recuperável (`WORKER_FAILED`) com preservação do anexo para nova tentativa pelo usuário.
+- **Contrato JSON Estrito no Endpoint (`/api/ai/aivu/chat`):**
+  - O endpoint valida o payload via `AivuChatRequestSchema` (`message`, `material_text`, `file_info`, `history`, `context`).
+  - Chamadas `multipart/form-data` são rejeitadas terminantemente com HTTP 400 (`MULTIPART_NOT_ACCEPTED`).
+  - Zero arquivo binário de PDF trafega para os Edge Workers.
+  - Metadados enviados pelo cliente (`file_info`) são tratados como informativos declarados; o servidor valida os limites de caracteres e orçamento de contexto independentemente de metadados forjados.
+- **Orçamento de Contexto e Limites Defensivos:**
+  - Limite de arquivo: 15 MB (`AIVU_PDF_LIMITS.MAX_FILE_SIZE_BYTES`).
+  - Limite de páginas: 100 páginas (`AIVU_PDF_LIMITS.MAX_PAGES`).
+  - Orçamento seguro de caracteres extraídos: 40.000 caracteres (~10.000 tokens Groq).
+  - Orçamento combinado seguro (mensagem + edital + histórico): 45.000 caracteres, validado via refinamento Zod.
+  - Rejeição clara de PDF escaneado sem camada de texto (`NO_TEXT`), corrompido (`CORRUPTED_PDF`) ou protegido por senha (`PASSWORD_PROTECTED`).
+  - Proteção contra prompt injection no documento: o texto extraído é delimitado em bloco XML de conteúdo não confiável com instruções invioláveis para o modelo.
+  - Reutilização sem impacto colateral: utilitários de `src/utils/materialExtractor.ts`, Trilhas e Jornadas permanecem intactos.
+
+### 3. Validação e Evidências
+- **Regression Gate:** **89/89 PASS** (100% de cobertura preservada, zero regressões).
+- **TypeScript:** `npx tsc --noEmit` exit code 0.
+- **Build de Produção:** `npm run build` exit code 0.
+- **Git Check:** `git diff --check` exit code 0.
+- **Validação Funcional no Navegador:** 6/6 cenários testados com sucesso via Puppeteer (seleção, remoção, teto de 15 MB, assinatura mágica, mobile 390px e fluxo real de envio com confirmação de payload 100% JSON).
+
+## 29. AIVU — Isolamento Total e Eliminação Transitiva do PDF.js no Edge Runtime (2026-11-04)
+
+### 1. Diagnóstico e Causa Raiz
+- A auditoria pré-deploy de compilação identificou chunks de `pdfjs-dist` no manifesto da rota Edge `/api/ai/aivu/chat` (`middleware-manifest.json`).
+- Causa Raiz: `src/lib/aivu-edital.ts` importava `detectMultipleCargosInText` de `src/lib/aivu-pdf.ts`. Como `aivu-pdf.ts` continha lógica de extração client-side importando `pdfjs-dist`, o compilador Turbopack/Next.js vinculava transitivamente os chunks de PDF.js ao grafo da rota Edge.
+
+### 2. Correção Arquitetural
+- **Módulo Independente de Lógica Regex (`src/lib/aivu-cargo.ts`):**
+  - Extração cirúrgica de `detectMultipleCargosInText` e tipo `CargoAnalysisResult` para módulo puramente determinístico, sem imports, bibliotecas ou dependências externas.
+- **Desacoplamento em `src/lib/aivu-edital.ts`:**
+  - Substituição da dependência por `import { detectMultipleCargosInText } from "@/lib/aivu-cargo"`.
+  - Remoção de qualquer referência ou import dinâmico de `aivu-pdf`.
+- **Compatibilidade e Eliminação de Duplicação em `src/lib/aivu-pdf.ts`:**
+  - Remoção da implementação duplicada e reexportação limpa: `export { detectMultipleCargosInText } from "@/lib/aivu-cargo"`.
+  - Preserva 100% da interface consumida pelo frontend (`AivoWidget.tsx`).
+
+### 3. Evidências Finais e Validação
+- **Isolamento Comprovado nos Artefatos de Build:**
+  - Inspecionado `.next/server/app/api/ai/aivu/chat/route/middleware-manifest.json`.
+  - Chunks de `pdfjs-dist` e `pdf.worker` foram completamente eliminados do manifesto da rota Edge (zero ocorrências de `pdfjs` ou `pdf.worker` em todos os 15 chunks).
+- **Validação de Tipos:** `npx tsc --noEmit` exit code 0.
+- **Build de Produção:** `npm run build` exit code 0 (13/13 páginas e rotas compiladas com sucesso).
+- **Teste Específico de Cargos:** `scratch/test-audit-real-edital.mjs` aprovado com sucesso (detectou múltiplos cargos e aceitou cargo explícito).
+- **Regression Gate Oficial:** **89/89 PASS** (`npm run regression` 100% verde).
+- **Git Check:** `git diff --check` exit code 0.

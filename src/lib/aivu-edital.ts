@@ -8,6 +8,7 @@ import {
 } from "@/lib/validations/jornada";
 import { splitEditalIntoBlocks, consolidateDisciplinas } from "@/lib/jornada-chunking";
 import type { AivuActionProposal } from "@/lib/validations/aivu-chat";
+import { detectMultipleCargosInText } from "@/lib/aivu-cargo";
 
 /**
  * Normaliza e gera hash SHA-256 via Web Crypto API nativa do Edge Runtime.
@@ -107,8 +108,16 @@ export async function parseEditalToProposal(
 
   // Se foram detectados múltiplos cargos e o usuário não especificou um cargo alvo,
   // solicita esclarecimento pedagógico antes de gerar a proposta
-  if (options.detectedCargos && options.detectedCargos.length > 1 && !options.targetCargo) {
-    const cargosList = options.detectedCargos.map((c) => `• **${c}**`).join("\n");
+  let detectedCargos = options.detectedCargos;
+  if (!detectedCargos) {
+    const cargoAnalysis = detectMultipleCargosInText(editalText);
+    if (cargoAnalysis.hasMultiple) {
+      detectedCargos = cargoAnalysis.cargos;
+    }
+  }
+
+  if (detectedCargos && detectedCargos.length > 1 && !options.targetCargo) {
+    const cargosList = detectedCargos.map((c) => `• **${c}**`).join("\n");
     return {
       success: true,
       reply: `Identifiquei que este edital apresenta **múltiplos cargos**:\n\n${cargosList}\n\nPara qual cargo você deseja direcionar sua preparação? Digite o cargo desejado para que eu prepare a proposta exata de matérias e tópicos.`,

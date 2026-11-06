@@ -28,25 +28,46 @@ export const AivuActionProposalSchema = z.object({
     .optional(),
 });
 
-export const AivuChatRequestSchema = z.object({
-  message: z
-    .string()
-    .trim()
-    .min(1, "A mensagem não pode ser vazia.")
-    .max(1000, "A mensagem deve ter no máximo 1.000 caracteres."),
-  material_text: z
-    .string()
-    .trim()
-    .min(50, "O material deve ter no mínimo 50 caracteres.")
-    .max(15000, "O material deve ter no máximo 15.000 caracteres.")
-    .optional(),
-  history: z
-    .array(AivuChatMessageSchema)
-    .max(8, "O histórico não pode exceder 8 mensagens recentes.")
-    .optional()
-    .default([]),
-  context: AivuPageContextSchema.optional(),
+export const AivuPdfFileInfoSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  size: z.number().int().positive().max(15 * 1024 * 1024, "Arquivo excede o limite máximo de 15 MB."),
+  pageCount: z.number().int().positive().max(100, "Máximo de 100 páginas permitidas."),
+  fonte: z.literal("PDF"),
 });
+
+export const AivuChatRequestSchema = z
+  .object({
+    message: z
+      .string()
+      .trim()
+      .min(1, "A mensagem não pode ser vazia.")
+      .max(1000, "A mensagem deve ter no máximo 1.000 caracteres."),
+    material_text: z
+      .string()
+      .trim()
+      .min(20, "O material deve ter no mínimo 20 caracteres.")
+      .max(40000, "O material deve ter no máximo 40.000 caracteres.")
+      .optional(),
+    file_info: AivuPdfFileInfoSchema.optional(),
+    history: z
+      .array(AivuChatMessageSchema)
+      .max(8, "O histórico não pode exceder 8 mensagens recentes.")
+      .optional()
+      .default([]),
+    context: AivuPageContextSchema.optional(),
+  })
+  .refine(
+    (data) => {
+      const msgLen = data.message.length;
+      const matLen = data.material_text ? data.material_text.length : 0;
+      const histLen = data.history.reduce((acc, h) => acc + h.content.length, 0);
+      return msgLen + matLen + histLen <= 45000;
+    },
+    {
+      message: "O payload combinado (mensagem, edital e histórico) excede o orçamento de contexto seguro (45.000 caracteres).",
+      path: ["material_text"],
+    }
+  );
 
 export const AivuChatResponseSchema = z.object({
   reply: z.string().min(1, "Resposta não pode ser vazia."),
@@ -56,6 +77,7 @@ export const AivuChatResponseSchema = z.object({
 
 export type AivuChatMessage = z.infer<typeof AivuChatMessageSchema>;
 export type AivuActionProposal = z.infer<typeof AivuActionProposalSchema>;
+export type AivuPdfFileInfo = z.infer<typeof AivuPdfFileInfoSchema>;
 export type AivuChatRequest = z.infer<typeof AivuChatRequestSchema>;
 export type AivuChatResponse = z.infer<typeof AivuChatResponseSchema>;
 
@@ -165,16 +187,19 @@ export function findPreviousEdital(
  */
 export function prepareAivuChatPayload(params: {
   text: string;
+  material_text?: string;
+  file_info?: AivuPdfFileInfo;
   messages: Array<{ sender: string; text?: string }>;
   activeContext?: any;
   pathname?: string | null;
 }): {
   message: string;
   material_text?: string;
+  file_info?: AivuPdfFileInfo;
   history: Array<{ role: "user" | "assistant"; content: string }>;
   context?: any;
 } {
-  const { text, messages, activeContext, pathname } = params;
+  const { text, material_text, file_info, messages, activeContext, pathname } = params;
 
   // 1. Contexto da página
   let effectiveContext = activeContext;
@@ -218,29 +243,35 @@ export function prepareAivuChatPayload(params: {
   });
 
   // 3. Detecção e separação de message e material_text
-  const isDirectLongMaterial = text.length > 1000;
-  const previousEdital = findPreviousEdital(messages);
-
   let messageField: string;
   let materialField: string | undefined;
 
-  if (isDirectLongMaterial) {
-    messageField = "Analise o edital enviado e prepare uma proposta de Jornada de Estudos.";
-    materialField = text;
-  } else if (previousEdital && isAnalysisRequest(text)) {
-    messageField = text.slice(0, 1000);
-    materialField = previousEdital;
-  } else if (isEditalPattern(text)) {
-    messageField = "Analise o edital enviado e prepare uma proposta de Jornada de Estudos.";
-    materialField = text;
+  if (material_text) {
+    messageField = text.slice(0, 1000) || "Analise o edital em anexo e elabore uma proposta de Jornada de Estudos.";
+    materialField = material_text;
   } else {
-    messageField = text.slice(0, 1000);
-    materialField = undefined;
+    const isDirectLongMaterial = text.length > 1000;
+    const previousEdital = findPreviousEdital(messages);
+
+    if (isDirectLongMaterial) {
+      messageField = "Analise o edital enviado e prepare uma proposta de Jornada de Estudos.";
+      materialField = text;
+    } else if (previousEdital && isAnalysisRequest(text)) {
+      messageField = text.slice(0, 1000);
+      materialField = previousEdital;
+    } else if (isEditalPattern(text)) {
+      messageField = "Analise o edital enviado e prepare uma proposta de Jornada de Estudos.";
+      materialField = text;
+    } else {
+      messageField = text.slice(0, 1000);
+      materialField = undefined;
+    }
   }
 
   return {
     message: messageField,
     material_text: materialField,
+    file_info,
     history: historyPayload,
     context: effectiveContext || undefined,
   };

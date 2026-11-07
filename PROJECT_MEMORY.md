@@ -1120,3 +1120,28 @@ Antes de qualquer alteração futura em Trilhas:
 - **Teste Específico de Cargos:** `scratch/test-audit-real-edital.mjs` aprovado com sucesso (detectou múltiplos cargos e aceitou cargo explícito).
 - **Regression Gate Oficial:** **89/89 PASS** (`npm run regression` 100% verde).
 - **Git Check:** `git diff --check` exit code 0.
+
+## 30. AIVU — Fase A: Hardening Controlado do Endpoint AIVU (256 KB) e Sincronização Estrita do PDF.js (2026-11-06)
+
+### 1. Proteção de Payload Físico no Endpoint (`/api/ai/aivu/chat`)
+- **Leitura com Contagem Efetiva de Bytes (`readBoundedJsonBody` em `src/app/api/ai/aivu/chat/route.ts`):**
+  - Substituição de `await req.json()` direto por leitor de `ReadableStream` via `req.body.getReader()` com limite físico estrito de `256 KB` (`MAX_AIVU_CHAT_BODY_BYTES = 262.144` bytes).
+  - Não depende do cabeçalho `Content-Length` (imune a omissão em transferências chunked ou valores falsificados).
+  - Interrompe imediatamente a leitura ao exceder 256 KB, invoca `reader.cancel()`, libera o lock do reader e retorna **HTTP 413 Payload Too Large** com contrato `{ error: string }` antes de qualquer `JSON.parse` ou invocação da IA.
+  - Trata corpos vazios, streams interrompidos, UTF-8 inválido e JSON malformado retornando **HTTP 400** (`{ error: "Payload JSON malformado." }`).
+  - Preserva integralmente a verificação prévia de sessão (`401`), rate limiting por usuário (`429`), bloqueio de `multipart/form-data` (`400`) e validações Zod (`AivuChatRequestSchema`).
+
+### 2. Fixação e Sincronização do PDF.js (`6.3.289`)
+- **Pinagem Exata (`package.json` e `package-lock.json`):**
+  - Dependência `pdfjs-dist` fixada exatamente em `"6.3.289"` (sem `^` ou `~`).
+- **Sincronização Core ↔ Worker (`src/lib/aivu-pdf.ts` e `public/pdf.worker.min.mjs`):**
+  - Constante `AIVU_PDF_EXPECTED_VERSION = "6.3.289"` e helper `getAivuPdfWorkerSrc(pdfjsLib.version)` gerando `/pdf.worker.min.mjs?v=6.3.289` para evitar cache obsoleto no navegador.
+  - Verificação em runtime da paridade entre `pdfjsLib.version` e `AIVU_PDF_EXPECTED_VERSION`.
+  - Paridade criptográfica SHA-256 confirmada entre `node_modules/pdfjs-dist/build/pdf.worker.min.mjs` e `public/pdf.worker.min.mjs` (`8AB0E5E30031B4A06ECFDDD5AE9562F0227F830EE7EC9ED1A968B134243D2386`).
+
+### 3. Proteção Evolutiva (Regression Gate)
+- Adicionados os casos `REG-AIVU-PDF-019` e `REG-AIVU-PDF-020` em `tests/regression/aivu/pdf.case.mjs`, registrados em `tests/regression/baseline.json` e `CHANGELOG.md`:
+  - `REG-AIVU-PDF-019`: Cobertura de requisição válida < 256 KB (200), requisição > 256 KB (413 + cancelamento imediato de stream), requisição sem `Content-Length` (200), `Content-Length` incorreto/forjado (413/200 conforme bytes reais), corpo JSON inválido/vazio/interrompido (400), sem autenticação (401) e rate limiting (429).
+  - `REG-AIVU-PDF-020`: Verificação automatizada de versão exata `6.3.289` no `package.json`/`package-lock.json`, igualdade de versão e hash SHA-256 entre core e `public/pdf.worker.min.mjs`, versionamento na URL do worker e preservação do erro `WORKER_FAILED` quando o worker está indisponível.
+- **Placar oficial:** **91/91 PASS** (`npm run regression`).
+- **TypeScript & Build:** `npx tsc --noEmit` exit 0; `npm run build` exit 0 (zero referências a `pdfjs` no manifesto Edge da rota `/api/ai/aivu/chat`).

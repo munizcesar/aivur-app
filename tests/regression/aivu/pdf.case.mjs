@@ -6,8 +6,11 @@ import {
   validatePdfMetadata,
   validatePdfSignature,
   extractTextFromPdfBuffer,
+  extractPdfTextInBrowser,
   sanitizeFileName,
   formatPdfFileSize,
+  AIVU_PDF_EXPECTED_VERSION,
+  getAivuPdfWorkerSrc,
 } from "@/lib/aivu-pdf.ts";
 import { CriarJornadaRequestSchema } from "@/lib/validations/jornada.ts";
 import { signSession } from "@/lib/session.ts";
@@ -855,6 +858,292 @@ export const cases = [
       });
 
       assert.equal(isOverflown, false, "Painel de chat não deve ter estouro horizontal em 390px");
+    },
+  },
+  {
+    id: "REG-AIVU-PDF-019",
+    title: "Endpoint AIVU (/api/ai/aivu/chat): limite físico de 256 KB no stream antes de JSON.parse e independência de Content-Length",
+    needs: "api",
+    async run() {
+      const { POST, MAX_AIVU_CHAT_BODY_BYTES, aivuChatRateLimiter } = await loadAivuChatRoute();
+      assert.equal(MAX_AIVU_CHAT_BODY_BYTES, 256 * 1024, "Limite deve ser exatamente 256 KB (262.144 bytes)");
+
+      // 1. Requisição válida abaixo de 256 KB
+      const validBelow = await callAivuChatJson({
+        message: "Qual o melhor cronograma para estudar Direito Constitucional?",
+        history: [],
+        script: () => raw("Recomendo ciclos de 50 minutos com revisão ativa."),
+      });
+      assert.equal(validBelow.res.status, 200, "Payload válido abaixo de 256 KB deve retornar 200");
+      assert.ok(validBelow.body?.reply);
+
+      // 2. Requisição acima de 256 KB (com cancelamento imediato de stream antes de JSON.parse)
+      let chunksPulled = 0;
+      let streamCancelled = false;
+      const chunk64KB = new Uint8Array(64 * 1024).fill(65); // 'A'
+      const oversizedStream = new ReadableStream({
+        pull(controller) {
+          chunksPulled++;
+          if (chunksPulled <= 10) {
+            controller.enqueue(chunk64KB);
+          } else {
+            controller.close();
+          }
+        },
+        cancel() {
+          streamCancelled = true;
+        },
+      });
+
+      const net = installFetch(() => raw("Não deve ser chamado"));
+      const sessionCookie = await signSession(`aivu-pdf-user-${++pdfUserCounter}`);
+      globalThis.__REG_COOKIES = { aivur_session: sessionCookie };
+
+      try {
+        const reqOversized = new Request("http://localhost/api/ai/aivu/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: oversizedStream,
+          duplex: "half",
+        });
+
+        const resOversized = await POST(reqOversized);
+        const bodyOversized = await resOversized.json();
+        assert.equal(resOversized.status, 413, "Payload > 256 KB deve retornar HTTP 413 Payload Too Large");
+        assert.equal(typeof bodyOversized?.error, "string", "Deve preservar o contrato { error: string }");
+        assert.match(bodyOversized.error, /256 KB/i);
+        assert.equal(streamCancelled, true, "O stream deve ser cancelado assim que ultrapassar 256 KB");
+        assert.ok(chunksPulled <= 6, `A leitura deve ser interrompida no 5º chunk de 64KB (lidos: ${chunksPulled})`);
+        assert.equal(net.calls.groq.length, 0, "Groq jamais deve ser chamada para payload excedente");
+
+        // 3. Requisição sem cabeçalho Content-Length (streaming puro válido)
+        const payloadBytes = new TextEncoder().encode(
+          JSON.stringify({
+            message: "Pergunta via stream sem Content-Length",
+            history: [],
+          })
+        );
+        const validStream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(payloadBytes.subarray(0, 20));
+            controller.enqueue(payloadBytes.subarray(20));
+            controller.close();
+          },
+        });
+        const reqNoCL = new Request("http://localhost/api/ai/aivu/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: validStream,
+          duplex: "half",
+        });
+        assert.equal(reqNoCL.headers.get("content-length"), null, "Não deve possuir Content-Length");
+        const resNoCL = await POST(reqNoCL);
+        assert.equal(resNoCL.status, 200, "Requisição sem Content-Length válida deve retornar 200");
+
+        // 4. Cabeçalho Content-Length incorreto / forjado (ex: declara 50 bytes, mas envia > 256 KB; ou declara 999999 mas envia 60 bytes)
+        const bigBytes = new Uint8Array(256 * 1024 + 512).fill(120);
+        const reqFakeSmallCL = new Request("http://localhost/api/ai/aivu/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Content-Length": "50",
+          },
+          body: bigBytes,
+        });
+        const resFakeSmallCL = await POST(reqFakeSmallCL);
+        assert.equal(resFakeSmallCL.status, 413, "Content-Length menor forjado não deve burlar a contagem física de bytes (413)");
+
+        const reqFakeHugeCL = new Request("http://localhost/api/ai/aivu/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Content-Length": "99999999",
+          },
+          body: JSON.stringify({ message: "Payload pequeno real com Content-Length incorreto", history: [] }),
+        });
+        const resFakeHugeCL = await POST(reqFakeHugeCL);
+        assert.equal(resFakeHugeCL.status, 200, "A contagem real de bytes deve prevalecer sobre Content-Length incorreto");
+
+        // 5. Corpo JSON inválido, vazio ou stream interrompido
+        const reqInvalidJson = new Request("http://localhost/api/ai/aivu/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{ json_corrompido: true ",
+        });
+        const resInvalidJson = await POST(reqInvalidJson);
+        const bodyInvalidJson = await resInvalidJson.json();
+        assert.equal(resInvalidJson.status, 400, "JSON inválido deve retornar 400");
+        assert.equal(typeof bodyInvalidJson?.error, "string");
+
+        const reqEmptyBody = new Request("http://localhost/api/ai/aivu/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "",
+        });
+        const resEmptyBody = await POST(reqEmptyBody);
+        assert.equal(resEmptyBody.status, 400, "Corpo vazio deve retornar 400");
+
+        const abortedStream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('{"message":'));
+            controller.error(new Error("Conexão interrompida pelo cliente"));
+          },
+        });
+        const reqAborted = new Request("http://localhost/api/ai/aivu/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: abortedStream,
+          duplex: "half",
+        });
+        const resAborted = await POST(reqAborted);
+        assert.equal(resAborted.status, 400, "Stream interrompido deve retornar 400 controlado");
+
+        // 6. Requisição sem autenticação continua retornando 401
+        globalThis.__REG_COOKIES = {};
+        const reqUnauth = new Request("http://localhost/api/ai/aivu/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: "Sem sessão", history: [] }),
+        });
+        const resUnauth = await POST(reqUnauth);
+        assert.equal(resUnauth.status, 401, "Requisição sem autenticação deve continuar retornando 401");
+
+        // 7. Rate limiting continua funcionando
+        const rlUserId = `rl-hardening-user-${Date.now()}`;
+        const rlCookie = await signSession(rlUserId);
+        globalThis.__REG_COOKIES = { aivur_session: rlCookie };
+        aivuChatRateLimiter.delete(`user:${rlUserId}`);
+
+        for (let i = 0; i < 15; i++) {
+          const r = await POST(
+            new Request("http://localhost/api/ai/aivu/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: `Msg ${i}`, history: [] }),
+            })
+          );
+          assert.equal(r.status, 200);
+        }
+        const r16 = await POST(
+          new Request("http://localhost/api/ai/aivu/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: "Msg 16 bloqueada", history: [] }),
+          })
+        );
+        assert.equal(r16.status, 429, "Rate limiting deve bloquear a 16ª requisição com 429");
+      } finally {
+        net.restore();
+        delete globalThis.__REG_COOKIES;
+      }
+    },
+  },
+  {
+    id: "REG-AIVU-PDF-020",
+    title: "Sincronização PDF.js: versão exata 6.3.289 fixada, paridade SHA-256 entre core e worker e resiliência a falha de worker",
+    needs: "api",
+    async run() {
+      const { createHash } = await import("node:crypto");
+
+      // 1. Verifica fixação exata em package.json e package-lock.json (sem ^ ou ~)
+      const pkgJson = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8"));
+      const pkgLock = JSON.parse(readFileSync(path.join(ROOT, "package-lock.json"), "utf8"));
+      const pdfjsPkg = JSON.parse(readFileSync(path.join(ROOT, "node_modules/pdfjs-dist/package.json"), "utf8"));
+
+      assert.equal(
+        pkgJson.dependencies["pdfjs-dist"],
+        "6.3.289",
+        "package.json deve fixar pdfjs-dist exatamente em '6.3.289' sem ^ ou ~"
+      );
+      assert.equal(
+        pkgLock.packages[""].dependencies["pdfjs-dist"],
+        "6.3.289",
+        "package-lock.json deve registrar a dependência exata '6.3.289'"
+      );
+      assert.equal(
+        pkgLock.packages["node_modules/pdfjs-dist"].version,
+        "6.3.289",
+        "package-lock.json deve resolver node_modules/pdfjs-dist na versão '6.3.289'"
+      );
+      assert.equal(pdfjsPkg.version, AIVU_PDF_EXPECTED_VERSION);
+
+      // 2. Verifica versão exportada pelo core do pdfjs-dist e URL versionada do worker
+      const pdfjsCore = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      assert.equal(pdfjsCore.version, "6.3.289", "pdfjsLib.version do core deve ser '6.3.289'");
+      assert.equal(
+        getAivuPdfWorkerSrc(pdfjsCore.version),
+        "/pdf.worker.min.mjs?v=6.3.289",
+        "Worker URL deve incluir a versão do pdfjsLib para evitar cache obsoleto"
+      );
+
+      // 3. Verifica paridade criptográfica SHA-256 e versão interna entre node_modules e public/pdf.worker.min.mjs
+      const publicWorkerPath = path.join(ROOT, "public/pdf.worker.min.mjs");
+      const distWorkerPath = path.join(ROOT, "node_modules/pdfjs-dist/build/pdf.worker.min.mjs");
+
+      const publicWorkerBytes = readFileSync(publicWorkerPath);
+      const distWorkerBytes = readFileSync(distWorkerPath);
+
+      const publicHash = createHash("sha256").update(publicWorkerBytes).digest("hex");
+      const distHash = createHash("sha256").update(distWorkerBytes).digest("hex");
+
+      assert.equal(
+        publicHash,
+        distHash,
+        "public/pdf.worker.min.mjs deve ser byte-a-byte idêntico ao worker oficial de pdfjs-dist@6.3.289"
+      );
+
+      const workerHeader = publicWorkerBytes.subarray(0, 2048).toString("utf8");
+      const versionMatch = workerHeader.match(/pdfjsVersion\s*=\s*['"]?([0-9]+\.[0-9]+\.[0-9]+)['"]?/);
+      assert.ok(versionMatch, "Cabeçalho de public/pdf.worker.min.mjs deve declarar pdfjsVersion");
+      assert.equal(
+        versionMatch[1],
+        pdfjsCore.version,
+        `Versão do worker (${versionMatch[1]}) deve ser idêntica à versão do core (${pdfjsCore.version})`
+      );
+
+      // 4. Verifica que worker indisponível / falha de inicialização mantém o tratamento de erro existente (WORKER_FAILED)
+      const validPdfBytes = new TextEncoder().encode(
+        createSinglePagePdf("Edital Concurso Teste Worker Indisponivel 2026.")
+      );
+      const fakeFile = new File([validPdfBytes], "edital_worker_test.pdf", {
+        type: "application/pdf",
+      });
+
+      const hadWindow = "window" in globalThis;
+      const origWindow = globalThis.window;
+      const hadWorkerMsgHandler = "pdfjsWorker" in globalThis;
+      const origWorkerMsgHandler = globalThis.pdfjsWorker;
+      const pdfjsMain = await import("pdfjs-dist");
+      const origGetDocument = pdfjsMain.GlobalWorkerOptions.workerSrc;
+
+      try {
+        globalThis.window = {};
+        // Remove o handler de fake worker em memória que o legacy worker registrou em testes anteriores
+        delete globalThis.pdfjsWorker;
+        // Força um workerSrc inválido / indisponível no ambiente simulado de browser
+        pdfjsMain.GlobalWorkerOptions.workerSrc = "http://127.0.0.1:1/non-existent-pdf.worker.min.mjs";
+
+        const failedRes = await extractPdfTextInBrowser(fakeFile);
+        assert.equal(failedRes.success, false, "Deve falhar controladamente quando o worker estiver indisponível");
+        assert.equal(
+          failedRes.error.code,
+          "WORKER_FAILED",
+          `Código de erro deve ser WORKER_FAILED (obtido: ${failedRes.error.code} - ${failedRes.error.message})`
+        );
+        assert.match(failedRes.error.message, /Web Worker|processador de PDF/i);
+      } finally {
+        pdfjsMain.GlobalWorkerOptions.workerSrc = origGetDocument;
+        if (hadWorkerMsgHandler) {
+          globalThis.pdfjsWorker = origWorkerMsgHandler;
+        } else {
+          delete globalThis.pdfjsWorker;
+        }
+        if (hadWindow) {
+          globalThis.window = origWindow;
+        } else {
+          delete globalThis.window;
+        }
+      }
     },
   },
 ];

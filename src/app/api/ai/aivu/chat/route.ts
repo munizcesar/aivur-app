@@ -19,6 +19,80 @@ export const aivuChatRateLimiter = new InMemoryRateLimiter({
   maxEntries: 500,
 });
 
+export const MAX_AIVU_CHAT_BODY_BYTES = 256 * 1024; // 256 KB
+
+type ReadBodyResult =
+  | { ok: true; text: string }
+  | { ok: false; status: 400 | 413; error: string };
+
+async function readBoundedJsonBody(
+  req: Request,
+  maxBytes: number = MAX_AIVU_CHAT_BODY_BYTES
+): Promise<ReadBodyResult> {
+  if (!req.body) {
+    return { ok: false, status: 400, error: "Payload JSON malformado." };
+  }
+
+  let reader: ReadableStreamDefaultReader<Uint8Array>;
+  try {
+    reader = req.body.getReader();
+  } catch {
+    return { ok: false, status: 400, error: "Payload JSON malformado." };
+  }
+
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value && value.byteLength > 0) {
+        totalBytes += value.byteLength;
+        if (totalBytes > maxBytes) {
+          await reader.cancel("Payload excede o limite de 256 KB.").catch(() => {});
+          return {
+            ok: false,
+            status: 413,
+            error: "O payload enviado excede o limite máximo permitido de 256 KB.",
+          };
+        }
+        chunks.push(value);
+      }
+    }
+  } catch {
+    await reader.cancel().catch(() => {});
+    return { ok: false, status: 400, error: "Payload JSON malformado." };
+  } finally {
+    try {
+      reader.releaseLock();
+    } catch {}
+  }
+
+  if (totalBytes === 0) {
+    return { ok: false, status: 400, error: "Payload JSON malformado." };
+  }
+
+  let combined: Uint8Array;
+  if (chunks.length === 1) {
+    combined = chunks[0];
+  } else {
+    combined = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      combined.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+  }
+
+  try {
+    const text = new TextDecoder("utf-8", { fatal: true }).decode(combined);
+    return { ok: true, text };
+  } catch {
+    return { ok: false, status: 400, error: "Payload JSON malformado." };
+  }
+}
+
 function resolveEnv(): Record<string, string | undefined> {
   let cfEnv: Record<string, any> = {};
   try {
@@ -70,9 +144,18 @@ export async function POST(req: Request) {
     );
   }
 
+  // 3. Leitura limitada em bytes (máximo 256 KB) antes de parsing JSON
+  const rawBodyResult = await readBoundedJsonBody(req, MAX_AIVU_CHAT_BODY_BYTES);
+  if (!rawBodyResult.ok) {
+    return NextResponse.json(
+      { error: rawBodyResult.error },
+      { status: rawBodyResult.status }
+    );
+  }
+
   let bodyJson: unknown;
   try {
-    bodyJson = await req.json();
+    bodyJson = JSON.parse(rawBodyResult.text);
   } catch {
     return NextResponse.json(
       { error: "Payload JSON malformado." },

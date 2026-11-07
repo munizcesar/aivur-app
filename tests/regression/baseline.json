@@ -75,6 +75,8 @@
     "REG-AIVU-PDF-016": { "domain": "aivu", "kind": "browser", "title": "Preservação conversacional: mensagens de texto sem anexo continuam funcionando normalmente", "validatedOn": "2026-11-02" },
     "REG-AIVU-PDF-017": { "domain": "aivu", "kind": "browser", "title": "Botão Copiar em respostas do AIVU: permanece funcional em mensagens geradas via upload de PDF", "validatedOn": "2026-11-02" },
     "REG-AIVU-PDF-018": { "domain": "aivu", "kind": "browser", "title": "Responsividade mobile: composer, botão de clipe e barra de anexo no viewport de 390px", "validatedOn": "2026-11-02" },
+    "REG-AIVU-PDF-019": { "domain": "aivu", "kind": "api", "title": "Endpoint AIVU (/api/ai/aivu/chat): limite físico de 256 KB no stream antes de JSON.parse e independência de Content-Length", "validatedOn": "2026-11-06" },
+    "REG-AIVU-PDF-020": { "domain": "aivu", "kind": "api", "title": "Sincronização PDF.js: versão exata 6.3.289 fixada, paridade SHA-256 entre core e worker e resiliência a falha de worker", "validatedOn": "2026-11-06" },
     "REG-JORNADA-001": { "domain": "jornadas", "kind": "api", "title": "Validação Zod dos contratos da Jornada de Edital: aceita ementa válida e rejeita estruturas malformadas ou vazias", "validatedOn": "2026-10-18" },
     "REG-JORNADA-002": { "domain": "jornadas", "kind": "api", "title": "Autenticação e integridade de sessão: requisições sem sessão, adulteradas ou forjadas retornam 401 controlado", "validatedOn": "2026-10-18" },
     "REG-JORNADA-003": { "domain": "jornadas", "kind": "api", "title": "Extração de ementa com IA (/api/ai/gerar-jornada): validação de limites (50-15.000 chars) e orçamento de tokens", "validatedOn": "2026-10-18" },

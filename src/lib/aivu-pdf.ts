@@ -4,6 +4,8 @@
  * eliminando consumo de memória e CPU no Cloudflare Edge Runtime.
  */
 
+export const AIVU_PDF_EXPECTED_VERSION = "6.3.289";
+
 export const AIVU_PDF_LIMITS = {
   MAX_FILE_SIZE_BYTES: 15 * 1024 * 1024, // 15 MB
   MAX_PAGES: 100, // Máximo 100 páginas por edital
@@ -132,6 +134,11 @@ import { detectMultipleCargosInText } from "@/lib/aivu-cargo";
 export { detectMultipleCargosInText } from "@/lib/aivu-cargo";
 
 
+export function getAivuPdfWorkerSrc(version?: string): string {
+  const ver = typeof version === "string" && version.trim() ? version.trim() : AIVU_PDF_EXPECTED_VERSION;
+  return `/pdf.worker.min.mjs?v=${encodeURIComponent(ver)}`;
+}
+
 /**
  * Extrai texto completo de um documento PDF exclusivamente no navegador do cliente (client-side),
  * utilizando PDF.js com Web Worker empacotado localmente em /pdf.worker.min.mjs.
@@ -183,9 +190,22 @@ export async function extractPdfTextInBrowser(file: File): Promise<PdfExtraction
   try {
     const pdfjsLib = await import("pdfjs-dist");
 
-    // Configuração do Web Worker: prefere o worker empacotado localmente em public/pdf.worker.min.mjs
-    if (!pdfjsLib.GlobalWorkerOptions?.workerSrc) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+    // Verificação de versão esperada do core em relação à versão fixada
+    if (pdfjsLib.version && pdfjsLib.version !== AIVU_PDF_EXPECTED_VERSION) {
+      throw new Error(
+        `Worker version mismatch: core=${pdfjsLib.version} expected=${AIVU_PDF_EXPECTED_VERSION}`
+      );
+    }
+
+    // Configuração do Web Worker: utiliza o worker empacotado localmente com query de versão para evitar cache obsoleto
+    if (pdfjsLib.GlobalWorkerOptions) {
+      const expectedSrc = getAivuPdfWorkerSrc(pdfjsLib.version);
+      if (
+        !pdfjsLib.GlobalWorkerOptions.workerSrc ||
+        pdfjsLib.GlobalWorkerOptions.workerSrc.startsWith("/pdf.worker.min.mjs")
+      ) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = expectedSrc;
+      }
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -371,11 +391,27 @@ export async function extractTextFromPdfBuffer(
     let pdfjsLib: any;
     if (typeof window !== "undefined") {
       pdfjsLib = await import("pdfjs-dist");
-      if (!pdfjsLib.GlobalWorkerOptions?.workerSrc) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+      if (pdfjsLib.version && pdfjsLib.version !== AIVU_PDF_EXPECTED_VERSION) {
+        throw new Error(
+          `Worker version mismatch: core=${pdfjsLib.version} expected=${AIVU_PDF_EXPECTED_VERSION}`
+        );
+      }
+      if (pdfjsLib.GlobalWorkerOptions) {
+        const expectedSrc = getAivuPdfWorkerSrc(pdfjsLib.version);
+        if (
+          !pdfjsLib.GlobalWorkerOptions.workerSrc ||
+          pdfjsLib.GlobalWorkerOptions.workerSrc.startsWith("/pdf.worker.min.mjs")
+        ) {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = expectedSrc;
+        }
       }
     } else {
       pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      if (pdfjsLib.version && pdfjsLib.version !== AIVU_PDF_EXPECTED_VERSION) {
+        throw new Error(
+          `Worker version mismatch: core=${pdfjsLib.version} expected=${AIVU_PDF_EXPECTED_VERSION}`
+        );
+      }
       // @ts-ignore
       await import("pdfjs-dist/legacy/build/pdf.worker.mjs");
     }

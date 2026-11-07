@@ -168,3 +168,9 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
   - REG-AIVU-PDF-016: Preservação do chat textual: mensagens sem anexo continuam com envio normal e botão de clipe/anexo visível no composer.
   - REG-AIVU-PDF-017: Botão Copiar nas respostas geradas a partir de upload de PDF permanece funcional, acessível e isolado do card de proposta.
   - REG-AIVU-PDF-018: Responsividade mobile do composer com botão de anexo e chip de documento em viewport de 390px, sem estouro horizontal (scrollWidth <= clientWidth).
+
+## 2026-11-06 — AIVU Fase A (Hardening de Payload 256 KB e Sincronização Estrita do PDF.js)
+
+- ADD REG-AIVU-PDF-019 … 020 (camada API):
+  - REG-AIVU-PDF-019: Proteção física de 256 KB no `Request.body` de `/api/ai/aivu/chat` antes de `JSON.parse`, cancelamento imediato do stream ao exceder o limite com retorno HTTP 413 (`{ error: string }`), independência de cabeçalho `Content-Length` (ausente ou incorreto), tratamento de JSON inválido/corpo vazio/stream interrompido com HTTP 400 e preservação de autenticação (401) e rate limiting (429).
+  - REG-AIVU-PDF-020: Fixação estrita de `pdfjs-dist` na versão exata `6.3.289` em `package.json` e `package-lock.json`, verificação automatizada de paridade criptográfica SHA-256 e versão entre o core (`pdfjsLib.version`) e `public/pdf.worker.min.mjs`, carregamento com versionamento na URL (`?v=6.3.289`) e preservação do tratamento de erro (`WORKER_FAILED`) quando o worker estiver indisponível.

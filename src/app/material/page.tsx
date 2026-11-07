@@ -103,12 +103,21 @@ export default function MaterialPage() {
           totalCaracteres: String(verifiedMaterial.caracteres),
         },
       });
+      useAivoStore.getState().setActiveDocument({
+        name: verifiedMaterial.nomeArquivo || verifiedMaterial.titulo || "Meu Material",
+        text: verifiedMaterial.conteudo,
+        size: verifiedMaterial.tamanhoBytes,
+        pageCount: verifiedMaterial.paginas,
+        fonte: verifiedMaterial.origem === "pdf" ? "PDF" : "TEXTO",
+      });
     } else {
       useAivoStore.getState().setActiveContext(null);
+      useAivoStore.getState().setActiveDocument(null);
     }
 
     return () => {
       useAivoStore.getState().setActiveContext(null);
+      useAivoStore.getState().setActiveDocument(null);
     };
   }, [verifiedMaterial, activeStudyTab]);
 

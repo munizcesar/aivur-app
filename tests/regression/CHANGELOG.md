@@ -172,5 +172,21 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
 ## 2026-11-06 — AIVU Fase A (Hardening de Payload 256 KB e Sincronização Estrita do PDF.js)
 
 - ADD REG-AIVU-PDF-019 … 020 (camada API):
-  - REG-AIVU-PDF-019: Proteção física de 256 KB no `Request.body` de `/api/ai/aivu/chat` antes de `JSON.parse`, cancelamento imediato do stream ao exceder o limite com retorno HTTP 413 (`{ error: string }`), independência de cabeçalho `Content-Length` (ausente ou incorreto), tratamento de JSON inválido/corpo vazio/stream interrompido com HTTP 400 e preservação de autenticação (401) e rate limiting (429).
+  - REG-AIVU-PDF-019: Proteção física de 256 KB no `Request.body` de `/api/ai/aivu/chat` antes de `JSON.parse`, cancelamento imediato do stream ao exceder o limite com retorno HTTP 413 (`{ error: string }`), independência de cabeçalho `Content-Length` (ausente ou incorreto), tratamento de JSON inválido/corpo vazio/interrompido com HTTP 400 e preservação de autenticação (401) e rate limiting (429).
   - REG-AIVU-PDF-020: Fixação estrita de `pdfjs-dist` na versão exata `6.3.289` em `package.json` e `package-lock.json`, verificação automatizada de paridade criptográfica SHA-256 e versão entre o core (`pdfjsLib.version`) e `public/pdf.worker.min.mjs`, carregamento com versionamento na URL (`?v=6.3.289`) e preservação do tratamento de erro (`WORKER_FAILED`) quando o worker estiver indisponível.
+
+## 2026-11-07 — AIVU Fase B (Motor RAG Lexical Determinístico BM25-PT, Anti-IDOR Fail-Closed e UX Mobile-First)
+
+- ADD REG-AIVU-027 … 036 (camada API):
+  - REG-AIVU-027: Pergunta específica sobre PDF aciona `DOCUMENT_QA`, recupera trechos via BM25-PT e retorna `citations` estruturadas sem disparar criação de Jornada.
+  - REG-AIVU-028: Solicitação explícita de análise de edital aciona `EDITAL_JORNADA` e preserva `parseEditalToProposal`.
+  - REG-AIVU-029: Dúvidas gerais sem documento acionam `GENERAL_CHAT` sem injeção de tags RAG nem `actionProposal`.
+  - REG-AIVU-030: Recuperação lexical determinística (`chunkDocumentWithPages` + `retrieveRelevantChunks`) preserva `pageNumber` exato e determinismo para buscas de artigo, lei e página.
+  - REG-AIVU-031: Ancoragem restritiva documental responde `"Informação não encontrada no material fornecido"` com `0` chamadas à IA quando nenhum chunk atinge o limiar mínimo.
+  - REG-AIVU-032: Defesa em camadas contra prompt injection documental (`sanitizeUntrustedChunk` + tag `<documento_nao_confiavel>`), neutralizando aspas triplas, tags `<system>`, tokens ChatML e comandos de override.
+  - REG-AIVU-033: Segurança D1 Anti-IDOR em falha segura (Fail-Closed): proprietário acessa (`200`), outro usuário bloqueado (`403`), ID inexistente bloqueado (`403`), binding D1 ausente/indisponível bloqueado (`503`) e tentativa de spoofing de `userId` pelo cliente ignorada.
+  - REG-AIVU-034: Continuidade documental na sessão reutiliza `activeDocument` em perguntas subsequentes sem duplicar o material no histórico e limpa no reset (`clearMessages`).
+  - REG-AIVU-035: Orçamento estrito de tokens com RAG ativo garante soma total (`systemPersona` + chunks + histórico + pergunta) `<= 2.400` tokens (`MAX_TOTAL_INPUT_TOKENS`).
+  - REG-AIVU-036: Sincronização de índice real em `TrilhaSalaV2.tsx` para a questão (`safeQIdx`) e flashcard (`safeFcIdx`) em estudo.
+- ADD REG-AIVU-037 (camada Navegador):
+  - REG-AIVU-037: Validação Mobile-First e Desktop (`360x800`, `375x812`, `390x844`, `430x932`, `360x440` e `1366x768`) cobrindo referências de página (`data-testid="aivu-citations"`), envio por toque (`tap`), continuidade de rolagem e ausência de overflow horizontal.

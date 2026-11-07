@@ -471,7 +471,7 @@ export default function TrilhaSalaV2() {
   const params = useParams();
   const id     = params.id as string;
 
-  const { error, registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults, selectedVideoByTrilha, setSelectedVideo, progressData, completedTopicIds } = useStudyStore();
+  const { error, registerAnswer, toggleTopicCompletion, customTrilhas, videoResultsCache, setVideoResults, selectedVideoByTrilha, setSelectedVideo, progressData, completedTopicIds, currentQuestao, currentFlashcard } = useStudyStore();
 
   const localTrilha = TRILHAS_MOCK.find(t => t.id === id) || customTrilhas.find(t => t.id === id);
 
@@ -577,19 +577,31 @@ export default function TrilhaSalaV2() {
 
     let atividade: "navegando" | "resolvendo_questao" | "revisando_flashcard" | "lendo_teoria" = "navegando";
     let trechoFoco: string | undefined = undefined;
+    const metadados: Record<string, string> = {
+      trilhaId: trilha.id,
+      secaoAtiva: openSection || "geral",
+    };
 
     if (openSection === "questoes") {
       atividade = "resolvendo_questao";
       if (activeQuestoes.length > 0) {
-        const q = activeQuestoes[0];
+        const rawIdx = currentQuestao[trilha.id] || 0;
+        const safeQIdx = Math.min(Math.max(0, rawIdx), Math.max(0, activeQuestoes.length - 1));
+        const q = activeQuestoes[safeQIdx] || activeQuestoes[0];
         const opts = (q.opcoes || []).map((opt, i) => `(${String.fromCharCode(65 + i)}) ${opt}`).join("\n");
-        trechoFoco = `Questão da Trilha:\n${q.enunciado}\n\nAlternativas:\n${opts}`.slice(0, 1500);
+        trechoFoco = `Questão da Trilha (${safeQIdx + 1}/${activeQuestoes.length}):\n${q.enunciado}\n\nAlternativas:\n${opts}`.slice(0, 1500);
+        metadados.indiceQuestao = String(safeQIdx + 1);
+        metadados.totalQuestoes = String(activeQuestoes.length);
       }
     } else if (openSection === "flashcards") {
       atividade = "revisando_flashcard";
       if (activeFlashcards.length > 0) {
-        const fc = activeFlashcards[0];
-        trechoFoco = `Flashcard de Estudo:\nFrente: ${fc.frente}\nVerso: ${fc.verso}`.slice(0, 1500);
+        const rawFcIdx = currentFlashcard[trilha.id] || 0;
+        const safeFcIdx = Math.min(Math.max(0, rawFcIdx), Math.max(0, activeFlashcards.length - 1));
+        const fc = activeFlashcards[safeFcIdx] || activeFlashcards[0];
+        trechoFoco = `Flashcard de Estudo (${safeFcIdx + 1}/${activeFlashcards.length}):\nFrente: ${fc.frente}\nVerso: ${fc.verso}`.slice(0, 1500);
+        metadados.indiceFlashcard = String(safeFcIdx + 1);
+        metadados.totalFlashcards = String(activeFlashcards.length);
       }
     } else if (openSection === "resumo") {
       atividade = "lendo_teoria";
@@ -609,16 +621,13 @@ export default function TrilhaSalaV2() {
       topico: trilha.titulo,
       titulo: trilha.titulo,
       trecho_foco: trechoFoco || undefined,
-      metadados: {
-        trilhaId: trilha.id,
-        secaoAtiva: openSection || "geral",
-      },
+      metadados,
     });
 
     return () => {
       useAivoStore.getState().setActiveContext(null);
     };
-  }, [trilha, openSection, activeQuestoes, activeFlashcards, activeResumoMarkdown, activeResumoText]);
+  }, [trilha, openSection, activeQuestoes, activeFlashcards, activeResumoMarkdown, activeResumoText, currentQuestao, currentFlashcard]);
 
   const formatViews = (views: number) => {
     if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M visualizações`;

@@ -1145,3 +1145,49 @@ Antes de qualquer alteração futura em Trilhas:
   - `REG-AIVU-PDF-020`: Verificação automatizada de versão exata `6.3.289` no `package.json`/`package-lock.json`, igualdade de versão e hash SHA-256 entre core e `public/pdf.worker.min.mjs`, versionamento na URL do worker e preservação do erro `WORKER_FAILED` quando o worker está indisponível.
 - **Placar oficial:** **91/91 PASS** (`npm run regression`).
 - **TypeScript & Build:** `npx tsc --noEmit` exit 0; `npm run build` exit 0 (zero referências a `pdfjs` no manifesto Edge da rota `/api/ai/aivu/chat`).
+
+## 31. AIVU — Fase B.1 & B.2: Motor Lexical Determinístico (RAG BM25-PT) e Integração Mobile-First ao Cérebro do AIVU (2026-11-07)
+
+### 1. Motor de Chunking e Recuperação Lexical (`src/lib/aivu-rag.ts`)
+- **`chunkDocumentWithPages(text, options)`:** Segmentação determinística em blocos de até `750` caracteres com overlap de `120` caracteres, preservando marcadores `--- Página X ---`, cabeçalhos estruturais (`sectionHeader`) e evitando corte de artigos ou parágrafos.
+- **`retrieveRelevantChunks(query, chunks, options)`:** Ranqueamento BM25 adaptado ao português (`k1 = 1.5`, `b = 0.75`) com normalização NFD, remoção de stopwords, stemming leve, colapso de separador de milhar em leis (`8.112` $\rightarrow$ `8112`, `14.133` $\rightarrow$ `14133`), boosts de âncora (`pagina:X`, `art:X`, `lei:X`, termos exatos), retorno de no máximo `3` chunks, `minScore: 0.85` e orçamento configurável (`maxTotalChars: 1800` na rota).
+- **`sanitizeUntrustedChunk(text)`:** Neutralização de delimitadores de prompt (`"""`, ```` ``` ````, tags `<documento_nao_confiavel>`, `<system>`, tokens ChatML `<|im_start|>`, divisores `=== ... ===` e frases de override).
+
+### 2. Integração ao Fluxo Conversacional, Roteamento de Intenções e Anti-IDOR (`route.ts`, `aivu-brain.ts`, `aivu-chat.ts`)
+- **Classificador Determinístico de Intenções (`classifyAivuIntent` em `src/lib/validations/aivu-chat.ts`):**
+  - `EDITAL_JORNADA`: Análise de edital para estruturação de matérias e criação de proposta de Jornada (`parseEditalToProposal`).
+  - `DOCUMENT_QA`: Perguntas sobre PDFs, apostilas, artigos, leis, páginas e prazos com recuperação de chunks relevantes via `retrieveRelevantChunks` e citações estruturadas (`citations`). Quando nenhum trecho atinge o limiar mínimo de relevância em documento anexado, retorna imediatamente `"Informação não encontrada no material fornecido."` sem alucinação e sem consumir chamada de IA.
+  - `GENERAL_CHAT`: Conversação pedagógica geral sem contexto documental ativo.
+- **Isolamento Anti-IDOR no D1 (`src/app/api/ai/aivu/chat/route.ts`):**
+  - Validação da propriedade (`user_id === session.userId`) nas tabelas `trilhas` e `jornadas` quando `context.metadados.trilhaId` ou `jornadaId` são informados, bloqueando tentativas de acesso cruzado entre usuários com **HTTP 403 Forbidden** antes de qualquer chamada à IA.
+- **Ancoragem, Isolamento XML e Orçamento de Tokens (`src/lib/aivu-brain.ts`):**
+  - Trechos recuperados são injetados dentro de `<documento_nao_confiavel fonte="..." pagina="...">` com diretrizes estritas de não-execução de instruções internas e citação de página real.
+  - Contabilização dinâmica de tokens (`estimateTokens`) garantindo que `systemPersona + retrievedChunks + filteredHistory + message <= 2.400 tokens` (`MAX_TOTAL_INPUT_TOKENS`).
+
+### 3. Continuidade Documental na Sessão, Contexto Real de Trilhas e UX Mobile-First (`useAivoStore.ts`, `TrilhaSalaV2.tsx`, `material/page.tsx`, `AivoWidget.tsx`)
+- **Continuidade Documental (`activeDocument` em `useAivoStore.ts`):** Mantém o documento ativo em memória durante a sessão atual do usuário (sem persistir texto pesado no `sessionStorage` e limpando em `clearMessages` ou reset de `/material`), permitindo perguntas subsequentes de continuidade sem reupload.
+- **Sincronização de Índice Real (`TrilhaSalaV2.tsx`):** Substituição do índice fixo `0` por `safeQIdx` (`currentQuestao[trilha.id]`) e `safeFcIdx` (`currentFlashcard[trilha.id]`), sincronizando exatamente a questão ou flashcard que o aluno está visualizando.
+- **Referências Visuais Mobile-First (`AivoWidget.tsx` & `AivoWidget.module.css`):** Exibição compacta de `Fontes consultadas` com nome do documento, badge `Pág. X` e trecho utilizado, rolagem restrita ao container interno `chatBodyRef` e zero overflow horizontal validado em `360x800`, `375x812`, `390x844`, `430x932`, `360x440` (teclado virtual) e `1366x768` (desktop).
+
+## 32. AIVU — Fase B.3: Consolidação de Testes Permanentes (102/102) e Blindagem Fail-Closed D1 Anti-IDOR (2026-11-07)
+
+### 1. Blindagem Fail-Closed de Segurança D1 Anti-IDOR (`src/app/api/ai/aivu/chat/route.ts`)
+- **Política de Falha Segura (`503` / `403`):**
+  - Quando `context.metadados.trilhaId` (exceto trilhas estáticas de catálogo `t-001`..`t-004`) ou `context.metadados.jornadaId` são informados na requisição, a rota exige obrigatoriamente verificação de propriedade no D1 antes de construir contexto ou invocar a IA.
+  - Se o binding `DB` estiver ausente, indisponível ou se a query D1 falhar, retorna imediatamente **HTTP 503 Service Unavailable** (sem fallback permissivo).
+  - Consultas com escopo de propriedade (`SELECT id, user_id FROM trilhas WHERE id = ? AND user_id = ?` e `SELECT id, user_id FROM jornadas WHERE id = ? AND user_id = ?`) utilizando exclusivamente `session.userId` extraído do cookie HttpOnly autenticado (`verifySessionCookie`), ignorando qualquer tentativa de spoofing via `metadados.userId`.
+  - Se o ID não existir ou pertencer a outro usuário, retorna **HTTP 403 Forbidden** com zero chamadas ao provedor de IA.
+
+### 2. Consolidação na Suíte Oficial de Regressão (`tests/regression/aivu/chat.case.mjs`, `baseline.json`, `CHANGELOG.md`)
+- Integrados 11 novos cenários permanentes (`REG-AIVU-027` a `REG-AIVU-037`), elevando a linha de base oficial de `91` para **102 testes** (`102/102 PASS`):
+  - `REG-AIVU-027` (api): Pergunta específica sobre PDF aciona `DOCUMENT_QA` e retorna `citations` estruturadas sem abrir criação de Jornada.
+  - `REG-AIVU-028` (api): Pedido explícito de análise de edital aciona `EDITAL_JORNADA` e preserva `parseEditalToProposal`.
+  - `REG-AIVU-029` (api): Pergunta geral sem documento aciona `GENERAL_CHAT` sem tags RAG ou proposta de ação.
+  - `REG-AIVU-030` (api): Recuperação lexical determinística BM25-PT por artigo, lei e página preserva `pageNumber` exato e determinismo.
+  - `REG-AIVU-031` (api): Tópico ausente no material retorna `"Informação não encontrada no material fornecido"` com zero chamadas à IA.
+  - `REG-AIVU-032` (api): Defesa contra prompt injection sanitiza delimitadores e isola trechos em `<documento_nao_confiavel>`.
+  - `REG-AIVU-033` (api): Anti-IDOR fail-closed no D1 valida bloqueio sem D1 (`503`), outro usuário (`403`), ID inexistente (`403`), spoofing de `userId` (`403`) e acesso do proprietário legítimo (`200`).
+  - `REG-AIVU-034` (api): Continuidade documental na sessão via `activeDocument` sem poluir `history` e limpeza em `clearMessages()`.
+  - `REG-AIVU-035` (api): Respeito ao orçamento estrito de tokens com RAG ativo (`<= 2.400` tokens).
+  - `REG-AIVU-036` (api): Sincronização real do índice da questão (`safeQIdx`) e flashcard (`safeFcIdx`) em `TrilhaSalaV2.tsx`.
+  - `REG-AIVU-037` (browser): Validação Mobile-First (`360x800`, `375x812`, `390x844`, `430x932`, `360x440` e `1366x768`) comprovando envio por toque, referências `Pág. X`, continuidade de rolagem e zero overflow horizontal.

@@ -44,8 +44,8 @@ jobs:
       - name: Static Type Check (TypeScript)
         run: npx tsc --noEmit
 
-      - name: Production Build (Next.js)
-        run: npm run build
+      - name: Production Build (Cloudflare Pages / Next.js)
+        run: npm run pages:build
 
-      - name: Regression Gate (60/60 Tests)
+      - name: Regression Gate (102/102 Tests)
         run: npm run regression

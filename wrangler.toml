@@ -23,3 +23,22 @@ database_id = "c89abdb7-6f74-424d-9012-6551e6e1a5d2"
 binding = "VECTORIZE"
 index_name = "aivur-vector-index"
 
+# -----------------------------------------------------------------------------
+# Ambiente Preview (Isolamento estrito para Pull Requests e branch deployments)
+# -----------------------------------------------------------------------------
+[env.preview.ai]
+binding = "AI"
+
+[[env.preview.d1_databases]]
+binding = "D1_DB"
+database_name = "aivur-db-preview"
+database_id = "4e6886cf-d847-4a5a-af8a-22d55b2aaede"
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "aivur-questoes-preview"
+database_id = "9c7e8aa9-c209-4109-b554-63c873b1752f"
+
+[[env.preview.vectorize]]
+binding = "VECTORIZE"
+index_name = "aivur-vector-index-preview"

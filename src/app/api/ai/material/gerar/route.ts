@@ -7,7 +7,9 @@ import { extractCleanJson, getDomainRules } from "@/lib/ai-protocols";
 import {
   MaterialGenerateRequestSchema,
   RawMaterialAIGenerationSchema,
+  RawMaterialAdditionalQuestionsSchema,
   buildAuthoritativeGeneratedMaterial,
+  type MaterialQuestion,
 } from "@/lib/validations/material-ai";
 import {
   materialRateLimiter,
@@ -109,7 +111,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const { titulo, conteudo, disciplina, metadados } = inputValidation.data;
+  const { titulo, conteudo, disciplina, metadados, modo, quantidadeQuestoes, questoesExistentes } = inputValidation.data;
+  const isQuestoesAdicionais = modo === "questoes_adicionais";
 
   // Log seguro (sem expor o texto integral em logs)
   console.log(
@@ -119,7 +122,53 @@ export async function POST(req: Request) {
   // E. CONSTRUÇÃO DO PROMPT FUNDAMENTADO (GROUNDED AI)
   const domainRules = getDomainRules(disciplina || titulo);
 
-  const prompt = `Você é um professor examinador e tutor pedagógico de excelência do AIVUR.
+  let prompt = "";
+  if (isQuestoesAdicionais) {
+    const qtd = Math.min(Math.max(quantidadeQuestoes ?? 3, 1), 5);
+    const contextoNegativo = (questoesExistentes && questoesExistentes.length > 0)
+      ? `\n=== QUESTÕES JÁ EXISTENTES (NÃO REPITA NEM PARAFRASEIE NENHUMA DESTAS) ===\n${questoesExistentes.slice(0, 50).map((q, idx) => `${idx + 1}. ${q}`).join('\n')}\n`
+      : "";
+
+    prompt = `Você é um professor examinador e tutor pedagógico de excelência do AIVUR.
+Sua missão é gerar EXATAMENTE ${qtd} novas questões de múltipla escolha baseadas EXCLUSIVAMENTE no material fornecido abaixo.
+
+=== REGRAS ABSOLUTAS DE FUNDAMENTAÇÃO ===
+1. Utilize EXCLUSIVAMENTE o texto abaixo como fonte da verdade factual.
+2. É expressamente PROIBIDO alucinar ou inventar artigos de lei, prazos, dados históricos ou regras que NÃO estejam contidas no texto.
+3. Se o material for insuficiente para gerar novas questões de forma fidedigna, gere apenas o que o documento comprova sem inventar.
+4. Gere exatamente 4 alternativas (A, B, C, D) por questão. As alternativas NÃO PODEM ser repetidas nem parafraseadas de forma idêntica.
+5. Indique o índice da alternativa correta (corretaIdx) de 0 a 3.
+6. Forneça justificativa fundamentada e o trecho de referência exato do material que comprova o gabarito.
+${contextoNegativo}
+TÍTULO DO MATERIAL: "${titulo}"
+DISCIPLINA: "${disciplina || "Geral"}"
+
+=== CONTEÚDO FONTE DO ALUNO ===
+${conteudo}
+
+=== SCHEMA JSON OBRIGATÓRIO ===
+Devolva APENAS um objeto JSON válido (sem tags markdown externas, sem texto introdutório):
+{
+  "questoes": [
+    {
+      "enunciado": "Enunciado da nova questão baseado no texto...",
+      "opcoes": [
+        "Alternativa A",
+        "Alternativa B",
+        "Alternativa C",
+        "Alternativa D"
+      ],
+      "corretaIdx": 0,
+      "justificativa": "Explicação fundamentada demonstrando por que a alternativa está correta segundo o texto.",
+      "trecho_referencia": "Trecho exato do material que comprova o gabarito."
+    }
+  ]
+}
+
+=== PROTOCOLO DE CONFIABILIDADE ===
+${domainRules}`;
+  } else {
+    prompt = `Você é um professor examinador e tutor pedagógico de excelência do AIVUR.
 Sua missão é sintetizar o MATERIAL FORNECIDO ABAIXO em ferramentas ativas de estudo.
 
 === REGRAS ABSOLUTAS DE FUNDAMENTAÇÃO ===
@@ -171,6 +220,7 @@ Devolva APENAS um objeto JSON válido (sem tags markdown externas, sem texto int
 
 === PROTOCOLO DE CONFIABILIDADE ===
 ${domainRules}`;
+  }
 
   const messages = [
     {
@@ -264,7 +314,9 @@ ${domainRules}`;
     );
   }
 
-  let parseResult = RawMaterialAIGenerationSchema.safeParse(parsedJson);
+  let parseResult = isQuestoesAdicionais
+    ? RawMaterialAdditionalQuestionsSchema.safeParse(parsedJson)
+    : RawMaterialAIGenerationSchema.safeParse(parsedJson);
 
   // H. ESTRATÉGIA DE FIXER PROMPT (MÁXIMO 1 RODADA DE CORREÇÃO ESTRUTURAL)
   if (!parseResult.success) {
@@ -273,7 +325,19 @@ ${domainRules}`;
       parseResult.error.issues
     );
 
-    const fixerPrompt = `Você gerou o JSON abaixo a partir de um material de estudo, mas ele falhou na validação estrutural obrigatória do sistema.
+    const fixerPrompt = isQuestoesAdicionais
+      ? `Você gerou o JSON abaixo para novas questões a partir de um material de estudo, mas ele falhou na validação estrutural obrigatória do sistema.
+ERROS DETECTADOS:
+${JSON.stringify(parseResult.error.issues, null, 2)}
+
+JSON ORIGINAL:
+${JSON.stringify(parsedJson, null, 2)}
+
+SUA TAREFA:
+Corrija APENAS os erros estruturais acima (ex: garanta exatamente 4 alternativas distintas sem repetições, corrija corretaIdx para 0..3, garanta enunciado e justificativa com tamanho mínimo).
+NÃO invente informações externas. Mantenha 100% de fundamentação no material.
+Devolva APENAS o JSON corrigido estritamente no schema: { "questoes": [...] }.`
+      : `Você gerou o JSON abaixo a partir de um material de estudo, mas ele falhou na validação estrutural obrigatória do sistema.
 ERROS DETECTADOS:
 ${JSON.stringify(parseResult.error.issues, null, 2)}
 
@@ -340,10 +404,12 @@ Devolva APENAS o JSON corrigido estritamente no schema esperado.`;
         const fixerMessage = fixerData?.choices?.[0]?.message?.content || "";
         const cleanFixerJson = extractCleanJson(fixerMessage);
         const parsedFixerJson = JSON.parse(cleanFixerJson);
-        const fixerParseResult = RawMaterialAIGenerationSchema.safeParse(parsedFixerJson);
+        const fixerParseResult = isQuestoesAdicionais
+          ? RawMaterialAdditionalQuestionsSchema.safeParse(parsedFixerJson)
+          : RawMaterialAIGenerationSchema.safeParse(parsedFixerJson);
 
         if (fixerParseResult.success) {
-          parseResult = fixerParseResult;
+          parseResult = fixerParseResult as any;
         } else {
           console.warn("[Meu Material IA Fixer] Validação pós-Fixer não atingiu o contrato.");
         }
@@ -356,7 +422,9 @@ Devolva APENAS o JSON corrigido estritamente no schema esperado.`;
     if (!parseResult.success) {
       return NextResponse.json(
         {
-          error: "Não foi possível estruturar o material gerado pela IA no formato pedagógico necessário. Tente novamente.",
+          error: isQuestoesAdicionais
+            ? "Não foi possível estruturar as questões adicionais geradas pela IA no formato pedagógico necessário. Tente novamente."
+            : "Não foi possível estruturar o material gerado pela IA no formato pedagógico necessário. Tente novamente.",
         },
         { status: 422 }
       );
@@ -364,16 +432,39 @@ Devolva APENAS o JSON corrigido estritamente no schema esperado.`;
   }
 
   // I. HIDRATAÇÃO AUTORITATIVA PELO SERVIDOR
+  if (isQuestoesAdicionais) {
+    try {
+      const data = parseResult.data as { questoes: any[] };
+      const prefix = `mat-add-${Date.now().toString(36)}-`;
+      const novasQuestoes: MaterialQuestion[] = data.questoes.map((q, index) => ({
+        id: `${prefix}q-${index + 1}`,
+        enunciado: q.enunciado,
+        opcoes: q.opcoes,
+        corretaIdx: q.corretaIdx,
+        justificativa: q.justificativa,
+        trecho_referencia: q.trecho_referencia,
+      }));
+
+      return NextResponse.json({ questoes: novasQuestoes });
+    } catch (err: any) {
+      console.error("[Meu Material IA] Erro na formatação de questões adicionais");
+      return NextResponse.json(
+        { error: "Falha na formatação final das questões adicionais geradas." },
+        { status: 500 }
+      );
+    }
+  }
+
   // De forma conservadora, a rota não tem fonte confiável para comprovar integralidade de arquivo
   // arbitrária enviada pelo cliente. Portanto, cobertura é sempre 'recorte' (comprovacaoIntegralidadeServidor: false).
   try {
     const finalMaterial = buildAuthoritativeGeneratedMaterial({
       titulo,
-      disciplina: disciplina || parseResult.data.disciplina_sugerida,
+      disciplina: disciplina || (parseResult.data as any).disciplina_sugerida,
       caracteresProcessados: conteudo.length,
       totalCaracteresMaterial: metadados?.totalCaracteresMaterial,
       tipoExtracaoDeclarado: metadados?.tipoExtracao,
-      raw: parseResult.data,
+      raw: parseResult.data as any,
       comprovacaoIntegralidadeServidor: false,
     });
 

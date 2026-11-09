@@ -222,3 +222,105 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Geração Adicional de Questões */
+.moreQuestionsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding: 0.85rem 1.2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.moreQuestionsLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.moreQuestionsControls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.qtdSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.25rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.qtdBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qtdBtn:hover:not(:disabled) {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.qtdBtnActive {
+  background: var(--color-primary, #2563EB);
+  color: #FFFFFF;
+}
+
+.qtdBtnActive:hover:not(:disabled) {
+  background: var(--color-primary, #2563EB);
+  color: #FFFFFF;
+}
+
+.generateMoreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--color-text);
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.generateMoreBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-primary, #2563EB);
+  color: #FFFFFF;
+}
+
+.generateMoreBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.generateMoreError {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: #EF4444;
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+}

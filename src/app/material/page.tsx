@@ -30,6 +30,7 @@ import {
 } from "@/utils/materialExtractor";
 import {
   MaterialGeneratedContentSchema,
+  MaterialAdditionalQuestionsResponseSchema,
   type MaterialGeneratedContent,
 } from "@/lib/validations/material-ai";
 import FlashcardsTool from "./FlashcardsTool";
@@ -74,6 +75,8 @@ export default function MaterialPage() {
   const [aiError, setAiError] = useState<AiErrorState | null>(null);
   const [generatedContent, setGeneratedContent] = useState<MaterialGeneratedContent | null>(null);
   const [activeStudyTab, setActiveStudyTab] = useState<StudyTab>("resumo");
+  const [isGeneratingMoreQuestions, setIsGeneratingMoreQuestions] = useState(false);
+  const [generateMoreError, setGenerateMoreError] = useState<string | null>(null);
 
   const dropzoneRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -239,6 +242,8 @@ export default function MaterialPage() {
     setGeneratedContent(null);
     setAiError(null);
     setIsGenerating(false);
+    setIsGeneratingMoreQuestions(false);
+    setGenerateMoreError(null);
     setActiveStudyTab("resumo");
     setErrorMessage(null);
     setWarningMessage(null);
@@ -343,6 +348,89 @@ export default function MaterialPage() {
     }
   };
 
+  const handleGenerateMoreQuestions = async (quantidade: number): Promise<boolean> => {
+    if (isGeneratingRef.current || isGeneratingMoreQuestions || !verifiedMaterial || !generatedContent) {
+      return false;
+    }
+
+    setIsGeneratingMoreQuestions(true);
+    setGenerateMoreError(null);
+
+    try {
+      const existingQuestoes = generatedContent.questoes.map((q) => q.enunciado);
+
+      const res = await fetch("/api/ai/material/gerar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          titulo: verifiedMaterial.titulo,
+          conteudo: verifiedMaterial.conteudo,
+          disciplina: generatedContent.disciplina || "Geral",
+          modo: "questoes_adicionais",
+          quantidadeQuestoes: quantidade,
+          questoesExistentes: existingQuestoes,
+          metadados: {
+            origem: verifiedMaterial.origem,
+            totalCaracteresMaterial: verifiedMaterial.caracteres,
+            tipoExtracao: "recorte",
+            nomeArquivo: verifiedMaterial.nomeArquivo,
+            paginas: verifiedMaterial.paginas,
+          },
+        }),
+      });
+
+      if (res.status === 401) {
+        setGenerateMoreError("Sua sessão expirou. Faça login para continuar gerando questões.");
+        return false;
+      }
+
+      if (res.status === 429) {
+        setGenerateMoreError("Limite temporário de requisições excedido. Por favor, aguarde alguns instantes.");
+        return false;
+      }
+
+      if (res.status === 422) {
+        setGenerateMoreError("Não foi possível estruturar as questões adicionais no contrato pedagógico. Tente novamente.");
+        return false;
+      }
+
+      if (!res.ok) {
+        const errorData = (await res.json().catch(() => ({}))) as { error?: string };
+        setGenerateMoreError(errorData?.error || "Serviço temporariamente indisponível. Tente novamente mais tarde.");
+        return false;
+      }
+
+      const json = await res.json();
+      const validation = MaterialAdditionalQuestionsResponseSchema.safeParse(json);
+
+      if (!validation.success) {
+        setGenerateMoreError("A resposta de questões adicionais não respeitou o contrato do sistema.");
+        return false;
+      }
+
+      const novasQuestoes = validation.data.questoes;
+      if (novasQuestoes.length === 0) {
+        setGenerateMoreError("Nenhuma nova questão pôde ser gerada com base no material fornecido.");
+        return false;
+      }
+
+      setGeneratedContent((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          questoes: [...prev.questoes, ...novasQuestoes],
+        };
+      });
+
+      return true;
+    } catch {
+      setGenerateMoreError("Erro de conexão ao gerar mais questões. Verifique sua rede e tente novamente.");
+      return false;
+    } finally {
+      setIsGeneratingMoreQuestions(false);
+    }
+  };
+
   const pastedFeedback = evaluateContentLimits(pastedText);
 
   return (
@@ -355,7 +443,7 @@ export default function MaterialPage() {
             <div className={styles.studioHeaderCard}>
               <div>
                 <span style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-slate-blue)", fontWeight: 700 }}>
-                  Meu Material · Síntese de Estudo Ativo
+                  Estudo por Matéria · Síntese de Estudo Ativo
                 </span>
                 <h1 className={styles.studioTitle}>{generatedContent.titulo}</h1>
                 <div className={styles.studioMetaRow}>
@@ -449,7 +537,12 @@ export default function MaterialPage() {
               )}
 
               {activeStudyTab === "questoes" && (
-                <QuizTool questoes={generatedContent.questoes} />
+                <QuizTool
+                  questoes={generatedContent.questoes}
+                  onGenerateMore={handleGenerateMoreQuestions}
+                  isGeneratingMore={isGeneratingMoreQuestions}
+                  generateMoreError={generateMoreError}
+                />
               )}
             </div>
           </div>
@@ -458,9 +551,12 @@ export default function MaterialPage() {
           <div className={styles.uploadContainer} style={{ marginTop: "2rem" }}>
             <div className={styles.heroHeader}>
               <div className={styles.heroTextCol}>
+                <span style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-slate-blue)", fontWeight: 700, display: "block", marginBottom: "0.35rem" }}>
+                  Estudo por Matéria
+                </span>
                 <h1 className={styles.title}>Cofre Editorial</h1>
                 <p className={styles.subtitle}>
-                  Importe seu PDF ou cole seu material de estudo para conferência e validação antes do processamento.
+                  Ambiente independente de Trilhas e Jornadas para estudar qualquer disciplina. Importe seu PDF ou cole seu material de estudo para conferência e validação antes do processamento.
                 </p>
               </div>
               <div className={styles.heroImageCol}>

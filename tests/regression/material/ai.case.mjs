@@ -780,4 +780,321 @@ export const cases = [
       }
     },
   },
+  {
+    id: "REG-MAT-016",
+    title: "Síntese de IA (/api/ai/material/gerar): geração adicional de questões (modo: questoes_adicionais) respeita limites (1-5), inclui trecho_referencia, contexto negativo e preserva fluxo padrão",
+    needs: "api",
+    async run() {
+      // 1. Geração adicional de 3 questões com contexto negativo
+      let capturedPrompt = "";
+      const { res: res3, body: body3, calls: calls3 } = await callMaterialGenerate({
+        body: {
+          modo: "questoes_adicionais",
+          quantidadeQuestoes: 3,
+          questoesExistentes: [
+            "Segundo a CF/88, o direito de propriedade atenderá:",
+            "Ninguém será submetido a tortura nem a tratamento desumano:",
+          ],
+        },
+        script: (req) => {
+          capturedPrompt = req.body?.messages?.[1]?.content || "";
+          return ok({
+            questoes: [
+              {
+                enunciado: "Nova questão adicional 1 sobre o Art. 5º:",
+                opcoes: ["Alternativa correta 1", "Distrator 1A", "Distrator 1B", "Distrator 1C"],
+                corretaIdx: 0,
+                justificativa: "Justificativa da questão 1.",
+                trecho_referencia: "Artigo 5º, inciso XXII da CF.",
+              },
+              {
+                enunciado: "Nova questão adicional 2 sobre o Art. 5º:",
+                opcoes: ["Alternativa correta 2", "Distrator 2A", "Distrator 2B", "Distrator 2C"],
+                corretaIdx: 0,
+                justificativa: "Justificativa da questão 2.",
+                trecho_referencia: "Artigo 5º, inciso XXIII da CF.",
+              },
+              {
+                enunciado: "Nova questão adicional 3 sobre o Art. 5º:",
+                opcoes: ["Alternativa correta 3", "Distrator 3A", "Distrator 3B", "Distrator 3C"],
+                corretaIdx: 0,
+                justificativa: "Justificativa da questão 3.",
+                trecho_referencia: "Artigo 5º, inciso XXIV da CF.",
+              },
+            ],
+          });
+        },
+      });
+
+      assert.equal(res3.status, 200, "modo questoes_adicionais deve retornar 200");
+      assert.equal(body3.questoes?.length, 3, "deve retornar 3 questões");
+      assert.ok(body3.questoes[0].id.startsWith("mat-add-"), "ID deve ser gerado pelo servidor com prefixo mat-add-");
+      assert.equal(body3.questoes[0].opcoes.length, 4, "deve ter 4 alternativas");
+      assert.equal(body3.questoes[0].corretaIdx, 0);
+      assert.equal(body3.questoes[0].trecho_referencia, "Artigo 5º, inciso XXII da CF.");
+      const promptText = calls3.groq[0]?.messages?.[1]?.content || "";
+      assert.ok(promptText.includes("QUESTÕES JÁ EXISTENTES"), "deve injetar aviso de questões existentes no prompt");
+      assert.ok(promptText.includes("Segundo a CF/88, o direito de propriedade atenderá:"), "deve incluir enunciado da questão existente no prompt");
+
+      // 2. Quantidade 1 e 5 (limites válidos)
+      const { res: res1, body: body1 } = await callMaterialGenerate({
+        body: {
+          modo: "questoes_adicionais",
+          quantidadeQuestoes: 1,
+        },
+        script: () => ok({
+          questoes: [{
+            enunciado: "Única questão adicional sobre o Art. 5º:",
+            opcoes: ["Correta", "Incorreta 1", "Incorreta 2", "Incorreta 3"],
+            corretaIdx: 0,
+            justificativa: "Justificativa fundamentada.",
+            trecho_referencia: "Trecho do texto.",
+          }],
+        }),
+      });
+      assert.equal(res1.status, 200);
+      assert.equal(body1.questoes?.length, 1);
+
+      // 3. Quantidade inválida (excede teto 5)
+      const { res: resExceeded } = await callMaterialGenerate({
+        body: {
+          modo: "questoes_adicionais",
+          quantidadeQuestoes: 10,
+        },
+      });
+      assert.equal(resExceeded.status, 400, "quantidadeQuestoes > 5 deve retornar 400");
+
+      // 4. Fluxo padrão (sintese_completa) continua intacto
+      const { res: resDefault, body: bodyDefault } = await callMaterialGenerate({
+        script: () => ok(validAiPayload()),
+      });
+      assert.equal(resDefault.status, 200);
+      assert.ok(bodyDefault.resumo, "fluxo padrão deve conter resumo");
+      assert.ok(bodyDefault.flashcards, "fluxo padrão deve conter flashcards");
+      assert.ok(bodyDefault.questoes, "fluxo padrão deve conter questoes");
+
+      // 5. Erro 429 da Groq no modo adicional retorna 429 sem cascata
+      const { res: res429, calls: calls429 } = await callMaterialGenerate({
+        body: { modo: "questoes_adicionais" },
+        script: () => fail(429, { error: { message: "Rate limit reached for TPM" } }),
+      });
+      assert.equal(res429.status, 429, "429 da Groq deve retornar 429 controlado");
+      assert.equal(calls429.groq.length, 1, "não deve disparar cascata destrutiva sob 429");
+    },
+  },
+  {
+    id: "REG-MAT-017",
+    title: "Meu Material: geração adicional de questões no QuizTool preserva questões, score e progresso anteriores com concatenação de novas questões e recuperação de erros",
+    needs: "browser",
+    async run({ base, newPage }) {
+      const page = await newPage();
+      try {
+        const isMaterialGerar = (req) =>
+          req.method() === "POST" && new URL(req.url()).pathname === "/api/ai/material/gerar";
+
+        let gerarCalls = 0;
+        await intercept(page, [
+          {
+            test: isMaterialGerar,
+            respond: (req) => {
+              gerarCalls++;
+              const bodyStr = req.postData() || "";
+              if (bodyStr.includes('"modo":"questoes_adicionais"')) {
+                return {
+                  status: 200,
+                  body: {
+                    questoes: [
+                      {
+                        id: "mat-add-browser-q-1",
+                        enunciado: "Questão adicional 1 pós-estudo:",
+                        opcoes: ["Alternativa Alpha", "Alternativa Beta", "Alternativa Gamma", "Alternativa Delta"],
+                        corretaIdx: 0,
+                        justificativa: "Justificativa da questão adicional 1.",
+                        trecho_referencia: "Referência da questão 1.",
+                      },
+                      {
+                        id: "mat-add-browser-q-2",
+                        enunciado: "Questão adicional 2 pós-estudo:",
+                        opcoes: ["Opção Alpha", "Opção Beta", "Opção Gamma", "Opção Delta"],
+                        corretaIdx: 0,
+                        justificativa: "Justificativa da questão adicional 2.",
+                        trecho_referencia: "Referência da questão 2.",
+                      },
+                      {
+                        id: "mat-add-browser-q-3",
+                        enunciado: "Questão adicional 3 pós-estudo:",
+                        opcoes: ["Item Alpha", "Item Beta", "Item Gamma", "Item Delta"],
+                        corretaIdx: 0,
+                        justificativa: "Justificativa da questão adicional 3.",
+                        trecho_referencia: "Referência da questão 3.",
+                      },
+                    ],
+                  },
+                };
+              }
+              return {
+                status: 200,
+                body: {
+                  titulo: "Constituição Federal - Artigo 5º",
+                  disciplina: "Direito Constitucional",
+                  escopoProcessado: {
+                    caracteresProcessados: 336,
+                    totalCaracteresMaterial: 336,
+                    cobertura: "recorte",
+                  },
+                  resumo: {
+                    tema_central: "Garantias fundamentais da pessoa humana e direitos de propriedade na CF/88.",
+                    pontos_chave: [
+                      "Inviolabilidade do direito à vida e à segurança.",
+                      "Propriedade condicionada à sua função social.",
+                    ],
+                    conteudo_markdown: "## Resumo Estruturado\\n\\nO artigo 5º da CF/88 estabelece direitos fundamentais...",
+                  },
+                  flashcards: [
+                    {
+                      id: "mat-fc-1",
+                      frente: "Qual é a exigência para o direito de propriedade?",
+                      verso: "Atender a sua função social (Art. 5º, XXIII).",
+                    },
+                    {
+                      id: "mat-fc-2",
+                      frente: "O que diz o princípio da legalidade?",
+                      verso: "Ninguém será obrigado a fazer ou deixar de fazer algo senão em virtude de lei.",
+                    },
+                  ],
+                  questoes: [
+                    {
+                      id: "mat-q-1",
+                      enunciado: "Segundo a CF/88, o direito de propriedade atenderá:",
+                      opcoes: [
+                        "À sua função social.",
+                        "Apenas aos interesses do proprietário.",
+                        "A critério exclusivo do município.",
+                        "À finalidade comercial obrigatória.",
+                      ],
+                      corretaIdx: 0,
+                      justificativa: "A propriedade atenderá a sua função social (Art. 5º, XXIII).",
+                      trecho_referencia: "atendendo à sua função social",
+                    },
+                    {
+                      id: "mat-q-2",
+                      enunciado: "Ninguém será submetido a tortura nem a tratamento desumano:",
+                      opcoes: [
+                        "Regra absoluta que veda qualquer tortura.",
+                        "Exceção aplicável em estado de sítio.",
+                        "Permitida com autorização.",
+                        "Apenas a cidadãos natos.",
+                      ],
+                      corretaIdx: 0,
+                      justificativa: "A vedação é categórica.",
+                      trecho_referencia: "ninguém será submetido a tortura",
+                    },
+                  ],
+                },
+              };
+            },
+          },
+        ]);
+
+        // 1. Acessar /material e alternar para aba "Colar Texto"
+        await page.goto(`${base}/material`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+        await page.waitForSelector("h1");
+
+        await waitHydrated(page, "button[role='tab']");
+        const tabs = await page.$$("button[role='tab']");
+        assert.ok(tabs.length >= 2, "deve renderizar as abas de modo de importação");
+        await tabs[1].click();
+
+        await waitHydrated(page, "textarea");
+        const validTextContent =
+          "A Constituição Federal de 1988 assegura a todos a igualdade perante a lei, sem distinção de qualquer natureza, garantindo-se a inviolabilidade do direito à vida, à liberdade e à propriedade, atendendo à sua função social.";
+        await page.click("textarea");
+        await page.keyboard.type(validTextContent, { delay: 2 });
+
+        // 2. Validar e Visualizar Texto (Fase 1)
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Validar e Visualizar Texto"));
+          btn?.click();
+        });
+
+        // 2. Disparar síntese com IA
+        await page.waitForFunction(
+          () => document.querySelector("button") && document.body.innerText.includes("Sintetizar com IA"),
+          { timeout: 10_000 }
+        );
+
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Sintetizar com IA"));
+          btn?.click();
+        });
+
+        // 3. Aguardar estúdio ativo e navegar para aba Questões
+        await page.waitForFunction(
+          () => /Garantias fundamentais da pessoa humana/i.test(document.body.innerText),
+          { timeout: 15_000 }
+        );
+
+        await page.evaluate(() => {
+          const tabs = [...document.querySelectorAll("button[role='tab']")];
+          const tab = tabs.find((t) => t.textContent.includes("Questões"));
+          tab?.click();
+        });
+
+        await page.waitForFunction(
+          () => /Questão 1 de 2/i.test(document.body.innerText),
+          { timeout: 5_000 }
+        );
+
+        // 4. Responder questão 1 e confirmar
+        await page.evaluate(() => {
+          const optBtns = [...document.querySelectorAll("button")].filter((b) =>
+            b.textContent.includes("À sua função social")
+          );
+          optBtns[0]?.click();
+        });
+
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Confirmar Resposta"));
+          btn?.click();
+        });
+
+        // 5. Clicar em "Gerar +3" questões
+        await page.waitForFunction(
+          () => /Adicionar mais questões ao simulado/i.test(document.body.innerText),
+          { timeout: 5_000 }
+        );
+
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Gerar +3") || b.textContent.includes("Gerar +"));
+          btn?.click();
+        });
+
+        // 6. Comprovar que o total de questões aumentou de 2 para 5
+        await page.waitForFunction(
+          () => /de 5/i.test(document.body.innerText),
+          { timeout: 10_000 }
+        );
+
+        // 7. Avançar para a próxima questão
+        await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("button")];
+          const btn = btns.find((b) => b.textContent.includes("Próxima Questão"));
+          btn?.click();
+        });
+
+        await page.waitForFunction(
+          () => /Questão 2 de 5/i.test(document.body.innerText),
+          { timeout: 5_000 }
+        );
+
+        assert.equal(gerarCalls, 2, "deve ter chamado a rota 2 vezes (síntese inicial + questões adicionais)");
+      } finally {
+        await page.close();
+      }
+    },
+  },
 ];

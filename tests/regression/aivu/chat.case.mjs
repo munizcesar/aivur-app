@@ -453,6 +453,10 @@ export const cases = [
         const isInputDisabled = await page.$eval(inputSelector, (el) => el.disabled);
         assert.equal(isInputDisabled, false, "Input deve ser reabilitado após o erro");
 
+        // Comprova que o texto do usuário foi restaurado para evitar perda em caso de erro
+        const restoredValue = await page.$eval(inputSelector, (el) => el.value);
+        assert.equal(restoredValue, "Teste de falha no widget", "Texto do usuário deve ser restaurado em caso de falha");
+
         const placeholder = await page.$eval(inputSelector, (el) => el.placeholder);
         assert.ok(
           placeholder.includes("Pergunte algo"),
@@ -2730,6 +2734,10 @@ Lei nº 8.112/1990: Art. 20. Ao entrar em exercício, o servidor ficará sujeito
           () => document.querySelectorAll("[data-testid='aivu-citations']").length >= 2,
           { timeout: 15_000 }
         );
+
+        // Comprova que o campo de texto foi limpo imediatamente após o envio com sucesso
+        const clearedVal = await page.$eval(textareaSelector, (el) => el.value);
+        assert.equal(clearedVal, "", "Campo de digitação deve estar limpo após o envio com sucesso");
       } finally {
         await page.close();
       }

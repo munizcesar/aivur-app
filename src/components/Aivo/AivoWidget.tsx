@@ -371,6 +371,9 @@ export default function AivoWidget() {
       pathname,
     });
 
+    // Limpa imediatamente o campo de digitação ao enviar a mensagem
+    setInputValue("");
+
     try {
       const response = await fetch("/api/ai/aivu/chat", {
         method: "POST",

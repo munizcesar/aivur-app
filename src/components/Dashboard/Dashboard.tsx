@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Compass } from 'lucide-react';
 import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
@@ -40,7 +40,23 @@ export default function Dashboard() {
               <div className={styles.pillarContent}>
                 <h3 className={`${styles.pillarTitle} font-semibold tracking-tight`}>Trilhas de Estudo</h3>
                 <p className={styles.pillarDesc}>
-                  Seu edital transformado em um plano de metas diárias.
+                  Aulas organizadas em vídeo, teoria, flashcards e questões para dominar cada assunto.
+                </p>
+              </div>
+              <div className={styles.pillarArrow}>
+                <ArrowRight width={20} height={20} />
+              </div>
+            </Link>
+
+            {/* CARD JORNADAS DE EDITAL */}
+            <Link href="/jornadas" className={`${styles.pillarCard} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
+              <div className={styles.pillarThumb}>
+                <Compass size={32} className="shrink-0 flex-none text-[var(--color-primary)]" strokeWidth={1.8} aria-hidden="true" />
+              </div>
+              <div className={styles.pillarContent}>
+                <h3 className={`${styles.pillarTitle} font-semibold tracking-tight`}>Jornadas de Edital</h3>
+                <p className={styles.pillarDesc}>
+                  Importe o edital do seu concurso e acompanhe a cobertura tópico a tópico até a prova.
                 </p>
               </div>
               <div className={styles.pillarArrow}>
@@ -69,12 +85,12 @@ export default function Dashboard() {
             <Link href="/material" className={`${styles.pillarCard} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}>
               <div className={styles.pillarThumb}>
                 {/*eslint-disable-next-line @next/next/no-img-element*/}
-                <img src="/images/aivur/icon-material.png" alt="Meu Material" />
+                <img src="/images/aivur/icon-material.png" alt="Estudo por Matéria" />
               </div>
               <div className={styles.pillarContent}>
-                <h3 className={`${styles.pillarTitle} font-semibold tracking-tight`}>Meu Material</h3>
+                <h3 className={`${styles.pillarTitle} font-semibold tracking-tight`}>Estudo por Matéria</h3>
                 <p className={styles.pillarDesc}>
-                  Envie seus PDFs e deixe a IA organizar seus resumos.
+                  Estude qualquer disciplina ou assunto de forma independente com resumos, flashcards e questões.
                 </p>
               </div>
               <div className={styles.pillarArrow}>

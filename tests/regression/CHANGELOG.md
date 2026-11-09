@@ -190,3 +190,16 @@ Formato: data · ID · tipo (ADD / CHANGE / REMOVE) · descrição · motivo · 
   - REG-AIVU-036: Sincronização de índice real em `TrilhaSalaV2.tsx` para a questão (`safeQIdx`) e flashcard (`safeFcIdx`) em estudo.
 - ADD REG-AIVU-037 (camada Navegador):
   - REG-AIVU-037: Validação Mobile-First e Desktop (`360x800`, `375x812`, `390x844`, `430x932`, `360x440` e `1366x768`) cobrindo referências de página (`data-testid="aivu-citations"`), envio por toque (`tap`), continuidade de rolagem e ausência de overflow horizontal.
+
+## 2026-11-08 — Meu Material (Geração Adicional de Questões)
+
+- ADD REG-MAT-016 (camada API): rota Edge `/api/ai/material/gerar` em modo `questoes_adicionais`: aceita quantidade de 1 a 5 questões, injeta contexto negativo anti-duplicação no prompt, preserva `MaterialQuestionSchema` com `trecho_referencia` fundamentado, gera IDs com prefixo `mat-add-`, valida limites com Zod (400 sob quantidade > 5) e preserva o fluxo padrão de síntese completa.
+- ADD REG-MAT-017 (camada Navegador): integração ponta-a-ponta no `QuizTool.tsx`: seletor de quantidade (+1, +3, +5), acionamento de geração adicional via botão com feedback visual de carregamento, concatenação transparente ao conjunto de questões sem reiniciar o simulado nem perder score ou respostas prévias, e continuidade da esteira de estudo.
+
+## 2026-11-08 — Central de Jornadas e Hierarquia de Navegação
+
+- ADD REG-JORNADA-016 (camada Navegador): acesso à rota `/jornadas` com verificação de autenticação; redirecionamento com 302 para `/login?redirect=/jornadas` quando anônimo e renderização da Central de Editais com Hero, CTA e listagem de jornadas ativas quando autenticado.
+- ADD REG-JORNADA-017 (camada Navegador): Dashboard exibe exatamente 1 card dedicado para Jornadas de Edital com texto oficial e navegação limpa para `/jornadas`.
+- ADD REG-JORNADA-018 (camada Navegador): SideDrawer exibe opção Jornadas de Edital no painel de Ações Rápidas com navegação para `/jornadas` e ativação dinâmica de `aria-current="page"`.
+- ADD REG-JORNADA-019 (camada Navegador): fluxos de criação (`/jornadas/novo`) e visualização de Jornada possuem links e botões de retorno direcionando confiavelmente para `/jornadas`.
+- ADD REG-JORNADA-020 (camada Navegador): desacoplamento em `/trilhas`: ausência da seção incorporada `UserJornadasSection`, presença do banner contextual direcionando para `/jornadas` e preservação integral dos cursos e demonstrações de microlearning.

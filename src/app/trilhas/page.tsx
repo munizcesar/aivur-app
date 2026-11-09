@@ -4,14 +4,13 @@ import Link from "next/link";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import { TRILHAS_MOCK } from "@/mocks/trilhasMock";
-import UserTrilhasGrid from '@/components/Trilhas/UserTrilhasGrid';
-import TrilhasErrorBoundary from '@/components/Trilhas/TrilhasErrorBoundary';
-import TrilhaProgressBar from '@/components/Trilhas/TrilhaProgressBar';
-import UserJornadasSection from '@/components/Jornadas/UserJornadasSection';
+import UserTrilhasGrid from "@/components/Trilhas/UserTrilhasGrid";
+import TrilhasErrorBoundary from "@/components/Trilhas/TrilhasErrorBoundary";
+import TrilhaProgressBar from "@/components/Trilhas/TrilhaProgressBar";
 
 export const metadata: Metadata = {
   title: "Trilhas de Estudo · AIVUR",
-  description: "Evolua pelo edital com trilhas personalizadas.",
+  description: "Cursos guiados em microlearning para dominar cada assunto.",
 };
 
 export default function TrilhasPage() {
@@ -30,13 +29,13 @@ export default function TrilhasPage() {
               <div className="flex flex-col items-start text-left min-w-0 flex-1">
                 <span className="inline-flex items-center gap-2 mb-3 px-3 py-1 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs font-bold uppercase tracking-widest">
                   <Sparkles size={14} className="shrink-0 flex-none" strokeWidth={2.4} aria-hidden="true" />
-                  Central de trilhas
+                  Cursos guiados em microlearning
                 </span>
                 <h1 id="trilhas-title" className="m-0 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[var(--color-heading)] tracking-tight leading-tight">
                   Suas Trilhas <span className="text-[var(--color-primary)]">de Estudo</span>
                 </h1>
                 <p className="m-0 mt-3 text-base sm:text-lg text-[var(--color-text-muted)] leading-relaxed max-w-xl">
-                  Evolua pelo edital com disciplina. Marque tópicos concluídos e acompanhe sua taxa de retenção em tempo real.
+                  Aulas organizadas em vídeo, teoria, flashcards e questões para dominar cada assunto.
                 </p>
                 <div className="mt-6 flex w-full flex-col sm:flex-row sm:w-auto gap-3">
                   <Link
@@ -47,11 +46,11 @@ export default function TrilhasPage() {
                     Gerar trilha com IA
                   </Link>
                   <Link
-                    href="/jornadas/novo"
+                    href="/jornadas"
                     className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[var(--color-border)] text-[var(--color-heading)] text-sm md:text-base font-semibold no-underline transition-colors hover:bg-[var(--color-surface-offset)]"
                   >
                     <Compass size={18} strokeWidth={1.5} className="shrink-0 flex-none text-[var(--color-primary)]" />
-                    Jornada de Edital
+                    Jornadas de Edital
                   </Link>
                   <a
                     href="#exemplos"
@@ -75,10 +74,36 @@ export default function TrilhasPage() {
             </div>
           </section>
 
-          {/* ── JORNADAS DE EDITAL (verticalizado com IA) ── */}
-          <TrilhasErrorBoundary>
-            <UserJornadasSection />
-          </TrilhasErrorBoundary>
+          {/* ── BANNER CONTEXTUAL — JORNADAS DE EDITAL ── */}
+          <section
+            aria-labelledby="banner-jornadas-title"
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 sm:p-8 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xs"
+          >
+            <div className="flex items-start gap-4 max-w-2xl">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center shrink-0">
+                <Compass size={24} className="shrink-0 flex-none" />
+              </div>
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs font-bold uppercase tracking-wider mb-2">
+                  <Compass size={12} className="shrink-0 flex-none" />
+                  Planejamento de Concurso
+                </span>
+                <h2 id="banner-jornadas-title" className="m-0 text-xl sm:text-2xl font-extrabold text-[var(--color-heading)] tracking-tight">
+                  Seu edital merece uma jornada própria
+                </h2>
+                <p className="m-0 mt-1.5 text-sm sm:text-base text-[var(--color-text-muted)] leading-relaxed">
+                  Transforme o conteúdo do edital em tópicos organizados e acompanhe seu progresso até a prova.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/jornadas"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[var(--color-primary)] hover:opacity-90 text-white text-sm font-bold no-underline transition-opacity shrink-0 shadow-xs w-full sm:w-auto"
+            >
+              <span>Acessar Jornadas</span>
+              <ArrowRight size={16} className="shrink-0 flex-none" />
+            </Link>
+          </section>
 
           {/* ── MINHAS TRILHAS (dados reais do usuário) ── */}
           <section aria-labelledby="minhas-trilhas-title">

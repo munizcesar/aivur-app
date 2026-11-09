@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useQuizStore } from "@/store/useQuizStore";
 import { 
   GraduationCap, X, LayoutDashboard, History, Zap, Sparkles, 
-  Flame, BarChart3, Clock, ClipboardList, FileText, Brain 
+  Flame, BarChart3, Clock, ClipboardList, FileText, Brain, Compass
 } from "lucide-react";
 import styles from "./SideDrawer.module.css";
 import { usePathname, useRouter } from "next/navigation";
@@ -44,6 +44,7 @@ export default function SideDrawer() {
   }, [pathname]);
 
   const isTrilhasActive = pathname === "/trilhas" || Boolean(pathname?.startsWith("/trilhas/"));
+  const isJornadasActive = pathname === "/jornadas" || Boolean(pathname?.startsWith("/jornadas/"));
   const isQuestoesActive = pathname === "/questoes";
   const isMaterialActive = pathname === "/material";
   const isRedacaoActive = pathname === "/redacao";
@@ -213,10 +214,26 @@ export default function SideDrawer() {
                 </span>
                 <span className={styles.drawerActionText}>
                   <strong style={{ color: 'var(--color-text)' }} className="font-semibold tracking-tight">Trilhas de Estudo</strong>
-                  <span>Cronograma via edital</span>
+                  <span>Cursos guiados em microlearning</span>
                 </span>
               </Link>
               
+              <Link
+                href="/jornadas"
+                onClick={closeDrawer}
+                aria-current={isJornadasActive ? "page" : undefined}
+                className={`${styles.drawerActionBtn} ${isJornadasActive ? styles.activeAction : ""} transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/5 active:scale-[0.98] border border-border/40 dark:border-white/10 shadow-sm p-4 md:p-6`}
+                style={{ minHeight: '60px', background: 'var(--color-surface)' }}
+              >
+                <span className={styles.drawerActionIcon} style={{ background: 'rgba(10, 46, 69, 0.08)', color: 'var(--color-primary)' }}>
+                  <Compass size={22} className="shrink-0 flex-none" />
+                </span>
+                <span className={styles.drawerActionText}>
+                  <strong style={{ color: 'var(--color-text)' }} className="font-semibold tracking-tight">Jornadas de Edital</strong>
+                  <span>Edital verticalizado e metas</span>
+                </span>
+              </Link>
+
               <Link
                 href="/questoes"
                 onClick={closeDrawer}
@@ -244,8 +261,8 @@ export default function SideDrawer() {
                   <FileText width={22} height={22} />
                 </span>
                 <span className={styles.drawerActionText}>
-                  <strong style={{ color: 'var(--color-text)' }} className="font-semibold tracking-tight">Meu Material</strong>
-                  <span>Transforme material em questões</span>
+                  <strong style={{ color: 'var(--color-text)' }} className="font-semibold tracking-tight">Estudo por Matéria</strong>
+                  <span>Estudo independente por disciplina</span>
                 </span>
               </Link>
 

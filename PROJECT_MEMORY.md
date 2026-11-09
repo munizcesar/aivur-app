@@ -1191,3 +1191,127 @@ Antes de qualquer alteração futura em Trilhas:
   - `REG-AIVU-035` (api): Respeito ao orçamento estrito de tokens com RAG ativo (`<= 2.400` tokens).
   - `REG-AIVU-036` (api): Sincronização real do índice da questão (`safeQIdx`) e flashcard (`safeFcIdx`) em `TrilhaSalaV2.tsx`.
   - `REG-AIVU-037` (browser): Validação Mobile-First (`360x800`, `375x812`, `390x844`, `430x932`, `360x440` e `1366x768`) comprovando envio por toque, referências `Pág. X`, continuidade de rolagem e zero overflow horizontal.
+
+## 33. Meu Material e AIVU — UX e Geração Adicional de Questões (2026-11-08)
+
+### 1. Correção do Campo de Mensagem do AIVU (`src/components/Aivo/AivoWidget.tsx`)
+- **Limpeza Imediata no Envio:** `setInputValue("")` disparado imediatamente após preparar a mensagem de texto antes de invocar `/api/ai/aivu/chat`.
+- **Restauração em Falha (Zero Perda de Texto):** Preservada a restauração do texto do usuário (`setInputValue(text)`) tanto em respostas de erro HTTP quanto no bloco `catch` de rede.
+- **Prevenção de Duplo Envio:** `disabled={isSending}` e bloqueio por estado em `handleSend` impedem submissões concorrentes.
+- **Validação de Regressão:** `REG-AIVU-007` (restauração em erro) e `REG-AIVU-037` (limpeza imediata em sucesso) aprovados.
+
+### 2. Extensão Controlada da Rota de Síntese (`POST /api/ai/material/gerar`)
+- **Novo Modo `questoes_adicionais`:** Adicionado aos schemas Zod (`material-ai.ts`) mantendo `sintese_completa` como padrão retrocompatível.
+- **Limites e Regras:**
+  - Quantidade configurável de 1 a 5 questões adicionais por requisição (`quantidadeQuestoes`, default 3).
+  - Injeção de contexto negativo (`QUESTÕES JÁ EXISTENTES`) com os enunciados já apresentados para evitar duplicações.
+  - Conformidade total com `MaterialQuestionSchema` (4 alternativas, 1 correta, justificativa e `trecho_referencia` obrigatório).
+  - Identificadores gerados autoritativamente pelo servidor com prefixo `mat-add-`.
+  - Zero persistência e zero acoplamento com tabelas ou IDs do módulo `trilhas`.
+
+### 3. Integração Frontend no Estúdio de Meu Material (`QuizTool.tsx`, `QuizTool.module.css`, `page.tsx`)
+- **Preservação Integral de Estado:** Ao gerar novas questões, `generatedContent.questoes` é estendido via concatenação (`[...prev.questoes, ...novasQuestoes]`), mantendo intocados o score acumulado, respostas dadas e progresso do simulado.
+- **Interface e Feedback:** Controles dedicados para seleção de quantidade (+1, +3, +5) e botão de ação com estado de carregamento e mensagem de erro controlada.
+- **Suíte Oficial de Regressão:** Baseline expandida para **104 testes** (`104/104 PASS`), integrando `REG-MAT-016` (api) e `REG-MAT-017` (browser).
+
+### 4. Renomeação Controlada de Nomenclatura Visível (Meu Material → Estudo por Matéria)
+- **Superfícies Atualizadas:**
+  - `src/components/Dashboard/Dashboard.tsx`: Card 3 atualizado com título "Estudo por Matéria", `alt="Estudo por Matéria"` e descrição objetiva independente de Trilhas/Jornadas.
+  - `src/components/SideDrawer/SideDrawer.tsx`: Item de menu atualizado para "Estudo por Matéria" com descrição "Estudo independente por disciplina".
+  - `src/components/Wizard/WizardStep1.tsx`: Botão de modo atualizado para "Estudo por Matéria" com texto explicativo e `aria-label`.
+  - `src/app/material/page.tsx`: Inserido kicker "Estudo por Matéria" na tela de importação e cabeçalho "Estudo por Matéria · Síntese de Estudo Ativo" no estúdio.
+- **Preservação Técnica:** URLs (`/material`), rotas Edge (`/api/ai/material/gerar`), identificadores de contratos Zod, schemas D1 e rotinas de ancoragem mantidos intactos.
+- **Validação de Build e Regressão:** `npm run build` aprovado (exit 0, 13/13 rotas estáticas/dinâmicas geradas) e Regression Gate com `104/104 PASS`.
+
+## 34. Hierarquia dos Módulos — Etapa 1: Central de Jornadas (`/jornadas`) (2026-11-08)
+
+### 1. Criação da Rota Server-Side Edge (`src/app/jornadas/page.tsx`)
+- **Objetivo:** Estabelecer a Central de Jornadas de Edital como destino próprio de primeiro nível para planejamento e acompanhamento verticalizado de editais de concursos públicos.
+- **Isolamento e Segurança de Sessão:** Verificação obrigatória do cookie HttpOnly `aivur_session` via `verifySessionCookie`. Redirecionamento fail-safe para `/login?redirect=/jornadas` em caso de sessão ausente ou inválida.
+- **Arquitetura de Apresentação:**
+  - Hero institucional alinhado aos tokens visuais oficiais (`var(--color-surface)`, `var(--color-border)`, `var(--color-heading)`, `var(--color-text-muted)` e `var(--color-primary)`).
+  - Kicker temático "Central de Editais" e título "Jornadas de Edital".
+  - CTAs claros: ação primária "Importar Novo Edital" (`/jornadas/novo`) e navegação secundária "Acessar Trilhas" (`/trilhas`).
+  - Reutilização íntegra de `UserJornadasSection`, preservando o consumo de `/api/jornadas`, métricas de progresso por tópico, skeletons de carregamento e estado vazio sem dados fictícios.
+- **Validação e Integridade de Execução:**
+  - `npx tsc --noEmit`: Exit 0 (zero erros de tipagem).
+  - `npm run build`: Exit 0 (13/13 páginas estáticas e rotas dinâmicas compiladas, com inclusão oficial de `ƒ /jornadas`).
+  - `npm run regression`: **104/104 PASS** na suíte completa.
+  - Zero alterações em `/trilhas`, Dashboard, SideDrawer, APIs ou banco.
+
+## 35. Hierarquia dos Módulos — Etapa 2: Acesso a Jornadas no Dashboard e SideDrawer (2026-11-08)
+
+### 1. Inclusão no Dashboard (`src/components/Dashboard/Dashboard.tsx`)
+- Adicionado card dedicado "Jornadas de Edital" com link para `/jornadas`.
+- Ícone: Lucide `Compass` (`size={32} className="shrink-0 flex-none text-[var(--color-primary)]"`).
+- Descrição oficial: "Importe o edital do seu concurso e acompanhe a cobertura tópico a tópico até a prova."
+- Layout responsivo desktop e mobile preservado com grid horizontal brutalista alinhado ao mascote 3D.
+
+### 2. Inclusão no SideDrawer (`src/components/SideDrawer/SideDrawer.tsx`)
+- Adicionada opção "Jornadas de Edital" na aba de Ações Rápidas (`/jornadas`).
+- Subtítulo oficial: "Edital verticalizado e metas".
+- Ícone: Lucide `Compass` (`size={22} className="shrink-0 flex-none"`).
+- Destaque dinâmico de rota ativa: `isJornadasActive` (`aria-current="page"` em `/jornadas` e `/jornadas/*`).
+- Fechamento automático ao clicar ou via Escape/Overlay preservado.
+
+### 3. Validação e Integridade
+- `npx tsc --noEmit`: Exit 0 (zero erros de tipagem).
+- `npm run build`: Exit 0 (13/13 rotas compiladas).
+- `npm run regression`: **104/104 PASS** (suíte completa).
+- `git diff --check`: Exit 0 (zero whitespace/newline warnings).
+- Inspeção visual (Puppeteer):
+  - `07_dashboard_desktop.png` e `07_dashboard_mobile.png`: Contagem de `a[href="/jornadas"]` em `pillarsCol` = 1.
+  - `08_sidedrawer_desktop.png` e `08_sidedrawer_mobile.png`: Contagem de `a[href="/jornadas"]` no Drawer = 1.
+- Restrições respeitadas: `/trilhas` inalterado; zero alterações de banco ou regras de negócio; zero deploy.
+
+## 36. Hierarquia dos Módulos — Etapa 3: Especialização de Trilhas e Limpeza de Promessas de Edital (2026-11-08)
+
+### 1. Especialização da Página de Trilhas (`src/app/trilhas/page.tsx`)
+- **Remoção de Acoplamento:** Removida a renderização e o import direto de `UserJornadasSection`.
+- **Substituição por Banner Contextual:** Inserido banner com `aria-labelledby="banner-jornadas-title"`, título *"Seu edital merece uma jornada própria"*, descrição *"Transforme o conteúdo do edital em tópicos organizados e acompanhe seu progresso até a prova."* e CTA para `/jornadas` (*"Acessar Jornadas"*).
+- **Adequação Semântica de Posicionamento:**
+  - Metadata: *"Cursos guiados em microlearning para dominar cada assunto."*
+  - Kicker Hero: *"Cursos guiados em microlearning"*.
+  - Descrição Hero: *"Aulas organizadas em vídeo, teoria, flashcards e questões para dominar cada assunto."*
+  - CTA Hero secundário: Atualizado de `/jornadas/novo` para `/jornadas` (*"Jornadas de Edital"*).
+  - Preservação total de `UserTrilhasGrid`, `TrilhasErrorBoundary` e `TRILHAS_MOCK` com suas aulas demonstrativas.
+
+### 2. Atualização dos Links de Retorno (`JornadaView.tsx` e `CriarJornadaView.tsx`)
+- `src/components/Jornadas/JornadaView.tsx`: Link superior de retorno atualizado para `/jornadas` (*"Voltar para Jornadas"*) e redirecionamento pós-exclusão atualizado de `/trilhas` para `/jornadas`.
+- `src/components/Jornadas/CriarJornadaView.tsx`: Botão de retorno superior atualizado para `router.push("/jornadas")` com rótulo *"Voltar para jornadas"* e ícone `ArrowLeft`.
+
+### 3. Alinhamento de Descrições no Dashboard e SideDrawer
+- `src/components/Dashboard/Dashboard.tsx`: Descrição do card Trilhas de Estudo atualizada para *"Aulas organizadas em vídeo, teoria, flashcards e questões para dominar cada assunto."* (eliminando a promessa de edital/metas diárias).
+- `src/components/SideDrawer/SideDrawer.tsx`: Subtítulo de Trilhas de Estudo atualizado para *"Cursos guiados em microlearning"* (eliminando a promessa de "Cronograma via edital").
+
+### 4. Validação e Integridade
+- `npx tsc --noEmit`: Exit 0 (zero erros de tipagem).
+- `npm run build`: Exit 0 (13/13 rotas compiladas com sucesso).
+- `npm run regression`: **104/104 PASS** (100% de aprovação na suíte de testes).
+- `git diff --check`: Exit 0.
+- Evidências visuais (Puppeteer):
+  - `09_trilhas_desktop.png` e `09_trilhas_mobile.png`: Banner contextual ativo, sem acoplamento de `UserJornadasSection`, cursos preservados.
+  - `10_jornadas_desktop.png` e `10_jornadas_mobile.png`: Central de Jornadas com Hero, CTA e listagem de jornadas funcionais.
+  - `11_jornadas_novo_desktop.png` e `11_jornadas_novo_mobile.png`: Botão de retorno `Voltar para jornadas` funcional.
+  - `12_jornada_id_desktop.png` e `12_jornada_id_mobile.png`: `Voltar para Jornadas` configurado.
+- Restrições respeitadas: Zero alterações de schema D1, APIs ou migrations; zero deploy.
+
+## 37. Testes Permanentes de Regressão da Navegação e Expansão da Suíte (2026-11-08)
+
+### 1. Implementação dos Casos de Teste (`tests/regression/jornadas/ui.case.mjs`)
+- **REG-JORNADA-016 (browser):** Acesso à rota `/jornadas` com autenticação válida renderiza a Central de Editais e listagem; acesso anônimo sem cookie redireciona com status 401 para `/login?redirect=%2Fjornadas`.
+- **REG-JORNADA-017 (browser):** Valida que o Dashboard exibe exatamente 1 card de "Jornadas de Edital" em `pillarsCol` com a descrição oficial e que o clique com hidratação navega confiavelmente para `/jornadas`.
+- **REG-JORNADA-018 (browser):** Valida que o SideDrawer exibe atalho "Jornadas de Edital" em Ações Rápidas com subtítulo "Edital verticalizado e metas", navega para `/jornadas` e ativa `aria-current="page"`.
+- **REG-JORNADA-019 (browser):** Valida links e botões de retorno em `CriarJornadaView` e `JornadaView`, comprovando que direcionam para `/jornadas`.
+- **REG-JORNADA-020 (browser):** Valida em `/trilhas` o desacoplamento de Jornadas: ausência de `UserJornadasSection` e presença de banner contextual com CTA para `/jornadas`.
+
+### 2. Sincronização da Baseline e Changelog
+- `tests/regression/baseline.json`: Registrados os 5 novos casos com hash SHA-256 e metadata (camada `browser`, suite `jornadas`). Total da baseline: **109 casos**.
+- `tests/regression/CHANGELOG.md`: Registrada a expansão para 109 casos na camada Navegador.
+
+### 3. Validação Integral dos Portões de Qualidade
+- `npm run regression`: **109/109 PASS** (100% de conformidade em toda a suíte de regressão).
+- `npx tsc --noEmit`: Exit 0 (zero erros TypeScript).
+- `npm run build`: Exit 0 (13/13 páginas compiladas).
+- `git diff --check`: Exit 0.
+

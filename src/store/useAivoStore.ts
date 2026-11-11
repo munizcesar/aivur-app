@@ -1,7 +1,11 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { AivuPageContext } from '@/lib/aivu-brain';
-import type { AivuActionProposal } from '@/lib/validations/aivu-chat';
+import type {
+  AivuActionProposal,
+  AivuActiveSessionDocument,
+  AivuCitation,
+} from '@/lib/validations/aivu-chat';
 
 export type AivoState = 'idle' | 'greeting' | 'speaking' | 'thinking' | 'loading' | 'success' | 'error' | 'sleepy' | 'hidden' | 'minimized';
 
@@ -11,6 +15,7 @@ export interface Message {
   text: string;
   timestamp: number;
   actionProposal?: AivuActionProposal;
+  citations?: AivuCitation[];
   fileAttachment?: {
     name: string;
     size: number;
@@ -25,6 +30,7 @@ interface AivoStore {
   isOpen: boolean;
   isSending: boolean;
   activeContext: AivuPageContext | null;
+  activeDocument: AivuActiveSessionDocument | null;
   
   setState: (state: AivoState) => void;
   addMessage: (msg: Omit<Message, 'id' | 'timestamp'>) => void;
@@ -34,6 +40,7 @@ interface AivoStore {
   setIsOpen: (isOpen: boolean) => void;
   setIsSending: (isSending: boolean) => void;
   setActiveContext: (context: AivuPageContext | null) => void;
+  setActiveDocument: (doc: AivuActiveSessionDocument | null) => void;
 }
 
 export const useAivoStore = create<AivoStore>()(
@@ -47,6 +54,7 @@ export const useAivoStore = create<AivoStore>()(
       isOpen: false,
       isSending: false,
       activeContext: null,
+      activeDocument: null,
 
       setState: (state) => set({ state }),
       addMessage: (msg) => set((prev) => ({
@@ -59,11 +67,12 @@ export const useAivoStore = create<AivoStore>()(
             : m
         ),
       })),
-      clearMessages: () => set({ messages: [] }),
+      clearMessages: () => set({ messages: [], activeDocument: null }),
       setTargetAnchor: (targetAnchor) => set({ targetAnchor }),
       setIsOpen: (isOpen) => set({ isOpen }),
       setIsSending: (isSending) => set({ isSending }),
       setActiveContext: (activeContext) => set({ activeContext }),
+      setActiveDocument: (activeDocument) => set({ activeDocument }),
     }),
     {
       name: 'aivo-storage',

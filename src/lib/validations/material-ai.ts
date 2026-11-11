@@ -148,6 +148,26 @@ export const RawMaterialAIGenerationSchema = z.object({
 
 export type RawMaterialAIGeneration = z.infer<typeof RawMaterialAIGenerationSchema>;
 
+/** Schema de validação do retorno bruto de questões adicionais da IA */
+export const RawMaterialAdditionalQuestionsSchema = z.object({
+  questoes: z
+    .array(RawMaterialQuestionSchema)
+    .min(1, "Mínimo de 1 questão gerada.")
+    .max(5, "Máximo de 5 questões geradas."),
+});
+
+export type RawMaterialAdditionalQuestions = z.infer<typeof RawMaterialAdditionalQuestionsSchema>;
+
+/** Schema canônico entregue ao cliente para geração adicional de questões */
+export const MaterialAdditionalQuestionsResponseSchema = z.object({
+  questoes: z
+    .array(MaterialQuestionSchema)
+    .min(1, "Mínimo de 1 questão estruturada.")
+    .max(5, "Máximo de 5 questões estruturadas."),
+});
+
+export type MaterialAdditionalQuestionsResponse = z.infer<typeof MaterialAdditionalQuestionsResponseSchema>;
+
 // ─── 5. ESCOPO DE PROCESSAMENTO E CONTRATO FINAL AUTORITATIVO ────────────────
 
 export const EscopoProcessamentoSchema = z.object({
@@ -192,6 +212,9 @@ export const MaterialGenerateRequestSchema = z.object({
     .min(100, "O conteúdo possui menos de 100 caracteres. Mínimo necessário: 100 caracteres.")
     .max(8000, "O conteúdo excede o limite máximo de 8.000 caracteres desta etapa."),
   disciplina: z.string().trim().max(80).optional(),
+  modo: z.enum(["sintese_completa", "questoes_adicionais"]).default("sintese_completa").optional(),
+  quantidadeQuestoes: z.number().int().min(1, "Mínimo de 1 questão.").max(5, "Máximo de 5 questões adicionais.").default(3).optional(),
+  questoesExistentes: z.array(z.string().trim().max(500)).max(50).optional(),
   metadados: z
     .object({
       origem: z.enum(["texto", "pdf"]).optional(),

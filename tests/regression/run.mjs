@@ -109,32 +109,100 @@ const selected = cases
   .filter((c) => !only || c.id === only)
   .sort((a, b) => a.id.localeCompare(b.id));
 
-let browserCtx = null;
-for (const c of selected) {
-  if (c.needs === "browser" && noBrowser) {
-    skipped++;
-    console.log(`${c.id} –  SKIPPED (browser)  ${c.title}`);
-    continue;
+function printBrowserDiagnostics(diag) {
+  if (!diag) return;
+  console.log(`    [DIAG] Teste: ${diag.caseId} — ${diag.caseTitle}`);
+  console.log(`    [DIAG] Servidor: ${diag.base}${diag.serverPid ? ` (PID ${diag.serverPid})` : ""}`);
+  if (!diag.pages?.length) {
+    console.log("    [DIAG] Nenhuma página aberta registrada.");
   }
-  try {
-    const ctx = {};
-    if (c.needs === "browser") {
-      browserCtx ||= await (await import("./_support/browser.mjs")).startBrowserEnv();
-      Object.assign(ctx, browserCtx);
+  for (let i = 0; i < diag.pages.length; i++) {
+    const p = diag.pages[i];
+    const tag = diag.pages.length > 1 ? `[Pág ${i + 1}] ` : "";
+    console.log(`    [DIAG] ${tag}URL: ${p.url || "(não navegada)"}`);
+    console.log(`    [DIAG] ${tag}HTTP Status: ${p.httpStatus ?? "(sem resposta)"}`);
+    console.log(`    [DIAG] ${tag}Seletor esperado: ${p.expectedSelector ?? "(não registrado)"}`);
+    console.log(`    [DIAG] ${tag}Console errors: ${p.consoleErrors.length ? p.consoleErrors.slice(0, 5).join(" | ") : "nenhum"}`);
+    console.log(`    [DIAG] ${tag}Page errors: ${p.pageErrors.length ? p.pageErrors.slice(0, 5).join(" | ") : "nenhum"}`);
+    console.log(`    [DIAG] ${tag}Failed requests: ${p.failedRequests.length ? p.failedRequests.slice(0, 5).join(" | ") : "nenhuma"}`);
+    if (p.httpErrors.length) {
+      console.log(`    [DIAG] ${tag}HTTP >= 400: ${p.httpErrors.slice(0, 5).join(" | ")}`);
     }
-    await withTimeout(Promise.resolve(c.run(ctx)), CASE_TIMEOUT[c.needs] ?? 30_000, c.id);
-    passed++;
-    console.log(`${c.id} ✓  ${c.title}`);
-  } catch (err) {
-    failed++;
-    failures.push(c.id);
-    console.log(`${c.id} ✗  ${c.title}`);
-    const msg = String(err?.message ?? err).split("\n").slice(0, 6).join("\n    ");
-    console.log(`    ${msg}`);
+    if (p.domSnapshot) {
+      console.log(`    [DIAG] ${tag}DOM title="${p.domSnapshot.title}" readyState="${p.domSnapshot.readyState}" h1=${JSON.stringify(p.domSnapshot.h1s)}`);
+      console.log(`    [DIAG] ${tag}DOM snippet: ${p.domSnapshot.bodySnippet || "(vazio)"}`);
+      if (p.domSnapshot.nextErrorOverlay) {
+        console.log(`    [DIAG] ${tag}Next error overlay: ${p.domSnapshot.nextErrorOverlay}`);
+      }
+    }
+  }
+  if (diag.serverLogsTail) {
+    console.log("    [DIAG] Últimas linhas do servidor:");
+    for (const line of diag.serverLogsTail.split("\n")) {
+      console.log(`      ${line}`);
+    }
   }
 }
 
-if (browserCtx) await browserCtx.stop();
+let browserCtx = null;
+let browserBootError = null;
+let cleaningUp = false;
+async function cleanup() {
+  if (cleaningUp) return;
+  cleaningUp = true;
+  if (browserCtx) {
+    await browserCtx.stop().catch(() => {});
+    browserCtx = null;
+  }
+}
+
+for (const sig of ["SIGINT", "SIGTERM"]) {
+  process.on(sig, async () => {
+    await cleanup();
+    process.exit(130);
+  });
+}
+
+try {
+  for (const c of selected) {
+    if (c.needs === "browser" && noBrowser) {
+      skipped++;
+      console.log(`${c.id} –  SKIPPED (browser)  ${c.title}`);
+      continue;
+    }
+    try {
+      const ctx = {};
+      if (c.needs === "browser") {
+        if (browserBootError) throw browserBootError;
+        if (!browserCtx) {
+          try {
+            browserCtx = await (await import("./_support/browser.mjs")).startBrowserEnv();
+          } catch (bootErr) {
+            browserBootError = bootErr;
+            throw bootErr;
+          }
+        }
+        browserCtx.resetCaseDiagnostics?.(c);
+        Object.assign(ctx, browserCtx);
+      }
+      await withTimeout(Promise.resolve(c.run(ctx)), CASE_TIMEOUT[c.needs] ?? 30_000, c.id);
+      passed++;
+      console.log(`${c.id} ✓  ${c.title}`);
+    } catch (err) {
+      failed++;
+      failures.push(c.id);
+      console.log(`${c.id} ✗  ${c.title}`);
+      const msg = String(err?.message ?? err).split("\n").slice(0, 6).join("\n    ");
+      console.log(`    ${msg}`);
+      if (c.needs === "browser" && browserCtx?.getCaseDiagnostics) {
+        const diag = await browserCtx.getCaseDiagnostics().catch(() => null);
+        printBrowserDiagnostics(diag);
+      }
+    }
+  }
+} finally {
+  await cleanup();
+}
 
 const manual = selected.flatMap((c) => (c.manual ?? []).map((m) => `${c.id}: ${m}`));
 if (manual.length) {

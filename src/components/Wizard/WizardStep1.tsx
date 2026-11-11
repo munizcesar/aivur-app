@@ -76,14 +76,14 @@ export default function WizardStep1() {
             setMode('livre');
             window.location.href = '/material';
           }}
-          aria-label="Estudar com seu Material"
+          aria-label="Estudo por Matéria"
         >
           <div className={styles.modeIconWrapper}>
             <FileText width={28} height={28} />
           </div>
           <div className={styles.modeInfo}>
-            <strong>Estudar com seu Material</strong>
-            <span className={styles.modeSubtitle}>Transforme PDFs, editais e resumos em estudo ativo e focado.</span>
+            <strong>Estudo por Matéria</strong>
+            <span className={styles.modeSubtitle}>Ambiente independente para estudar qualquer disciplina com resumos, flashcards e questões.</span>
           </div>
           
           <ul className={styles.modeBenefits}>

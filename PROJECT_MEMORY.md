@@ -1145,3 +1145,173 @@ Antes de qualquer alteração futura em Trilhas:
   - `REG-AIVU-PDF-020`: Verificação automatizada de versão exata `6.3.289` no `package.json`/`package-lock.json`, igualdade de versão e hash SHA-256 entre core e `public/pdf.worker.min.mjs`, versionamento na URL do worker e preservação do erro `WORKER_FAILED` quando o worker está indisponível.
 - **Placar oficial:** **91/91 PASS** (`npm run regression`).
 - **TypeScript & Build:** `npx tsc --noEmit` exit 0; `npm run build` exit 0 (zero referências a `pdfjs` no manifesto Edge da rota `/api/ai/aivu/chat`).
+
+## 31. AIVU — Fase B.1 & B.2: Motor Lexical Determinístico (RAG BM25-PT) e Integração Mobile-First ao Cérebro do AIVU (2026-11-07)
+
+### 1. Motor de Chunking e Recuperação Lexical (`src/lib/aivu-rag.ts`)
+- **`chunkDocumentWithPages(text, options)`:** Segmentação determinística em blocos de até `750` caracteres com overlap de `120` caracteres, preservando marcadores `--- Página X ---`, cabeçalhos estruturais (`sectionHeader`) e evitando corte de artigos ou parágrafos.
+- **`retrieveRelevantChunks(query, chunks, options)`:** Ranqueamento BM25 adaptado ao português (`k1 = 1.5`, `b = 0.75`) com normalização NFD, remoção de stopwords, stemming leve, colapso de separador de milhar em leis (`8.112` $\rightarrow$ `8112`, `14.133` $\rightarrow$ `14133`), boosts de âncora (`pagina:X`, `art:X`, `lei:X`, termos exatos), retorno de no máximo `3` chunks, `minScore: 0.85` e orçamento configurável (`maxTotalChars: 1800` na rota).
+- **`sanitizeUntrustedChunk(text)`:** Neutralização de delimitadores de prompt (`"""`, ```` ``` ````, tags `<documento_nao_confiavel>`, `<system>`, tokens ChatML `<|im_start|>`, divisores `=== ... ===` e frases de override).
+
+### 2. Integração ao Fluxo Conversacional, Roteamento de Intenções e Anti-IDOR (`route.ts`, `aivu-brain.ts`, `aivu-chat.ts`)
+- **Classificador Determinístico de Intenções (`classifyAivuIntent` em `src/lib/validations/aivu-chat.ts`):**
+  - `EDITAL_JORNADA`: Análise de edital para estruturação de matérias e criação de proposta de Jornada (`parseEditalToProposal`).
+  - `DOCUMENT_QA`: Perguntas sobre PDFs, apostilas, artigos, leis, páginas e prazos com recuperação de chunks relevantes via `retrieveRelevantChunks` e citações estruturadas (`citations`). Quando nenhum trecho atinge o limiar mínimo de relevância em documento anexado, retorna imediatamente `"Informação não encontrada no material fornecido."` sem alucinação e sem consumir chamada de IA.
+  - `GENERAL_CHAT`: Conversação pedagógica geral sem contexto documental ativo.
+- **Isolamento Anti-IDOR no D1 (`src/app/api/ai/aivu/chat/route.ts`):**
+  - Validação da propriedade (`user_id === session.userId`) nas tabelas `trilhas` e `jornadas` quando `context.metadados.trilhaId` ou `jornadaId` são informados, bloqueando tentativas de acesso cruzado entre usuários com **HTTP 403 Forbidden** antes de qualquer chamada à IA.
+- **Ancoragem, Isolamento XML e Orçamento de Tokens (`src/lib/aivu-brain.ts`):**
+  - Trechos recuperados são injetados dentro de `<documento_nao_confiavel fonte="..." pagina="...">` com diretrizes estritas de não-execução de instruções internas e citação de página real.
+  - Contabilização dinâmica de tokens (`estimateTokens`) garantindo que `systemPersona + retrievedChunks + filteredHistory + message <= 2.400 tokens` (`MAX_TOTAL_INPUT_TOKENS`).
+
+### 3. Continuidade Documental na Sessão, Contexto Real de Trilhas e UX Mobile-First (`useAivoStore.ts`, `TrilhaSalaV2.tsx`, `material/page.tsx`, `AivoWidget.tsx`)
+- **Continuidade Documental (`activeDocument` em `useAivoStore.ts`):** Mantém o documento ativo em memória durante a sessão atual do usuário (sem persistir texto pesado no `sessionStorage` e limpando em `clearMessages` ou reset de `/material`), permitindo perguntas subsequentes de continuidade sem reupload.
+- **Sincronização de Índice Real (`TrilhaSalaV2.tsx`):** Substituição do índice fixo `0` por `safeQIdx` (`currentQuestao[trilha.id]`) e `safeFcIdx` (`currentFlashcard[trilha.id]`), sincronizando exatamente a questão ou flashcard que o aluno está visualizando.
+- **Referências Visuais Mobile-First (`AivoWidget.tsx` & `AivoWidget.module.css`):** Exibição compacta de `Fontes consultadas` com nome do documento, badge `Pág. X` e trecho utilizado, rolagem restrita ao container interno `chatBodyRef` e zero overflow horizontal validado em `360x800`, `375x812`, `390x844`, `430x932`, `360x440` (teclado virtual) e `1366x768` (desktop).
+
+## 32. AIVU — Fase B.3: Consolidação de Testes Permanentes (102/102) e Blindagem Fail-Closed D1 Anti-IDOR (2026-11-07)
+
+### 1. Blindagem Fail-Closed de Segurança D1 Anti-IDOR (`src/app/api/ai/aivu/chat/route.ts`)
+- **Política de Falha Segura (`503` / `403`):**
+  - Quando `context.metadados.trilhaId` (exceto trilhas estáticas de catálogo `t-001`..`t-004`) ou `context.metadados.jornadaId` são informados na requisição, a rota exige obrigatoriamente verificação de propriedade no D1 antes de construir contexto ou invocar a IA.
+  - Se o binding `DB` estiver ausente, indisponível ou se a query D1 falhar, retorna imediatamente **HTTP 503 Service Unavailable** (sem fallback permissivo).
+  - Consultas com escopo de propriedade (`SELECT id, user_id FROM trilhas WHERE id = ? AND user_id = ?` e `SELECT id, user_id FROM jornadas WHERE id = ? AND user_id = ?`) utilizando exclusivamente `session.userId` extraído do cookie HttpOnly autenticado (`verifySessionCookie`), ignorando qualquer tentativa de spoofing via `metadados.userId`.
+  - Se o ID não existir ou pertencer a outro usuário, retorna **HTTP 403 Forbidden** com zero chamadas ao provedor de IA.
+
+### 2. Consolidação na Suíte Oficial de Regressão (`tests/regression/aivu/chat.case.mjs`, `baseline.json`, `CHANGELOG.md`)
+- Integrados 11 novos cenários permanentes (`REG-AIVU-027` a `REG-AIVU-037`), elevando a linha de base oficial de `91` para **102 testes** (`102/102 PASS`):
+  - `REG-AIVU-027` (api): Pergunta específica sobre PDF aciona `DOCUMENT_QA` e retorna `citations` estruturadas sem abrir criação de Jornada.
+  - `REG-AIVU-028` (api): Pedido explícito de análise de edital aciona `EDITAL_JORNADA` e preserva `parseEditalToProposal`.
+  - `REG-AIVU-029` (api): Pergunta geral sem documento aciona `GENERAL_CHAT` sem tags RAG ou proposta de ação.
+  - `REG-AIVU-030` (api): Recuperação lexical determinística BM25-PT por artigo, lei e página preserva `pageNumber` exato e determinismo.
+  - `REG-AIVU-031` (api): Tópico ausente no material retorna `"Informação não encontrada no material fornecido"` com zero chamadas à IA.
+  - `REG-AIVU-032` (api): Defesa contra prompt injection sanitiza delimitadores e isola trechos em `<documento_nao_confiavel>`.
+  - `REG-AIVU-033` (api): Anti-IDOR fail-closed no D1 valida bloqueio sem D1 (`503`), outro usuário (`403`), ID inexistente (`403`), spoofing de `userId` (`403`) e acesso do proprietário legítimo (`200`).
+  - `REG-AIVU-034` (api): Continuidade documental na sessão via `activeDocument` sem poluir `history` e limpeza em `clearMessages()`.
+  - `REG-AIVU-035` (api): Respeito ao orçamento estrito de tokens com RAG ativo (`<= 2.400` tokens).
+  - `REG-AIVU-036` (api): Sincronização real do índice da questão (`safeQIdx`) e flashcard (`safeFcIdx`) em `TrilhaSalaV2.tsx`.
+  - `REG-AIVU-037` (browser): Validação Mobile-First (`360x800`, `375x812`, `390x844`, `430x932`, `360x440` e `1366x768`) comprovando envio por toque, referências `Pág. X`, continuidade de rolagem e zero overflow horizontal.
+
+## 33. Meu Material e AIVU — UX e Geração Adicional de Questões (2026-11-08)
+
+### 1. Correção do Campo de Mensagem do AIVU (`src/components/Aivo/AivoWidget.tsx`)
+- **Limpeza Imediata no Envio:** `setInputValue("")` disparado imediatamente após preparar a mensagem de texto antes de invocar `/api/ai/aivu/chat`.
+- **Restauração em Falha (Zero Perda de Texto):** Preservada a restauração do texto do usuário (`setInputValue(text)`) tanto em respostas de erro HTTP quanto no bloco `catch` de rede.
+- **Prevenção de Duplo Envio:** `disabled={isSending}` e bloqueio por estado em `handleSend` impedem submissões concorrentes.
+- **Validação de Regressão:** `REG-AIVU-007` (restauração em erro) e `REG-AIVU-037` (limpeza imediata em sucesso) aprovados.
+
+### 2. Extensão Controlada da Rota de Síntese (`POST /api/ai/material/gerar`)
+- **Novo Modo `questoes_adicionais`:** Adicionado aos schemas Zod (`material-ai.ts`) mantendo `sintese_completa` como padrão retrocompatível.
+- **Limites e Regras:**
+  - Quantidade configurável de 1 a 5 questões adicionais por requisição (`quantidadeQuestoes`, default 3).
+  - Injeção de contexto negativo (`QUESTÕES JÁ EXISTENTES`) com os enunciados já apresentados para evitar duplicações.
+  - Conformidade total com `MaterialQuestionSchema` (4 alternativas, 1 correta, justificativa e `trecho_referencia` obrigatório).
+  - Identificadores gerados autoritativamente pelo servidor com prefixo `mat-add-`.
+  - Zero persistência e zero acoplamento com tabelas ou IDs do módulo `trilhas`.
+
+### 3. Integração Frontend no Estúdio de Meu Material (`QuizTool.tsx`, `QuizTool.module.css`, `page.tsx`)
+- **Preservação Integral de Estado:** Ao gerar novas questões, `generatedContent.questoes` é estendido via concatenação (`[...prev.questoes, ...novasQuestoes]`), mantendo intocados o score acumulado, respostas dadas e progresso do simulado.
+- **Interface e Feedback:** Controles dedicados para seleção de quantidade (+1, +3, +5) e botão de ação com estado de carregamento e mensagem de erro controlada.
+- **Suíte Oficial de Regressão:** Baseline expandida para **104 testes** (`104/104 PASS`), integrando `REG-MAT-016` (api) e `REG-MAT-017` (browser).
+
+### 4. Renomeação Controlada de Nomenclatura Visível (Meu Material → Estudo por Matéria)
+- **Superfícies Atualizadas:**
+  - `src/components/Dashboard/Dashboard.tsx`: Card 3 atualizado com título "Estudo por Matéria", `alt="Estudo por Matéria"` e descrição objetiva independente de Trilhas/Jornadas.
+  - `src/components/SideDrawer/SideDrawer.tsx`: Item de menu atualizado para "Estudo por Matéria" com descrição "Estudo independente por disciplina".
+  - `src/components/Wizard/WizardStep1.tsx`: Botão de modo atualizado para "Estudo por Matéria" com texto explicativo e `aria-label`.
+  - `src/app/material/page.tsx`: Inserido kicker "Estudo por Matéria" na tela de importação e cabeçalho "Estudo por Matéria · Síntese de Estudo Ativo" no estúdio.
+- **Preservação Técnica:** URLs (`/material`), rotas Edge (`/api/ai/material/gerar`), identificadores de contratos Zod, schemas D1 e rotinas de ancoragem mantidos intactos.
+- **Validação de Build e Regressão:** `npm run build` aprovado (exit 0, 13/13 rotas estáticas/dinâmicas geradas) e Regression Gate com `104/104 PASS`.
+
+## 34. Hierarquia dos Módulos — Etapa 1: Central de Jornadas (`/jornadas`) (2026-11-08)
+
+### 1. Criação da Rota Server-Side Edge (`src/app/jornadas/page.tsx`)
+- **Objetivo:** Estabelecer a Central de Jornadas de Edital como destino próprio de primeiro nível para planejamento e acompanhamento verticalizado de editais de concursos públicos.
+- **Isolamento e Segurança de Sessão:** Verificação obrigatória do cookie HttpOnly `aivur_session` via `verifySessionCookie`. Redirecionamento fail-safe para `/login?redirect=/jornadas` em caso de sessão ausente ou inválida.
+- **Arquitetura de Apresentação:**
+  - Hero institucional alinhado aos tokens visuais oficiais (`var(--color-surface)`, `var(--color-border)`, `var(--color-heading)`, `var(--color-text-muted)` e `var(--color-primary)`).
+  - Kicker temático "Central de Editais" e título "Jornadas de Edital".
+  - CTAs claros: ação primária "Importar Novo Edital" (`/jornadas/novo`) e navegação secundária "Acessar Trilhas" (`/trilhas`).
+  - Reutilização íntegra de `UserJornadasSection`, preservando o consumo de `/api/jornadas`, métricas de progresso por tópico, skeletons de carregamento e estado vazio sem dados fictícios.
+- **Validação e Integridade de Execução:**
+  - `npx tsc --noEmit`: Exit 0 (zero erros de tipagem).
+  - `npm run build`: Exit 0 (13/13 páginas estáticas e rotas dinâmicas compiladas, com inclusão oficial de `ƒ /jornadas`).
+  - `npm run regression`: **104/104 PASS** na suíte completa.
+  - Zero alterações em `/trilhas`, Dashboard, SideDrawer, APIs ou banco.
+
+## 35. Hierarquia dos Módulos — Etapa 2: Acesso a Jornadas no Dashboard e SideDrawer (2026-11-08)
+
+### 1. Inclusão no Dashboard (`src/components/Dashboard/Dashboard.tsx`)
+- Adicionado card dedicado "Jornadas de Edital" com link para `/jornadas`.
+- Ícone: Lucide `Compass` (`size={32} className="shrink-0 flex-none text-[var(--color-primary)]"`).
+- Descrição oficial: "Importe o edital do seu concurso e acompanhe a cobertura tópico a tópico até a prova."
+- Layout responsivo desktop e mobile preservado com grid horizontal brutalista alinhado ao mascote 3D.
+
+### 2. Inclusão no SideDrawer (`src/components/SideDrawer/SideDrawer.tsx`)
+- Adicionada opção "Jornadas de Edital" na aba de Ações Rápidas (`/jornadas`).
+- Subtítulo oficial: "Edital verticalizado e metas".
+- Ícone: Lucide `Compass` (`size={22} className="shrink-0 flex-none"`).
+- Destaque dinâmico de rota ativa: `isJornadasActive` (`aria-current="page"` em `/jornadas` e `/jornadas/*`).
+- Fechamento automático ao clicar ou via Escape/Overlay preservado.
+
+### 3. Validação e Integridade
+- `npx tsc --noEmit`: Exit 0 (zero erros de tipagem).
+- `npm run build`: Exit 0 (13/13 rotas compiladas).
+- `npm run regression`: **104/104 PASS** (suíte completa).
+- `git diff --check`: Exit 0 (zero whitespace/newline warnings).
+- Inspeção visual (Puppeteer):
+  - `07_dashboard_desktop.png` e `07_dashboard_mobile.png`: Contagem de `a[href="/jornadas"]` em `pillarsCol` = 1.
+  - `08_sidedrawer_desktop.png` e `08_sidedrawer_mobile.png`: Contagem de `a[href="/jornadas"]` no Drawer = 1.
+- Restrições respeitadas: `/trilhas` inalterado; zero alterações de banco ou regras de negócio; zero deploy.
+
+## 36. Hierarquia dos Módulos — Etapa 3: Especialização de Trilhas e Limpeza de Promessas de Edital (2026-11-08)
+
+### 1. Especialização da Página de Trilhas (`src/app/trilhas/page.tsx`)
+- **Remoção de Acoplamento:** Removida a renderização e o import direto de `UserJornadasSection`.
+- **Substituição por Banner Contextual:** Inserido banner com `aria-labelledby="banner-jornadas-title"`, título *"Seu edital merece uma jornada própria"*, descrição *"Transforme o conteúdo do edital em tópicos organizados e acompanhe seu progresso até a prova."* e CTA para `/jornadas` (*"Acessar Jornadas"*).
+- **Adequação Semântica de Posicionamento:**
+  - Metadata: *"Cursos guiados em microlearning para dominar cada assunto."*
+  - Kicker Hero: *"Cursos guiados em microlearning"*.
+  - Descrição Hero: *"Aulas organizadas em vídeo, teoria, flashcards e questões para dominar cada assunto."*
+  - CTA Hero secundário: Atualizado de `/jornadas/novo` para `/jornadas` (*"Jornadas de Edital"*).
+  - Preservação total de `UserTrilhasGrid`, `TrilhasErrorBoundary` e `TRILHAS_MOCK` com suas aulas demonstrativas.
+
+### 2. Atualização dos Links de Retorno (`JornadaView.tsx` e `CriarJornadaView.tsx`)
+- `src/components/Jornadas/JornadaView.tsx`: Link superior de retorno atualizado para `/jornadas` (*"Voltar para Jornadas"*) e redirecionamento pós-exclusão atualizado de `/trilhas` para `/jornadas`.
+- `src/components/Jornadas/CriarJornadaView.tsx`: Botão de retorno superior atualizado para `router.push("/jornadas")` com rótulo *"Voltar para jornadas"* e ícone `ArrowLeft`.
+
+### 3. Alinhamento de Descrições no Dashboard e SideDrawer
+- `src/components/Dashboard/Dashboard.tsx`: Descrição do card Trilhas de Estudo atualizada para *"Aulas organizadas em vídeo, teoria, flashcards e questões para dominar cada assunto."* (eliminando a promessa de edital/metas diárias).
+- `src/components/SideDrawer/SideDrawer.tsx`: Subtítulo de Trilhas de Estudo atualizado para *"Cursos guiados em microlearning"* (eliminando a promessa de "Cronograma via edital").
+
+### 4. Validação e Integridade
+- `npx tsc --noEmit`: Exit 0 (zero erros de tipagem).
+- `npm run build`: Exit 0 (13/13 rotas compiladas com sucesso).
+- `npm run regression`: **104/104 PASS** (100% de aprovação na suíte de testes).
+- `git diff --check`: Exit 0.
+- Evidências visuais (Puppeteer):
+  - `09_trilhas_desktop.png` e `09_trilhas_mobile.png`: Banner contextual ativo, sem acoplamento de `UserJornadasSection`, cursos preservados.
+  - `10_jornadas_desktop.png` e `10_jornadas_mobile.png`: Central de Jornadas com Hero, CTA e listagem de jornadas funcionais.
+  - `11_jornadas_novo_desktop.png` e `11_jornadas_novo_mobile.png`: Botão de retorno `Voltar para jornadas` funcional.
+  - `12_jornada_id_desktop.png` e `12_jornada_id_mobile.png`: `Voltar para Jornadas` configurado.
+- Restrições respeitadas: Zero alterações de schema D1, APIs ou migrations; zero deploy.
+
+## 37. Testes Permanentes de Regressão da Navegação e Expansão da Suíte (2026-11-08)
+
+### 1. Implementação dos Casos de Teste (`tests/regression/jornadas/ui.case.mjs`)
+- **REG-JORNADA-016 (browser):** Acesso à rota `/jornadas` com autenticação válida renderiza a Central de Editais e listagem; acesso anônimo sem cookie redireciona com status 401 para `/login?redirect=%2Fjornadas`.
+- **REG-JORNADA-017 (browser):** Valida que o Dashboard exibe exatamente 1 card de "Jornadas de Edital" em `pillarsCol` com a descrição oficial e que o clique com hidratação navega confiavelmente para `/jornadas`.
+- **REG-JORNADA-018 (browser):** Valida que o SideDrawer exibe atalho "Jornadas de Edital" em Ações Rápidas com subtítulo "Edital verticalizado e metas", navega para `/jornadas` e ativa `aria-current="page"`.
+- **REG-JORNADA-019 (browser):** Valida links e botões de retorno em `CriarJornadaView` e `JornadaView`, comprovando que direcionam para `/jornadas`.
+- **REG-JORNADA-020 (browser):** Valida em `/trilhas` o desacoplamento de Jornadas: ausência de `UserJornadasSection` e presença de banner contextual com CTA para `/jornadas`.
+
+### 2. Sincronização da Baseline e Changelog
+- `tests/regression/baseline.json`: Registrados os 5 novos casos com hash SHA-256 e metadata (camada `browser`, suite `jornadas`). Total da baseline: **109 casos**.
+- `tests/regression/CHANGELOG.md`: Registrada a expansão para 109 casos na camada Navegador.
+
+### 3. Validação Integral dos Portões de Qualidade
+- `npm run regression`: **109/109 PASS** (100% de conformidade em toda a suíte de regressão).
+- `npx tsc --noEmit`: Exit 0 (zero erros TypeScript).
+- `npm run build`: Exit 0 (13/13 páginas compiladas).
+- `git diff --check`: Exit 0.
+

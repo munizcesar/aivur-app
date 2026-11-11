@@ -1,96 +1,659 @@
 {
   "_readme": "Registro APPEND-ONLY dos comportamentos protegidos. Todo caso em *.case.mjs precisa estar aqui e vice-versa. Remover/renomear uma entrada = mudança intencional de baseline (ver tests/regression/README.md e CHANGELOG.md).",
   "cases": {
-    "REG-TRILHAS-001": { "domain": "trilhas", "kind": "api", "title": "Geração normal com sessão válida", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-002": { "domain": "trilhas", "kind": "api", "title": "Contrato estrutural da resposta de geração", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-003": { "domain": "trilhas", "kind": "api", "title": "Zod aceita resposta válida", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-004": { "domain": "trilhas", "kind": "api", "title": "Sessão ausente/inválida → 401 controlado", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-005": { "domain": "trilhas", "kind": "browser", "title": "401 orienta o login e preserva rascunho", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-006": { "domain": "trilhas", "kind": "browser", "title": "Login após 401 leva a /login?redirect=/trilhas/novo e permite retornar à criação", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-007": { "domain": "trilhas", "kind": "api", "title": "429 sem cascata", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-008": { "domain": "trilhas", "kind": "api", "title": "5xx permite fallback", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-009": { "domain": "trilhas", "kind": "api", "title": "JSON truncado rejeitado; fora do contrato aciona Fixer", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-010": { "domain": "trilhas", "kind": "api", "title": "Fixer sem loop", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-011": { "domain": "trilhas", "kind": "api", "title": "Falha definitiva do Fixer → 422 controlado", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-012": { "domain": "trilhas", "kind": "api", "title": "Retries limitados", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-013": { "domain": "trilhas", "kind": "browser", "title": "Salvar trilha gerada envia contrato correto e abre a trilha", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-014": { "domain": "trilhas", "kind": "browser", "title": "CTA Iniciar/Continuar aponta para /trilhas/{id}", "validatedOn": "2026-10-12" },
-    "REG-TRILHAS-015": { "domain": "trilhas", "kind": "api", "title": "Orçamento de tokens (entrada limitada, cabe no TPM, saída não trunca)", "validatedOn": "2026-10-12" },
-    "REG-MAT-001": { "domain": "material", "kind": "api", "title": "Validação de limites de texto: vazio, insuficiente (<100) e válido (100-8000)", "validatedOn": "2026-10-13" },
-    "REG-MAT-002": { "domain": "material", "kind": "api", "title": "Prevenção de truncamento silencioso: rejeição clara acima de 8.000 caracteres", "validatedOn": "2026-10-13" },
-    "REG-MAT-003": { "domain": "material", "kind": "api", "title": "Validação de arquivo: rejeição de formato que não seja PDF ou tamanho > 10MB", "validatedOn": "2026-10-13" },
-    "REG-MAT-004": { "domain": "material", "kind": "api", "title": "Extração de PDF válido com contagem real de páginas e caracteres", "validatedOn": "2026-10-13" },
-    "REG-MAT-005": { "domain": "material", "kind": "api", "title": "Tratamento defensivo: PDF inválido, vazio ou sem camada de texto (scan)", "validatedOn": "2026-10-13" },
-    "REG-MAT-006": { "domain": "material", "kind": "browser", "title": "Interface de Meu Material (/material): alternância, contador e conferência sem chamadas de IA", "validatedOn": "2026-10-13" },
-    "REG-MAT-007": { "domain": "material", "kind": "api", "title": "Contratos Zod de IA do Meu Material: aceita estrutura válida de resumo, flashcards e questões", "validatedOn": "2026-10-14" },
-    "REG-MAT-008": { "domain": "material", "kind": "api", "title": "Contratos Zod de IA do Meu Material: rejeição de alternativas duplicadas, contagens fora dos limites e cobertura determinada pelo servidor", "validatedOn": "2026-10-14" },
-    "REG-MAT-009": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): sessão ausente ou inválida retorna 401 sem consumir IA", "validatedOn": "2026-10-14" },
-    "REG-MAT-010": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): validação de entrada rejeita texto insuficiente (<100) e vazio com 400", "validatedOn": "2026-10-14" },
-    "REG-MAT-011": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): geração com material válido conclui com sucesso e contrato estrutural íntegro (1 chamada Groq)", "validatedOn": "2026-10-14" },
-    "REG-MAT-012": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): JSON malformado ou fora do contrato aciona Fixer e recupera estrutura", "validatedOn": "2026-10-14" },
-    "REG-MAT-013": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): falha irrecuperável do Fixer retorna 422 e erro 429 do provedor retorna 429 sem cascata", "validatedOn": "2026-10-14" },
-    "REG-MAT-014": { "domain": "material", "kind": "api", "title": "Síntese de IA (/api/ai/material/gerar): metadados do cliente não forçam cobertura integral; 429 durante Fixer preserva status 429", "validatedOn": "2026-10-14" },
-    "REG-MAT-015": { "domain": "material", "kind": "browser", "title": "Meu Material: integração frontend da síntese de IA com preservação em erro (429), renderização do estúdio (resumo, flashcards, questões) e reset", "validatedOn": "2026-10-15" },
-    "REG-AIVU-001": { "domain": "aivu", "kind": "api", "title": "Validação Zod de entrada: mensagem vazia, espaços em branco ou JSON malformado retorna 400 controlado", "validatedOn": "2026-10-17" },
-    "REG-AIVU-002": { "domain": "aivu", "kind": "api", "title": "Validação Zod de limites: mensagem > 1000 caracteres ou histórico > 8 itens retorna 400", "validatedOn": "2026-10-17" },
-    "REG-AIVU-003": { "domain": "aivu", "kind": "api", "title": "Sessão ausente, forjada, adulterada ou expirada retorna 401 sem invocar Groq", "validatedOn": "2026-10-17" },
-    "REG-AIVU-004": { "domain": "aivu", "kind": "api", "title": "Rate limit por usuário (15 req/15 min) bloqueia rajadas com 429", "validatedOn": "2026-10-17" },
-    "REG-AIVU-005": { "domain": "aivu", "kind": "api", "title": "Conversa válida com sessão assinada retorna 200, resposta markdown limpa e estado 'speaking' (1 chamada Groq)", "validatedOn": "2026-10-17" },
-    "REG-AIVU-006": { "domain": "aivu", "kind": "api", "title": "Resiliência contra falhas do provedor: 429 da Groq retorna 429 controlado, 5xx retorna 502 sem expor segredos", "validatedOn": "2026-10-17" },
-    "REG-AIVU-007": { "domain": "aivu", "kind": "browser", "title": "Widget AIVU no navegador: envio com falha de IA recupera o mascote e reabilita o chat sem travar em thinking", "validatedOn": "2026-10-17" },
-    "REG-AIVU-008": { "domain": "aivu", "kind": "api", "title": "Isolamento de contexto e retrocompatibilidade com contexto ausente ou geral", "validatedOn": "2026-10-22" },
-    "REG-AIVU-009": { "domain": "aivu", "kind": "api", "title": "Contexto tipado por módulo e troca dinâmica de contexto pedagógico", "validatedOn": "2026-10-22" },
-    "REG-AIVU-010": { "domain": "aivu", "kind": "api", "title": "Regra restritiva de ancoragem no Meu Material: base estrita na fonte e rejeição de extrapolações", "validatedOn": "2026-10-22" },
-    "REG-AIVU-011": { "domain": "aivu", "kind": "api", "title": "Privacidade e orçamento de tokens: limites Zod em trecho_foco e poda defensiva de histórico", "validatedOn": "2026-10-22" },
-    "REG-AIVU-012": { "domain": "aivu", "kind": "api", "title": "Transição dinâmica de contexto entre telas (Questões -> Meu Material -> Reset): isolamento estrito sem resíduos", "validatedOn": "2026-10-23" },
-    "REG-AIVU-013": { "domain": "aivu", "kind": "api", "title": "Preservação do histórico pedagógico da conversa durante a navegação entre telas de estudo", "validatedOn": "2026-10-23" },
-    "REG-AIVU-014": { "domain": "aivu", "kind": "api", "title": "Trilhas: alternância dinâmica de contexto entre teoria, flashcards e questões sem retenção de estado anterior", "validatedOn": "2026-10-23" },
-    "REG-AIVU-015": { "domain": "aivu", "kind": "browser", "title": "Widget AIVU no navegador: compatibilidade visual de estilos no DOM para sender 'aivu', 'aivo' e 'user'", "validatedOn": "2026-10-24" },
-    "REG-AIVU-016": { "domain": "aivu", "kind": "browser", "title": "Navegação e Drawer global (/material e /redacao): abertura, fechamento por overlay/Escape, indicação de rota ativa e harmonia com o widget AIVU", "validatedOn": "2026-10-25" },
-    "REG-AIVU-017": { "domain": "aivu", "kind": "browser", "title": "Chat mobile AIVU (360px e 390px): limites horizontais, densidade de mensagens e visibilidade sob viewport reduzido", "validatedOn": "2026-10-25" },
-    "REG-AIVU-018": { "domain": "aivu", "kind": "api", "title": "Ingestão de edital no chat AIVU: identificação de disciplinas e preparação de proposta estruturada de Jornada de Estudos sem persistência prematura", "validatedOn": "2026-10-28" },
-    "REG-AIVU-019": { "domain": "aivu", "kind": "api", "title": "Confirmação e persistência da proposta de jornada no D1 [Mock D1 in-memory SQLite]: idempotência por ementa_hash e proteção contra duplicação de cliques", "validatedOn": "2026-10-28" },
-    "REG-AIVU-020": { "domain": "aivu", "kind": "browser", "title": "Widget AIVU no navegador: fluxo visual de proposta de edital e confirmação de criação da Jornada", "validatedOn": "2026-10-29" },
-    "REG-AIVU-021": { "domain": "aivu", "kind": "api", "title": "Edital seguido de solicitação: edital extenso colado pelo aluno é recuperado em material_text na mensagem subsequente de análise e o histórico não contém o edital integral (HTTP 200 + actionProposal)", "validatedOn": "2026-11-02" },
-    "REG-AIVU-022": { "domain": "aivu", "kind": "api", "title": "Histórico extenso: conversas com mensagens longas são podadas/resumidas defensivamente no histórico sem violar o limite Zod (max 2000) e sem retornar HTTP 400", "validatedOn": "2026-11-02" },
-    "REG-AIVU-023": { "domain": "aivu", "kind": "api", "title": "Preservação do material: o texto original do edital permanece integralmente disponível para o parser e a sumarização do histórico não altera o conteúdo da análise", "validatedOn": "2026-11-02" },
-    "REG-AIVU-024": { "domain": "aivu", "kind": "api", "title": "Conversa comum: mensagens curtas e histórico normal continuam funcionando sem acionar material_text nem proposta de edital", "validatedOn": "2026-11-02" },
-    "REG-AIVU-025": { "domain": "aivu", "kind": "api", "title": "Ação de cópia: utilitário seguro copia respostas simples, múltiplos parágrafos, listas e textos densos com isolamento de controles de interface e resiliência a falhas de permissão", "validatedOn": "2026-11-02" },
-    "REG-AIVU-026": { "domain": "aivu", "kind": "browser", "title": "Ação de cópia no widget AIVU: botão de copiar no chat, feedback visual 'Copiado!', acessibilidade por leitor de tela e operação em viewport mobile", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-001": { "domain": "aivu", "kind": "api", "title": "Upload de PDF: seleção de PDF válido é aprovada sem erro de metadados", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-002": { "domain": "aivu", "kind": "api", "title": "Upload de PDF: rejeição de arquivo com formato diferente de PDF", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-003": { "domain": "aivu", "kind": "api", "title": "Upload de PDF: rejeição rigorosa de arquivo acima de 15 MB", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-004": { "domain": "aivu", "kind": "api", "title": "Upload de PDF: validação da assinatura real (%PDF-) rejeita arquivos renomeados", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-005": { "domain": "aivu", "kind": "api", "title": "Extração de PDF: leitura de documento com várias páginas preserva contagem e dados", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-006": { "domain": "aivu", "kind": "api", "title": "Extração de PDF: preservação estrita da ordem das páginas e marcadores estruturais", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-007": { "domain": "aivu", "kind": "api", "title": "Tratamento defensivo: documento vazio ou escaneado (sem texto) sinaliza OCR", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-008": { "domain": "aivu", "kind": "api", "title": "Tratamento defensivo: PDF com dados corrompidos retorna erro amigável", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-009": { "domain": "aivu", "kind": "api", "title": "Endpoint AIVU (/api/ai/aivu/chat): upload multipart rejeita PDF inválido ou corrompido", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-010": { "domain": "aivu", "kind": "api", "title": "Endpoint AIVU (/api/ai/aivu/chat): upload multipart de PDF válido gera proposta de Jornada", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-011": { "domain": "aivu", "kind": "api", "title": "Edital com múltiplos cargos: solicita esclarecimento ao aluno antes de criar proposta", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-012": { "domain": "aivu", "kind": "api", "title": "Edital extenso em PDF: extração em blocos e consolidação de disciplinas sem truncamento", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-013": { "domain": "aivu", "kind": "api", "title": "Proposta de Jornada via PDF: payload preparado contém fonte 'PDF' e nome do arquivo", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-014": { "domain": "aivu", "kind": "api", "title": "Bloqueio de criação automática: anexar ou analisar edital não grava no banco", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-015": { "domain": "aivu", "kind": "api", "title": "Criação sob confirmação explícita: POST /api/jornadas persiste edital com fonte PDF no D1", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-016": { "domain": "aivu", "kind": "browser", "title": "Preservação conversacional: mensagens de texto sem anexo continuam funcionando normalmente", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-017": { "domain": "aivu", "kind": "browser", "title": "Botão Copiar em respostas do AIVU: permanece funcional em mensagens geradas via upload de PDF", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-018": { "domain": "aivu", "kind": "browser", "title": "Responsividade mobile: composer, botão de clipe e barra de anexo no viewport de 390px", "validatedOn": "2026-11-02" },
-    "REG-AIVU-PDF-019": { "domain": "aivu", "kind": "api", "title": "Endpoint AIVU (/api/ai/aivu/chat): limite físico de 256 KB no stream antes de JSON.parse e independência de Content-Length", "validatedOn": "2026-11-06" },
-    "REG-AIVU-PDF-020": { "domain": "aivu", "kind": "api", "title": "Sincronização PDF.js: versão exata 6.3.289 fixada, paridade SHA-256 entre core e worker e resiliência a falha de worker", "validatedOn": "2026-11-06" },
-    "REG-JORNADA-001": { "domain": "jornadas", "kind": "api", "title": "Validação Zod dos contratos da Jornada de Edital: aceita ementa válida e rejeita estruturas malformadas ou vazias", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-002": { "domain": "jornadas", "kind": "api", "title": "Autenticação e integridade de sessão: requisições sem sessão, adulteradas ou forjadas retornam 401 controlado", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-003": { "domain": "jornadas", "kind": "api", "title": "Extração de ementa com IA (/api/ai/gerar-jornada): validação de limites (50-15.000 chars) e orçamento de tokens", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-004": { "domain": "jornadas", "kind": "api", "title": "Resiliência da extração de ementa: autocorreção via Fixer Prompt em 1 tentativa e rejeição de saída truncada", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-005": { "domain": "jornadas", "kind": "api", "title": "Criação persistida e idempotência [Mock D1 in-memory SQLite]: criação no D1 e retorno idempotente por ementa_hash", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-006": { "domain": "jornadas", "kind": "api", "title": "Isolamento anti-IDOR [Mock D1 in-memory SQLite]: proteção estrita contra acesso, início ou deleção cruzada", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-007": { "domain": "jornadas", "kind": "api", "title": "Concorrência e convergência determinística ao iniciar tópico [Mock D1 in-memory SQLite]: trilha estável sem órfãos", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-008": { "domain": "jornadas", "kind": "api", "title": "Conclusão explícita de tópico e cálculo do próximo passo [Mock D1 in-memory SQLite]: evento persistido e recomendação linear", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-009": { "domain": "jornadas", "kind": "api", "title": "Início de tópico resiliente [Mock D1 in-memory SQLite]: rejeita 404 sem vínculo persistido e preserva trilha preexistente sem sobrescrever", "validatedOn": "2026-10-18" },
-    "REG-JORNADA-010": { "domain": "jornadas", "kind": "api", "title": "Segmentação e processamento de edital extenso com múltiplas disciplinas em blocos seguros", "validatedOn": "2026-10-22" },
-    "REG-JORNADA-011": { "domain": "jornadas", "kind": "api", "title": "Tratamento defensivo de truncamento por limite de tokens e JSON incompleto com relatório de etapa", "validatedOn": "2026-10-22" },
-    "REG-JORNADA-012": { "domain": "jornadas", "kind": "api", "title": "Preservação de conteúdo parcial em falha de bloco posterior e retomada sem duplicação", "validatedOn": "2026-10-22" },
-    "REG-JORNADA-013": { "domain": "jornadas", "kind": "api", "title": "Consolidação determinística de ementas: deduplicação de disciplinas, tópicos repetidos e ordenação estável", "validatedOn": "2026-10-22" },
-    "REG-JORNADA-014": { "domain": "jornadas", "kind": "api", "title": "Blindagem da retomada parcial: validação de hash do edital, rejeição de edital divergente ou hash ausente e preservação de conteúdo parcial", "validatedOn": "2026-10-23" },
-    "REG-JORNADA-015": { "domain": "jornadas", "kind": "api", "title": "Contrato do frontend na retomada: preservação de edital_hash, bloco_inicio e conteudo_parcial em resposta 422", "validatedOn": "2026-10-23" }
+    "REG-TRILHAS-001": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "Geração normal com sessão válida",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-002": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "Contrato estrutural da resposta de geração",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-003": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "Zod aceita resposta válida",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-004": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "Sessão ausente/inválida → 401 controlado",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-005": {
+      "domain": "trilhas",
+      "kind": "browser",
+      "title": "401 orienta o login e preserva rascunho",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-006": {
+      "domain": "trilhas",
+      "kind": "browser",
+      "title": "Login após 401 leva a /login?redirect=/trilhas/novo e permite retornar à criação",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-007": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "429 sem cascata",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-008": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "5xx permite fallback",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-009": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "JSON truncado rejeitado; fora do contrato aciona Fixer",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-010": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "Fixer sem loop",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-011": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "Falha definitiva do Fixer → 422 controlado",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-012": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "Retries limitados",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-013": {
+      "domain": "trilhas",
+      "kind": "browser",
+      "title": "Salvar trilha gerada envia contrato correto e abre a trilha",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-014": {
+      "domain": "trilhas",
+      "kind": "browser",
+      "title": "CTA Iniciar/Continuar aponta para /trilhas/{id}",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-TRILHAS-015": {
+      "domain": "trilhas",
+      "kind": "api",
+      "title": "Orçamento de tokens (entrada limitada, cabe no TPM, saída não trunca)",
+      "validatedOn": "2026-10-12"
+    },
+    "REG-MAT-001": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Validação de limites de texto: vazio, insuficiente (<100) e válido (100-8000)",
+      "validatedOn": "2026-10-13"
+    },
+    "REG-MAT-002": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Prevenção de truncamento silencioso: rejeição clara acima de 8.000 caracteres",
+      "validatedOn": "2026-10-13"
+    },
+    "REG-MAT-003": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Validação de arquivo: rejeição de formato que não seja PDF ou tamanho > 10MB",
+      "validatedOn": "2026-10-13"
+    },
+    "REG-MAT-004": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Extração de PDF válido com contagem real de páginas e caracteres",
+      "validatedOn": "2026-10-13"
+    },
+    "REG-MAT-005": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Tratamento defensivo: PDF inválido, vazio ou sem camada de texto (scan)",
+      "validatedOn": "2026-10-13"
+    },
+    "REG-MAT-006": {
+      "domain": "material",
+      "kind": "browser",
+      "title": "Interface de Meu Material (/material): alternância, contador e conferência sem chamadas de IA",
+      "validatedOn": "2026-10-13"
+    },
+    "REG-MAT-007": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Contratos Zod de IA do Meu Material: aceita estrutura válida de resumo, flashcards e questões",
+      "validatedOn": "2026-10-14"
+    },
+    "REG-MAT-008": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Contratos Zod de IA do Meu Material: rejeição de alternativas duplicadas, contagens fora dos limites e cobertura determinada pelo servidor",
+      "validatedOn": "2026-10-14"
+    },
+    "REG-MAT-009": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Síntese de IA (/api/ai/material/gerar): sessão ausente ou inválida retorna 401 sem consumir IA",
+      "validatedOn": "2026-10-14"
+    },
+    "REG-MAT-010": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Síntese de IA (/api/ai/material/gerar): validação de entrada rejeita texto insuficiente (<100) e vazio com 400",
+      "validatedOn": "2026-10-14"
+    },
+    "REG-MAT-011": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Síntese de IA (/api/ai/material/gerar): geração com material válido conclui com sucesso e contrato estrutural íntegro (1 chamada Groq)",
+      "validatedOn": "2026-10-14"
+    },
+    "REG-MAT-012": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Síntese de IA (/api/ai/material/gerar): JSON malformado ou fora do contrato aciona Fixer e recupera estrutura",
+      "validatedOn": "2026-10-14"
+    },
+    "REG-MAT-013": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Síntese de IA (/api/ai/material/gerar): falha irrecuperável do Fixer retorna 422 e erro 429 do provedor retorna 429 sem cascata",
+      "validatedOn": "2026-10-14"
+    },
+    "REG-MAT-014": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Síntese de IA (/api/ai/material/gerar): metadados do cliente não forçam cobertura integral; 429 durante Fixer preserva status 429",
+      "validatedOn": "2026-10-14"
+    },
+    "REG-MAT-015": {
+      "domain": "material",
+      "kind": "browser",
+      "title": "Meu Material: integração frontend da síntese de IA com preservação em erro (429), renderização do estúdio (resumo, flashcards, questões) e reset",
+      "validatedOn": "2026-10-15"
+    },
+    "REG-AIVU-001": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Validação Zod de entrada: mensagem vazia, espaços em branco ou JSON malformado retorna 400 controlado",
+      "validatedOn": "2026-10-17"
+    },
+    "REG-AIVU-002": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Validação Zod de limites: mensagem > 1000 caracteres ou histórico > 8 itens retorna 400",
+      "validatedOn": "2026-10-17"
+    },
+    "REG-AIVU-003": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Sessão ausente, forjada, adulterada ou expirada retorna 401 sem invocar Groq",
+      "validatedOn": "2026-10-17"
+    },
+    "REG-AIVU-004": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Rate limit por usuário (15 req/15 min) bloqueia rajadas com 429",
+      "validatedOn": "2026-10-17"
+    },
+    "REG-AIVU-005": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Conversa válida com sessão assinada retorna 200, resposta markdown limpa e estado 'speaking' (1 chamada Groq)",
+      "validatedOn": "2026-10-17"
+    },
+    "REG-AIVU-006": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Resiliência contra falhas do provedor: 429 da Groq retorna 429 controlado, 5xx retorna 502 sem expor segredos",
+      "validatedOn": "2026-10-17"
+    },
+    "REG-AIVU-007": {
+      "domain": "aivu",
+      "kind": "browser",
+      "title": "Widget AIVU no navegador: envio com falha de IA recupera o mascote e reabilita o chat sem travar em thinking",
+      "validatedOn": "2026-10-17"
+    },
+    "REG-AIVU-008": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Isolamento de contexto e retrocompatibilidade com contexto ausente ou geral",
+      "validatedOn": "2026-10-22"
+    },
+    "REG-AIVU-009": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Contexto tipado por módulo e troca dinâmica de contexto pedagógico",
+      "validatedOn": "2026-10-22"
+    },
+    "REG-AIVU-010": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Regra restritiva de ancoragem no Meu Material: base estrita na fonte e rejeição de extrapolações",
+      "validatedOn": "2026-10-22"
+    },
+    "REG-AIVU-011": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Privacidade e orçamento de tokens: limites Zod em trecho_foco e poda defensiva de histórico",
+      "validatedOn": "2026-10-22"
+    },
+    "REG-AIVU-012": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Transição dinâmica de contexto entre telas (Questões -> Meu Material -> Reset): isolamento estrito sem resíduos",
+      "validatedOn": "2026-10-23"
+    },
+    "REG-AIVU-013": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Preservação do histórico pedagógico da conversa durante a navegação entre telas de estudo",
+      "validatedOn": "2026-10-23"
+    },
+    "REG-AIVU-014": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Trilhas: alternância dinâmica de contexto entre teoria, flashcards e questões sem retenção de estado anterior",
+      "validatedOn": "2026-10-23"
+    },
+    "REG-AIVU-015": {
+      "domain": "aivu",
+      "kind": "browser",
+      "title": "Widget AIVU no navegador: compatibilidade visual de estilos no DOM para sender 'aivu', 'aivo' e 'user'",
+      "validatedOn": "2026-10-24"
+    },
+    "REG-AIVU-016": {
+      "domain": "aivu",
+      "kind": "browser",
+      "title": "Navegação e Drawer global (/material e /redacao): abertura, fechamento por overlay/Escape, indicação de rota ativa e harmonia com o widget AIVU",
+      "validatedOn": "2026-10-25"
+    },
+    "REG-AIVU-017": {
+      "domain": "aivu",
+      "kind": "browser",
+      "title": "Chat mobile AIVU (360px e 390px): limites horizontais, densidade de mensagens e visibilidade sob viewport reduzido",
+      "validatedOn": "2026-10-25"
+    },
+    "REG-AIVU-018": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Ingestão de edital no chat AIVU: identificação de disciplinas e preparação de proposta estruturada de Jornada de Estudos sem persistência prematura",
+      "validatedOn": "2026-10-28"
+    },
+    "REG-AIVU-019": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Confirmação e persistência da proposta de jornada no D1 [Mock D1 in-memory SQLite]: idempotência por ementa_hash e proteção contra duplicação de cliques",
+      "validatedOn": "2026-10-28"
+    },
+    "REG-AIVU-020": {
+      "domain": "aivu",
+      "kind": "browser",
+      "title": "Widget AIVU no navegador: fluxo visual de proposta de edital e confirmação de criação da Jornada",
+      "validatedOn": "2026-10-29"
+    },
+    "REG-AIVU-021": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Edital seguido de solicitação: edital extenso colado pelo aluno é recuperado em material_text na mensagem subsequente de análise e o histórico não contém o edital integral (HTTP 200 + actionProposal)",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-022": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Histórico extenso: conversas com mensagens longas são podadas/resumidas defensivamente no histórico sem violar o limite Zod (max 2000) e sem retornar HTTP 400",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-023": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Preservação do material: o texto original do edital permanece integralmente disponível para o parser e a sumarização do histórico não altera o conteúdo da análise",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-024": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Conversa comum: mensagens curtas e histórico normal continuam funcionando sem acionar material_text nem proposta de edital",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-025": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Ação de cópia: utilitário seguro copia respostas simples, múltiplos parágrafos, listas e textos densos com isolamento de controles de interface e resiliência a falhas de permissão",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-026": {
+      "domain": "aivu",
+      "kind": "browser",
+      "title": "Ação de cópia no widget AIVU: botão de copiar no chat, feedback visual 'Copiado!', acessibilidade por leitor de tela e operação em viewport mobile",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-027": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "RAG documental no AIVU: pergunta específica sobre PDF aciona DOCUMENT_QA e retorna citações estruturadas sem disparar criação de Jornada",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-028": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Roteamento explícito de edital (EDITAL_JORNADA): solicitação de análise e proposta de Jornada preserva parseEditalToProposal",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-029": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Roteamento de conversação geral (GENERAL_CHAT): dúvidas gerais sem documento respondem sem injeção RAG nem actionProposal",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-030": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Recuperação lexical determinística (BM25-PT): busca de artigo, lei e número de página preserva pageNumber exato e determinismo",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-031": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Ancoragem restritiva documental: pergunta sem correspondência no material responde 'Informação não encontrada no material fornecido' com zero chamadas à IA",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-032": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Defesa contra prompt injection documental: sanitização de delimitadores (aspas triplas, XML, ChatML e override de sistema) e isolamento em <documento_nao_confiavel>",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-033": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Segurança D1 Anti-IDOR em falha segura (Fail-Closed): proprietário acessa (200), outro usuário bloqueado (403), ID inexistente bloqueado (403), D1 indisponível bloqueado (503) e userId do cliente ignorado",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-034": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Continuidade documental na sessão: perguntas subsequentes reutilizam activeDocument sem poluir o histórico e limpam no reset",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-035": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Orçamento de tokens com RAG ativo: soma de systemPersona, chunks recuperados, histórico e pergunta respeita MAX_TOTAL_INPUT_TOKENS (<= 2400)",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-036": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Sincronização de índice real em TrilhaSalaV2: questão e flashcard ativos refletem currentQuestao e currentFlashcard em vez de índice fixo 0",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-037": {
+      "domain": "aivu",
+      "kind": "browser",
+      "title": "Mobile-First RAG e citações no navegador (360x800, 375x812, 390x844, 430x932, 360x440 e 1366x768): referências de página, envio por toque, rolagem e zero overflow horizontal",
+      "validatedOn": "2026-11-07"
+    },
+    "REG-AIVU-PDF-001": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Upload de PDF: seleção de PDF válido é aprovada sem erro de metadados",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-002": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Upload de PDF: rejeição de arquivo com formato diferente de PDF",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-003": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Upload de PDF: rejeição rigorosa de arquivo acima de 15 MB",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-004": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Upload de PDF: validação da assinatura real (%PDF-) rejeita arquivos renomeados",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-005": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Extração de PDF: leitura de documento com várias páginas preserva contagem e dados",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-006": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Extração de PDF: preservação estrita da ordem das páginas e marcadores estruturais",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-007": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Tratamento defensivo: documento vazio ou escaneado (sem texto) sinaliza OCR",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-008": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Tratamento defensivo: PDF com dados corrompidos retorna erro amigável",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-009": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Endpoint AIVU (/api/ai/aivu/chat): upload multipart rejeita PDF inválido ou corrompido",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-010": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Endpoint AIVU (/api/ai/aivu/chat): upload multipart de PDF válido gera proposta de Jornada",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-011": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Edital com múltiplos cargos: solicita esclarecimento ao aluno antes de criar proposta",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-012": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Edital extenso em PDF: extração em blocos e consolidação de disciplinas sem truncamento",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-013": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Proposta de Jornada via PDF: payload preparado contém fonte 'PDF' e nome do arquivo",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-014": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Bloqueio de criação automática: anexar ou analisar edital não grava no banco",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-015": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Criação sob confirmação explícita: POST /api/jornadas persiste edital com fonte PDF no D1",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-016": {
+      "domain": "aivu",
+      "kind": "browser",
+      "title": "Preservação conversacional: mensagens de texto sem anexo continuam funcionando normalmente",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-017": {
+      "domain": "aivu",
+      "kind": "browser",
+      "title": "Botão Copiar em respostas do AIVU: permanece funcional em mensagens geradas via upload de PDF",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-018": {
+      "domain": "aivu",
+      "kind": "browser",
+      "title": "Responsividade mobile: composer, botão de clipe e barra de anexo no viewport de 390px",
+      "validatedOn": "2026-11-02"
+    },
+    "REG-AIVU-PDF-019": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Endpoint AIVU (/api/ai/aivu/chat): limite físico de 256 KB no stream antes de JSON.parse e independência de Content-Length",
+      "validatedOn": "2026-11-06"
+    },
+    "REG-AIVU-PDF-020": {
+      "domain": "aivu",
+      "kind": "api",
+      "title": "Sincronização PDF.js: versão exata 6.3.289 fixada, paridade SHA-256 entre core e worker e resiliência a falha de worker",
+      "validatedOn": "2026-11-06"
+    },
+    "REG-JORNADA-001": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Validação Zod dos contratos da Jornada de Edital: aceita ementa válida e rejeita estruturas malformadas ou vazias",
+      "validatedOn": "2026-10-18"
+    },
+    "REG-JORNADA-002": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Autenticação e integridade de sessão: requisições sem sessão, adulteradas ou forjadas retornam 401 controlado",
+      "validatedOn": "2026-10-18"
+    },
+    "REG-JORNADA-003": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Extração de ementa com IA (/api/ai/gerar-jornada): validação de limites (50-15.000 chars) e orçamento de tokens",
+      "validatedOn": "2026-10-18"
+    },
+    "REG-JORNADA-004": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Resiliência da extração de ementa: autocorreção via Fixer Prompt em 1 tentativa e rejeição de saída truncada",
+      "validatedOn": "2026-10-18"
+    },
+    "REG-JORNADA-005": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Criação persistida e idempotência [Mock D1 in-memory SQLite]: criação no D1 e retorno idempotente por ementa_hash",
+      "validatedOn": "2026-10-18"
+    },
+    "REG-JORNADA-006": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Isolamento anti-IDOR [Mock D1 in-memory SQLite]: proteção estrita contra acesso, início ou deleção cruzada",
+      "validatedOn": "2026-10-18"
+    },
+    "REG-JORNADA-007": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Concorrência e convergência determinística ao iniciar tópico [Mock D1 in-memory SQLite]: trilha estável sem órfãos",
+      "validatedOn": "2026-10-18"
+    },
+    "REG-JORNADA-008": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Conclusão explícita de tópico e cálculo do próximo passo [Mock D1 in-memory SQLite]: evento persistido e recomendação linear",
+      "validatedOn": "2026-10-18"
+    },
+    "REG-JORNADA-009": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Início de tópico resiliente [Mock D1 in-memory SQLite]: rejeita 404 sem vínculo persistido e preserva trilha preexistente sem sobrescrever",
+      "validatedOn": "2026-10-18"
+    },
+    "REG-JORNADA-010": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Segmentação e processamento de edital extenso com múltiplas disciplinas em blocos seguros",
+      "validatedOn": "2026-10-22"
+    },
+    "REG-JORNADA-011": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Tratamento defensivo de truncamento por limite de tokens e JSON incompleto com relatório de etapa",
+      "validatedOn": "2026-10-22"
+    },
+    "REG-JORNADA-012": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Preservação de conteúdo parcial em falha de bloco posterior e retomada sem duplicação",
+      "validatedOn": "2026-10-22"
+    },
+    "REG-JORNADA-013": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Consolidação determinística de ementas: deduplicação de disciplinas, tópicos repetidos e ordenação estável",
+      "validatedOn": "2026-10-22"
+    },
+    "REG-JORNADA-014": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Blindagem da retomada parcial: validação de hash do edital, rejeição de edital divergente ou hash ausente e preservação de conteúdo parcial",
+      "validatedOn": "2026-10-23"
+    },
+    "REG-JORNADA-015": {
+      "domain": "jornadas",
+      "kind": "api",
+      "title": "Contrato do frontend na retomada: preservação de edital_hash, bloco_inicio e conteudo_parcial em resposta 422",
+      "validatedOn": "2026-10-23"
+    },
+    "REG-MAT-016": {
+      "domain": "material",
+      "kind": "api",
+      "title": "Síntese de IA (/api/ai/material/gerar): geração adicional de questões (modo: questoes_adicionais) respeita limites (1-5), inclui trecho_referencia, contexto negativo e preserva fluxo padrão",
+      "validatedOn": "2026-11-08"
+    },
+    "REG-MAT-017": {
+      "domain": "material",
+      "kind": "browser",
+      "title": "Meu Material: geração adicional de questões no QuizTool preserva questões, score e progresso anteriores com concatenação de novas questões e recuperação de erros",
+      "validatedOn": "2026-11-08"
+    },
+    "REG-JORNADA-016": {
+      "domain": "jornadas",
+      "kind": "browser",
+      "title": "Acesso à rota /jornadas com autenticação válida exibe a Central de Editais e redireciona 401 sem sessão",
+      "validatedOn": "2026-11-08"
+    },
+    "REG-JORNADA-017": {
+      "domain": "jornadas",
+      "kind": "browser",
+      "title": "Dashboard exibe card único de Jornadas de Edital que navega para /jornadas",
+      "validatedOn": "2026-11-08"
+    },
+    "REG-JORNADA-018": {
+      "domain": "jornadas",
+      "kind": "browser",
+      "title": "SideDrawer exibe atalho de Jornadas de Edital em Ações Rápidas que navega para /jornadas e indica rota ativa",
+      "validatedOn": "2026-11-08"
+    },
+    "REG-JORNADA-019": {
+      "domain": "jornadas",
+      "kind": "browser",
+      "title": "Fluxos de criação e detalhe de Jornada possuem links de retorno direcionando confiavelmente para /jornadas",
+      "validatedOn": "2026-11-08"
+    },
+    "REG-JORNADA-020": {
+      "domain": "jornadas",
+      "kind": "browser",
+      "title": "Desacoplamento em /trilhas: ausência de UserJornadasSection e presença de banner contextual para /jornadas",
+      "validatedOn": "2026-11-08"
+    }
   }
 }

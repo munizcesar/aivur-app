@@ -55,7 +55,11 @@ const aivuMarkdownComponents: Components = {
 
 import ActionProposalCard from "./ActionProposalCard";
 import { CopyMessageButton } from "./CopyMessageButton";
-import { prepareAivuChatPayload, type AivuActionProposal } from "@/lib/validations/aivu-chat";
+import {
+  prepareAivuChatPayload,
+  type AivuActionProposal,
+  type AivuCitation,
+} from "@/lib/validations/aivu-chat";
 
 export default function AivoWidget() {
   const pathname = usePathname();
@@ -66,11 +70,13 @@ export default function AivoWidget() {
     targetAnchor,
     isSending,
     activeContext,
+    activeDocument,
     setIsOpen,
     addMessage,
     updateMessageProposal,
     setState,
     setIsSending,
+    setActiveDocument,
   } = useAivoStore();
   const isDrawerOpen = useQuizStore(s => s.isDrawerOpen);
   const quizModeActive = useQuizStore(s => s.step === 3 && s.mode !== 'redacao' && s.mode !== 'aivos360'); 
@@ -86,6 +92,7 @@ export default function AivoWidget() {
     visualHeight: number | null;
   }>({ keyboardOffset: 0, visualHeight: null });
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatBodyRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isSendingRef = useRef(false);
   const recoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -200,10 +207,10 @@ export default function AivoWidget() {
     }
   }, [isDrawerOpen, setIsOpen]);
 
-  // Scroll to bottom
+  // Scroll to bottom restrained exclusively to the internal chatBody container
   useEffect(() => {
-    if (isOpen) {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isOpen && chatBodyRef.current) {
+      chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
     }
   }, [messages, isOpen]);
 
@@ -240,10 +247,17 @@ export default function AivoWidget() {
         return;
       }
 
-      // Extração com sucesso: desanexa o arquivo do chip e limpa input
+      // Extração com sucesso: desanexa o arquivo do chip, registra na sessão e limpa input
       setSelectedFile(null);
       setFileValidationWarning(null);
       setInputValue("");
+      setActiveDocument({
+        name: extraction.data.fileName,
+        text: extraction.data.text,
+        size: extraction.data.fileSizeBytes,
+        pageCount: extraction.data.pageCount,
+        fonte: "PDF",
+      });
 
       addMessage({
         sender: 'user',
@@ -251,6 +265,7 @@ export default function AivoWidget() {
         fileAttachment: {
           name: extraction.data.fileName,
           size: extraction.data.fileSizeBytes,
+          pageCount: extraction.data.pageCount,
         },
       });
 
@@ -281,8 +296,14 @@ export default function AivoWidget() {
             reply: string;
             state?: string;
             actionProposal?: AivuActionProposal;
+            citations?: AivuCitation[];
           };
-          addMessage({ sender: 'aivo', text: data.reply, actionProposal: data.actionProposal });
+          addMessage({
+            sender: 'aivo',
+            text: data.reply,
+            actionProposal: data.actionProposal,
+            citations: data.citations,
+          });
           clearRecoveryTimer();
           setState('speaking');
           recoveryTimerRef.current = setTimeout(() => {
@@ -330,13 +351,28 @@ export default function AivoWidget() {
     // Fluxo convencional de texto
     addMessage({ sender: 'user', text });
 
+    // Se o usuário colou diretamente um material/edital extenso no chat, mantém na sessão ativa
+    if (text.length >= 250) {
+      setActiveDocument({
+        name: "Material Colado no Chat",
+        text: text.slice(0, 40000),
+        size: text.length,
+        pageCount: 1,
+        fonte: "TEXTO",
+      });
+    }
+
     // Prepara o payload defensivo separando message, material_text e history sumarizado
     const payload = prepareAivuChatPayload({
       text,
+      activeDocument,
       messages,
       activeContext,
       pathname,
     });
+
+    // Limpa imediatamente o campo de digitação ao enviar a mensagem
+    setInputValue("");
 
     try {
       const response = await fetch("/api/ai/aivu/chat", {
@@ -346,8 +382,18 @@ export default function AivoWidget() {
       });
 
       if (response.ok) {
-        const data = await response.json() as { reply: string; state?: string; actionProposal?: AivuActionProposal };
-        addMessage({ sender: 'aivo', text: data.reply, actionProposal: data.actionProposal });
+        const data = (await response.json()) as {
+          reply: string;
+          state?: string;
+          actionProposal?: AivuActionProposal;
+          citations?: AivuCitation[];
+        };
+        addMessage({
+          sender: 'aivo',
+          text: data.reply,
+          actionProposal: data.actionProposal,
+          citations: data.citations,
+        });
         clearRecoveryTimer();
         setState('speaking');
         recoveryTimerRef.current = setTimeout(() => {
@@ -452,7 +498,7 @@ export default function AivoWidget() {
               </button>
             </div>
             
-            <div className={styles.chatBody}>
+            <div ref={chatBodyRef} className={styles.chatBody}>
               {messages.map((msg) => {
                 const isAssistant = msg.sender === 'aivo' || msg.sender === 'aivu';
                 const messageClass = `${styles.message} ${styles[msg.sender] || (msg.sender === 'user' ? styles.user : styles.aivo)}`;
@@ -465,6 +511,37 @@ export default function AivoWidget() {
                             {msg.text}
                           </ReactMarkdown>
                         </div>
+                        {isAssistant && msg.citations && msg.citations.length > 0 && (
+                          <div
+                            className={styles.citationsWrap}
+                            role="region"
+                            aria-label="Fontes consultadas no documento"
+                            data-testid="aivu-citations"
+                          >
+                            <div className={styles.citationsHeader}>
+                              <FileText size={13} className="shrink-0 flex-none" />
+                              <span>Fontes consultadas ({msg.citations.length})</span>
+                            </div>
+                            <div className={styles.citationsList}>
+                              {msg.citations.map((cit, idx) => (
+                                <div key={idx} className={styles.citationCard}>
+                                  <div className={styles.citationMeta}>
+                                    <span className={styles.citationSource} title={cit.source}>
+                                      {cit.source}
+                                    </span>
+                                    <span className={styles.citationPageBadge}>
+                                      {cit.page ? `Pág. ${cit.page}` : "Pág. N/I"}
+                                    </span>
+                                  </div>
+                                  {cit.section && (
+                                    <div className={styles.citationSection}>{cit.section}</div>
+                                  )}
+                                  <p className={styles.citationExcerpt}>“{cit.excerpt}”</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         {isAssistant && msg.actionProposal && (
                           <ActionProposalCard
                             proposal={msg.actionProposal}

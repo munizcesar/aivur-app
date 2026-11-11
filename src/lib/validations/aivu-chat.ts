@@ -69,12 +69,25 @@ export const AivuChatRequestSchema = z
     }
   );
 
+export const AivuCitationSchema = z.object({
+  source: z.string().trim().min(1).max(255),
+  page: z.number().int().positive().optional(),
+  section: z.string().trim().max(180).optional(),
+  excerpt: z.string().trim().min(1).max(400),
+});
+
+export const AivuIntentEnum = z.enum(["EDITAL_JORNADA", "DOCUMENT_QA", "GENERAL_CHAT"]);
+
 export const AivuChatResponseSchema = z.object({
   reply: z.string().min(1, "Resposta não pode ser vazia."),
   state: z.enum(["speaking", "idle", "concerned", "success"]).default("speaking"),
   actionProposal: AivuActionProposalSchema.optional(),
+  citations: z.array(AivuCitationSchema).max(3).optional(),
+  intent: AivuIntentEnum.optional(),
 });
 
+export type AivuCitation = z.infer<typeof AivuCitationSchema>;
+export type AivuIntent = z.infer<typeof AivuIntentEnum>;
 export type AivuChatMessage = z.infer<typeof AivuChatMessageSchema>;
 export type AivuActionProposal = z.infer<typeof AivuActionProposalSchema>;
 export type AivuPdfFileInfo = z.infer<typeof AivuPdfFileInfoSchema>;
@@ -160,8 +173,112 @@ export function isAnalysisRequest(text: string): boolean {
 }
 
 /**
- * Procura no histórico recente se existe algum edital/material anterior válido enviado pelo usuário.
+ * Identifica se a mensagem do usuário é uma solicitação explícita para criar/estruturar
+ * uma Jornada ou Trilha de estudos a partir do edital.
  */
+export function isExplicitJornadaCreationRequest(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length < 3) return false;
+  const lower = trimmed.toLowerCase();
+  const creationPatterns = [
+    /\bjornad/i,
+    /\bpropost/i,
+    /\bcronograma/i,
+    /\btrilha/i,
+    /\bplano\s+de\s+estudos?\b/i,
+    /\b(?:cri(?:e|ar)|mont(?:e|ar)|ger(?:e|ar)|prepar(?:e|ar)|transform(?:e|ar)|estrutur(?:e|ar)|elabor(?:e|ar))\b.*\b(?:edital|jornada|proposta|estudos?|disciplinas?|mat[eé]rias?|conte[uú]do|cargo)\b/i,
+    /^analise\s+(?:todo\s+o\s+|o\s+|este\s+|esse\s+|meu\s+)?(?:edital|conte[uú]do\s+program[aá]tico|material)/i,
+    /^analise\s+para\s+/i,
+    /(?:cargo(?:\s*:\s*|\s+de\s+)|\bquero\s+(?:o\s+)?cargo\s+de\s+)/i,
+  ];
+  return creationPatterns.some((p) => p.test(lower));
+}
+
+/**
+ * Identifica se a mensagem é uma pergunta pontual ou pedido de explicação sobre o documento/material
+ * (ex: dúvidas sobre páginas, artigos, leis, prazos, requisitos, conceitos da apostila/PDF).
+ */
+export function isDocumentQuestionPattern(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length < 3 || trimmed.length > 800) return false;
+
+  // Se o usuário pediu explicitamente para criar a jornada/proposta, não é mera dúvida documental
+  if (isExplicitJornadaCreationRequest(trimmed)) {
+    return false;
+  }
+
+  const lower = trimmed.toLowerCase();
+  const questionPatterns = [
+    /\?$/,
+    /^(?:qual|quais|como|onde|quando|quanto|quantos|quantas|por\s*que|porque|quem)\b/i,
+    /\b(?:o\s+que\s+(?:diz|fala|consta|trata|significa|é|sao|são)|explique|explica|resuma|detalhe|cite|localize|busque|encontre)\b/i,
+    /\b(?:p[aá]gina|p[aá]g\.?|artigo|art\.?|inciso|par[aá]grafo|§|lei\s+n?[ºo°\.]?\s*\d|decreto|s[uú]mula)\b/i,
+    /\b(?:segundo\s+o\s+(?:pdf|documento|material|texto|edital|artigo)|no\s+(?:pdf|documento|material|anexo|texto)|de\s+acordo\s+com\s+o)\b/i,
+    /\b(?:taxa\s+de\s+inscri[çc][aã]o|isen[çc][aã]o|requisito|prazo|remunera[çc][aã]o|sal[aá]rio|vagas|data\s+da\s+prova|est[aá]gio\s+probat[oó]rio|posse|exerc[ií]cio)\b/i,
+  ];
+
+  return questionPatterns.some((p) => p.test(lower));
+}
+
+/**
+ * Classificador determinístico de intenção para o roteamento do AIVU (Fase B.2):
+ * - EDITAL_JORNADA: análise de edital para estruturação de disciplinas e criação de Jornada/Trilha
+ * - DOCUMENT_QA: perguntas, buscas de artigos/páginas e explicações fundamentadas no documento/material
+ * - GENERAL_CHAT: conversação geral ou pedagógica sem recuperação documental RAG
+ */
+export function classifyAivuIntent(params: {
+  message: string;
+  material_text?: string;
+  context?: {
+    modulo?: string;
+    atividade?: string;
+    trecho_foco?: string;
+  } | null;
+}): AivuIntent {
+  const { message, material_text, context } = params;
+  const trimmedMsg = (message || "").trim();
+
+  const hasMaterialText = typeof material_text === "string" && material_text.trim().length >= 20;
+  const isMsgDirectEdital = !hasMaterialText && isEditalPattern(trimmedMsg);
+  const candidateDoc = hasMaterialText ? material_text!.trim() : isMsgDirectEdital ? trimmedMsg : undefined;
+
+  if (candidateDoc) {
+    const docLooksLikeEdital = isEditalPattern(candidateDoc);
+
+    // Se o usuário faz uma pergunta específica sobre o documento (e não pediu criação de jornada)
+    if (!isMsgDirectEdital && isDocumentQuestionPattern(trimmedMsg)) {
+      return "DOCUMENT_QA";
+    }
+
+    // Se for uma solicitação explícita de criação de jornada ou análise pedagógica de edital -> EDITAL_JORNADA
+    if (isMsgDirectEdital || isExplicitJornadaCreationRequest(trimmedMsg) || (docLooksLikeEdital && isAnalysisRequest(trimmedMsg))) {
+      return "EDITAL_JORNADA";
+    }
+
+    // Se o documento NÃO é um edital (ex: apostila, lei seca, resumo de aula) -> DOCUMENT_QA
+    if (!docLooksLikeEdital) {
+      return "DOCUMENT_QA";
+    }
+
+    // Fallback para documento quando acompanhado de dúvida
+    return "DOCUMENT_QA";
+  }
+
+  // Se está no módulo "material" com trecho_foco ativo, trata como DOCUMENT_QA
+  if (context?.modulo === "material" && context?.trecho_foco && context.trecho_foco.trim().length >= 20) {
+    return "DOCUMENT_QA";
+  }
+
+  return "GENERAL_CHAT";
+}
+
+export interface AivuActiveSessionDocument {
+  name: string;
+  text: string;
+  size?: number;
+  pageCount?: number;
+  fonte?: "PDF" | "TEXTO";
+}
 export function findPreviousEdital(
   messages: Array<{ sender: string; text?: string }>
 ): string | undefined {
@@ -189,6 +306,7 @@ export function prepareAivuChatPayload(params: {
   text: string;
   material_text?: string;
   file_info?: AivuPdfFileInfo;
+  activeDocument?: AivuActiveSessionDocument | null;
   messages: Array<{ sender: string; text?: string }>;
   activeContext?: any;
   pathname?: string | null;
@@ -199,7 +317,7 @@ export function prepareAivuChatPayload(params: {
   history: Array<{ role: "user" | "assistant"; content: string }>;
   context?: any;
 } {
-  const { text, material_text, file_info, messages, activeContext, pathname } = params;
+  const { text, material_text, file_info, activeDocument, messages, activeContext, pathname } = params;
 
   // 1. Contexto da página
   let effectiveContext = activeContext;
@@ -245,6 +363,7 @@ export function prepareAivuChatPayload(params: {
   // 3. Detecção e separação de message e material_text
   let messageField: string;
   let materialField: string | undefined;
+  let effectiveFileInfo: AivuPdfFileInfo | undefined = file_info;
 
   if (material_text) {
     messageField = text.slice(0, 1000) || "Analise o edital em anexo e elabore uma proposta de Jornada de Estudos.";
@@ -252,16 +371,31 @@ export function prepareAivuChatPayload(params: {
   } else {
     const isDirectLongMaterial = text.length > 1000;
     const previousEdital = findPreviousEdital(messages);
+    const sessionDocText =
+      activeDocument && typeof activeDocument.text === "string" && activeDocument.text.trim().length >= 20
+        ? activeDocument.text.trim().slice(0, 40000)
+        : undefined;
 
     if (isDirectLongMaterial) {
       messageField = "Analise o edital enviado e prepare uma proposta de Jornada de Estudos.";
       materialField = text;
-    } else if (previousEdital && isAnalysisRequest(text)) {
+    } else if (previousEdital && (isAnalysisRequest(text) || isDocumentQuestionPattern(text))) {
       messageField = text.slice(0, 1000);
       materialField = previousEdital;
     } else if (isEditalPattern(text)) {
       messageField = "Analise o edital enviado e prepare uma proposta de Jornada de Estudos.";
       materialField = text;
+    } else if (sessionDocText) {
+      messageField = text.slice(0, 1000);
+      materialField = sessionDocText;
+      if (!effectiveFileInfo && activeDocument?.fonte === "PDF" && activeDocument.name) {
+        effectiveFileInfo = {
+          name: activeDocument.name.slice(0, 255),
+          size: Math.min(Math.max(1, activeDocument.size || sessionDocText.length), 15 * 1024 * 1024),
+          pageCount: Math.min(Math.max(1, activeDocument.pageCount || 1), 100),
+          fonte: "PDF",
+        };
+      }
     } else {
       messageField = text.slice(0, 1000);
       materialField = undefined;
@@ -271,7 +405,7 @@ export function prepareAivuChatPayload(params: {
   return {
     message: messageField,
     material_text: materialField,
-    file_info,
+    file_info: effectiveFileInfo,
     history: historyPayload,
     context: effectiveContext || undefined,
   };

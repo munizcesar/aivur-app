@@ -190,7 +190,7 @@ export default function JornadaView({ initialJornada }: JornadaViewProps) {
         const data = (await res.json()) as { error?: string };
         throw new Error(data.error || "Falha ao excluir jornada.");
       }
-      router.push("/trilhas");
+      router.push("/jornadas");
     } catch (err: any) {
       setErrorMessage(err.message || "Erro ao excluir jornada.");
       setIsDeleting(false);
@@ -206,11 +206,11 @@ export default function JornadaView({ initialJornada }: JornadaViewProps) {
       {/* Top Navigation */}
       <div className="flex items-center justify-between">
         <Link
-          href="/trilhas"
+          href="/jornadas"
           className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
         >
           <ArrowLeft size={16} className="shrink-0 flex-none" />
-          Voltar para Trilhas
+          Voltar para Jornadas
         </Link>
 
         <button

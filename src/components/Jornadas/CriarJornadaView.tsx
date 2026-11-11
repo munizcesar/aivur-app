@@ -8,6 +8,7 @@ import {
   UploadCloud,
   AlertCircle,
   FolderCheck,
+  ArrowLeft,
   Compass,
   RefreshCw,
 } from "lucide-react";
@@ -241,10 +242,10 @@ export default function CriarJornadaView() {
 
         <button
           type="button"
-          onClick={() => router.push("/trilhas")}
+          onClick={() => router.push("/jornadas")}
           className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-heading)] transition-colors"
         >
-          <FolderCheck size={16} /> Voltar para trilhas
+          <ArrowLeft size={16} className="shrink-0 flex-none" /> Voltar para jornadas
         </button>
       </div>
 

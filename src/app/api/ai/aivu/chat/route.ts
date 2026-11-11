@@ -7,7 +7,16 @@ import { verifySessionCookie } from "@/lib/session";
 import { callGroqWithFallback, getGroqKeysFromEnv } from "@/lib/groq";
 import { extractCleanMarkdown } from "@/lib/ai-protocols";
 import { InMemoryRateLimiter } from "@/lib/material-rate-limit";
-import { AivuChatRequestSchema } from "@/lib/validations/aivu-chat";
+import {
+  AivuChatRequestSchema,
+  classifyAivuIntent,
+  type AivuCitation,
+} from "@/lib/validations/aivu-chat";
+import {
+  chunkDocumentWithPages,
+  retrieveRelevantChunks,
+  type RetrievedChunk,
+} from "@/lib/aivu-rag";
 
 /**
  * Limitador em memória para conversas com o AIVU.
@@ -93,19 +102,20 @@ async function readBoundedJsonBody(
   }
 }
 
-function resolveEnv(): Record<string, string | undefined> {
+function resolveEnv(): Record<string, any> {
   let cfEnv: Record<string, any> = {};
   try {
     const ctx = getRequestContext();
     if (ctx?.env) cfEnv = ctx.env as any;
   } catch (_) {}
 
-  if (cfEnv.GROQ_API_KEY) return cfEnv;
-
   const g = globalThis as any;
-  if (g.GROQ_API_KEY) return { ...cfEnv, ...g };
+  const regEnv = g.__REG_CF_CONTEXT?.env || {};
 
-  return { ...cfEnv, ...(process.env as any) };
+  if (cfEnv.GROQ_API_KEY) return { ...regEnv, ...cfEnv };
+  if (g.GROQ_API_KEY) return { ...regEnv, ...cfEnv, ...g };
+
+  return { ...(process.env as any), ...regEnv, ...cfEnv };
 }
 
 export async function POST(req: Request) {
@@ -176,7 +186,7 @@ export async function POST(req: Request) {
 
   const { message, material_text, file_info, history = [], context } = parseResult.data;
 
-  // 4. Resolução de credenciais do provedor de IA
+  // 4. Resolução de credenciais do provedor de IA e banco D1
   const env = resolveEnv();
   const groqApiKeys = getGroqKeysFromEnv(env);
 
@@ -187,53 +197,199 @@ export async function POST(req: Request) {
     );
   }
 
-  // 5. Roteamento Inteligente: Detecção de Edital e Geração de Proposta de Jornada
-  const { isEditalPattern, parseEditalToProposal } = await import("@/lib/aivu-edital");
-  const candidateEdital = material_text || (isEditalPattern(message) ? message : undefined);
+  // 4.1 Verificação Anti-IDOR em Falha Segura (Fail-Closed) no D1 para recursos persistidos (trilhas / jornadas)
+  // - Identidade autoritativa: exclusivamente `userId` extraído de `verifySessionCookie` (qualquer userId enviado pelo cliente é ignorado)
+  // - Consulta escopada por propriedade: `WHERE id = ? AND user_id = ?`
+  // - Sem fallback permissivo: binding D1 ausente/indisponível (503), ID inexistente ou pertencente a outro usuário (403) bloqueiam a requisição antes da IA
+  const rawTrilhaId = context?.metadados?.trilhaId?.trim();
+  const rawJornadaId = context?.metadados?.jornadaId?.trim();
+  const isMockTrilhaId = rawTrilhaId ? /^t-00[1-4]$/.test(rawTrilhaId) : false;
+  const requiresTrilhaCheck = Boolean(rawTrilhaId && !isMockTrilhaId);
+  const requiresJornadaCheck = Boolean(rawJornadaId);
 
-  if (candidateEdital) {
-    try {
-      // Extrai intenção de cargo específico da mensagem do usuário se houver
-      let userTargetCargo: string | undefined;
-      const cargoExplicitMatch = message.match(/(?:cargo(?:\s*:\s*|\s+de\s+)|\bquero\s+(?:o\s+)?cargo\s+de\s+)([A-ZÁÉÍÓÚÂÊÔÃÕÇ\s\-\/]{3,50})/i);
-      if (cargoExplicitMatch) {
-        userTargetCargo = cargoExplicitMatch[1].trim();
+  if (requiresTrilhaCheck || requiresJornadaCheck) {
+    const db = env.D1_DB || env.DB;
+    if (!db || typeof db.prepare !== "function") {
+      return NextResponse.json(
+        {
+          error:
+            "Acesso bloqueado por segurança: banco de dados de verificação de propriedade indisponível.",
+        },
+        { status: 503 }
+      );
+    }
+
+    if (requiresTrilhaCheck && rawTrilhaId) {
+      let ownedTrilha: { id: string; user_id: string } | null = null;
+      try {
+        ownedTrilha = (await db
+          .prepare("SELECT id, user_id FROM trilhas WHERE id = ? AND user_id = ?")
+          .bind(rawTrilhaId, userId)
+          .first()) as { id: string; user_id: string } | null;
+      } catch {
+        return NextResponse.json(
+          { error: "Falha ao verificar permissão de acesso à trilha no banco de dados." },
+          { status: 503 }
+        );
       }
 
-      const editalResult = await parseEditalToProposal({
-        editalText: candidateEdital,
-        groqApiKeys,
-        fonteTipo: file_info ? "PDF" : "TEXTO",
-        nomeArquivo: file_info?.name,
-        targetCargo: userTargetCargo,
+      if (!ownedTrilha || ownedTrilha.user_id !== userId) {
+        return NextResponse.json(
+          {
+            error:
+              "Acesso negado: a trilha informada não existe ou não pertence ao usuário autenticado.",
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    if (requiresJornadaCheck && rawJornadaId) {
+      let ownedJornada: { id: string; user_id: string } | null = null;
+      try {
+        ownedJornada = (await db
+          .prepare("SELECT id, user_id FROM jornadas WHERE id = ? AND user_id = ?")
+          .bind(rawJornadaId, userId)
+          .first()) as { id: string; user_id: string } | null;
+      } catch {
+        return NextResponse.json(
+          { error: "Falha ao verificar permissão de acesso à jornada no banco de dados." },
+          { status: 503 }
+        );
+      }
+
+      if (!ownedJornada || ownedJornada.user_id !== userId) {
+        return NextResponse.json(
+          {
+            error:
+              "Acesso negado: a jornada informada não existe ou não pertence ao usuário autenticado.",
+          },
+          { status: 403 }
+        );
+      }
+    }
+  }
+
+  // 5. Roteamento Inteligente por Intenção (Fase B.2: EDITAL_JORNADA vs DOCUMENT_QA vs GENERAL_CHAT)
+  const intent = classifyAivuIntent({
+    message,
+    material_text,
+    context,
+  });
+
+  if (intent === "EDITAL_JORNADA") {
+    const { isEditalPattern, parseEditalToProposal } = await import("@/lib/aivu-edital");
+    const candidateEdital = material_text || (isEditalPattern(message) ? message : undefined);
+
+    if (candidateEdital) {
+      try {
+        // Extrai intenção de cargo específico da mensagem do usuário se houver
+        let userTargetCargo: string | undefined;
+        const cargoExplicitMatch = message.match(
+          /(?:cargo(?:\s*:\s*|\s+de\s+)|\bquero\s+(?:o\s+)?cargo\s+de\s+)([A-ZÁÉÍÓÚÂÊÔÃÕÇ\s\-\/]{3,50})/i
+        );
+        if (cargoExplicitMatch) {
+          userTargetCargo = cargoExplicitMatch[1].trim();
+        }
+
+        const editalResult = await parseEditalToProposal({
+          editalText: candidateEdital,
+          groqApiKeys,
+          fonteTipo: file_info ? "PDF" : "TEXTO",
+          nomeArquivo: file_info?.name,
+          targetCargo: userTargetCargo,
+        });
+
+        if (editalResult.success) {
+          if (editalResult.actionProposal && editalResult.reply) {
+            return NextResponse.json({
+              reply: editalResult.reply,
+              state: "speaking",
+              intent,
+              actionProposal: editalResult.actionProposal,
+              fileInfo: file_info
+                ? {
+                    name: file_info.name,
+                    size: file_info.size,
+                    pageCount: file_info.pageCount,
+                  }
+                : undefined,
+            });
+          }
+
+          // Se retornou resposta de orientação/esclarecimento (ex: múltiplos cargos)
+          if (editalResult.reply) {
+            return NextResponse.json({
+              reply: editalResult.reply,
+              state: "speaking",
+              intent,
+            });
+          }
+        }
+      } catch (editalErr: any) {
+        console.warn("[aivu/chat] Falha na extração de edital, caindo para conversa padrão:", editalErr);
+      }
+    }
+  }
+
+  // 5.1 Recuperação Lexical Determinística (RAG) para perguntas sobre documentos e materiais
+  let retrievedChunks: RetrievedChunk[] = [];
+  let citations: AivuCitation[] | undefined = undefined;
+  const documentSourceName =
+    file_info?.name || context?.titulo || (material_text ? "Documento Anexado" : undefined);
+  const rawDocForRag =
+    material_text && material_text.trim().length >= 20
+      ? material_text
+      : intent === "DOCUMENT_QA" && context?.trecho_foco && context.trecho_foco.trim().length >= 20
+      ? context.trecho_foco
+      : undefined;
+  const hasActiveDocument = Boolean(rawDocForRag);
+
+  if (intent === "DOCUMENT_QA" && rawDocForRag) {
+    const docChunks = chunkDocumentWithPages(rawDocForRag, {
+      maxChunkChars: 750,
+      overlapChars: 120,
+      sourceName: documentSourceName || "Material do Aluno",
+    });
+
+    retrievedChunks = retrieveRelevantChunks(message, docChunks, {
+      maxChunks: 3,
+      maxTotalChars: 1800,
+    });
+
+    if (retrievedChunks.length > 0) {
+      citations = retrievedChunks.map((rc) => {
+        const cleanExcerpt = rc.sanitizedText
+          .replace(/---\s*P[aá]gina\s*\d+\s*---/gi, "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 220);
+        return {
+          source: (rc.sourceName || documentSourceName || "Material do Aluno").slice(0, 255),
+          ...(rc.pageNumber ? { page: rc.pageNumber } : {}),
+          ...(rc.sectionHeader ? { section: rc.sectionHeader.slice(0, 180) } : {}),
+          excerpt: cleanExcerpt || rc.sanitizedText.slice(0, 220),
+        };
       });
-
-      if (editalResult.success) {
-        if (editalResult.actionProposal && editalResult.reply) {
-          return NextResponse.json({
-            reply: editalResult.reply,
-            state: "speaking",
-            actionProposal: editalResult.actionProposal,
-            fileInfo: file_info
-              ? {
-                  name: file_info.name,
-                  size: file_info.size,
-                  pageCount: file_info.pageCount,
-                }
-              : undefined,
-          });
-        }
-
-        // Se retornou resposta de orientação/esclarecimento (ex: múltiplos cargos)
-        if (editalResult.reply) {
-          return NextResponse.json({
-            reply: editalResult.reply,
-            state: "speaking",
-          });
-        }
-      }
-    } catch (editalErr: any) {
-      console.warn("[aivu/chat] Falha na extração de edital, caindo para conversa padrão:", editalErr);
+    } else if (material_text) {
+      // Quando há documento explícito em material_text e nenhum trecho alcança o limiar mínimo de relevância,
+      // retorna resposta determinística ancorada sem alucinar fatos externos e sem desperdiçar chamada de IA.
+      return NextResponse.json({
+        reply:
+          "Informação não encontrada no material fornecido. Não localizei nenhum trecho correspondente à sua pergunta nas páginas do documento enviado.",
+        state: "speaking",
+        intent,
+        citations: [],
+        ...(file_info
+          ? {
+              fileInfo: {
+                name: file_info.name,
+                size: file_info.size,
+                pageCount: file_info.pageCount,
+              },
+            }
+          : {}),
+      });
     }
   }
 
@@ -243,9 +399,12 @@ export async function POST(req: Request) {
     message,
     history,
     context,
+    retrievedChunks,
+    documentSource: documentSourceName,
+    hasActiveDocument,
   });
 
-  // 6. Invocação da Groq com suporte nativo a failover
+  // 7. Invocação da Groq com suporte nativo a failover
   try {
     const rawReply = await callGroqWithFallback(messages, {
       model: "openai/gpt-oss-120b",
@@ -266,6 +425,17 @@ export async function POST(req: Request) {
     return NextResponse.json({
       reply: cleanReply,
       state: "speaking",
+      intent,
+      ...(citations ? { citations } : {}),
+      ...(file_info
+        ? {
+            fileInfo: {
+              name: file_info.name,
+              size: file_info.size,
+              pageCount: file_info.pageCount,
+            },
+          }
+        : {}),
     });
   } catch (error: any) {
     const status = error?.status || (error?.response?.status) || 500;
